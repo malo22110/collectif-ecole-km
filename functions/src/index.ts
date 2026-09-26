@@ -2,6 +2,7 @@ import { setGlobalOptions } from "firebase-functions/v2";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as nodemailer from "nodemailer";
 import * as logger from "firebase-functions/logger";
+import { getEmailFooter, getBaseHtmlTemplate } from "./emailTemplates";
 
 setGlobalOptions({ region: "europe-west9" });
 
@@ -26,43 +27,46 @@ export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{memb
       },
     });
 
-    const textContent = `Bonjour ${membreApres.prenom},
+    const prenom = membreApres.prenom;
 
-Bonne nouvelle, votre candidature a été validée par l'équipe !
+    const textContent = `Bonjour ${prenom},
 
-Merci beaucoup d'avoir rejoint le collectif. Votre soutien est précieux pour relancer le projet de l'école de Kergrist-Moëlou.
+Bonne nouvelle : votre adhésion au collectif « Un nid tout neuf pour nos écureuils » a été validée ! Vous faites désormais officiellement partie de notre dynamique citoyenne pour l'avenir de l'école.
 
-Nous reviendrons vers vous très vite avec les prochaines actions.
+Les échéances clés en cours :
+- Presse locale : notre communiqué a été transmis aux rédactions locales pour faire entendre notre voix constructive.
+- Pétition citoyenne : nous préparons sa diffusion large pour appuyer la demande de révision budgétaire du projet.
+- Conseil municipal du 13 octobre : notre demande officielle de création d’une commission extra-municipale est transmise aux élus.
 
-Malo & Axelle - Le Collectif
+Nous vous tiendrons régulièrement informé(e) des avancées par mail. Si vous souhaitez participer plus activement aux groupes de travail ou faire part de compétences particulières, répondez simplement à ce message.
 
----
-Ce message est envoyé automatiquement. Si vous n'avez pas fait cette demande, veuillez l'ignorer.`;
+Encore merci pour votre soutien et bienvenue parmi nous !
+${getEmailFooter(false)}`;
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-      </head>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #059669;">Bonjour ${membreApres.prenom},</h2>
-        <p>Bonne nouvelle, votre candidature a été <b>validée</b> par l'équipe !</p>
-        <p>Merci beaucoup d'avoir rejoint le collectif. Votre soutien est précieux pour relancer le projet de l'école de Kergrist-Moëlou.</p>
-        <p>Nous reviendrons vers vous très vite avec les prochaines actions.</p>
-        <br/>
-        <p><i>Malo & Axelle - Le Collectif</i></p>
-        <hr style="border: none; border-top: 1px solid #e5e7eb; margin-top: 30px; margin-bottom: 20px;">
-        <p style="font-size: 12px; color: #6b7280;">Ce message vous a été envoyé car vous avez rejoint le collectif. Si c'est une erreur, vous pouvez ignorer cet e-mail.</p>
-      </body>
-      </html>
+    const htmlBodyContent = `
+      <h2 style="color: #059669; font-size: 20px;">Bonjour ${prenom},</h2>
+      
+      <p>Bonne nouvelle : votre adhésion au collectif « Un nid tout neuf pour nos écureuils » a été <b>validée</b> ! Vous faites désormais officiellement partie de notre dynamique citoyenne pour l'avenir de l'école.</p>
+      
+      <h3 style="color: #1f2937; font-size: 16px; margin-top: 24px;">Les échéances clés en cours :</h3>
+      <ul style="padding-left: 20px; margin-bottom: 24px;">
+        <li style="margin-bottom: 8px;"><b>Presse locale :</b> notre communiqué a été transmis aux rédactions locales pour faire entendre notre voix constructive.</li>
+        <li style="margin-bottom: 8px;"><b>Pétition citoyenne :</b> nous préparons sa diffusion large pour appuyer la demande de révision budgétaire du projet.</li>
+        <li style="margin-bottom: 8px;"><b>Conseil municipal du 13 octobre :</b> notre demande officielle de création d’une commission extra-municipale est transmise aux élus.</li>
+      </ul>
+
+      <p>Nous vous tiendrons régulièrement informé(e) des avancées par mail. Si vous souhaitez participer plus activement aux groupes de travail ou faire part de compétences particulières, <b>répondez simplement à ce message</b>.</p>
+
+      <p>Encore merci pour votre soutien et bienvenue parmi nous !</p>
     `;
+
+    const htmlContent = getBaseHtmlTemplate(htmlBodyContent);
 
     const mailOptions = {
       from: '"Collectif Kergrist-Moëlou" <collectif.ecole.km@gmail.com>',
       replyTo: 'collectif.ecole.km@gmail.com',
       to: membreApres.email,
-      subject: "Candidature validée - Bienvenue dans le collectif !",
+      subject: "Bienvenue au sein du collectif « Un nid tout neuf pour nos écureuils » ! 🐿️",
       text: textContent,
       html: htmlContent,
       headers: {
