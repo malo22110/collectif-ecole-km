@@ -4,8 +4,9 @@ exports.envoyerMailBienvenue = void 0;
 const functions = require("firebase-functions");
 const nodemailer = require("nodemailer");
 const logger = require("firebase-functions/logger");
+// On retire europe-west9 (qui pose problème avec App Engine) et on se place sur europe-west1 (Belgique, l'emplacement par défaut eur3)
 exports.envoyerMailBienvenue = functions
-    .region("europe-west9")
+    .region("europe-west1")
     .firestore.document("membres/{membreId}")
     .onCreate(async (snap, context) => {
     const membre = snap.data();
