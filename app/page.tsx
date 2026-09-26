@@ -45,6 +45,14 @@ export default function LandingPage() {
     
     try {
       const formData = new FormData(e.currentTarget);
+      const honeypot = formData.get('bot_field') as string;
+      if (honeypot) {
+        // C'est un bot, on simule le succès sans rien faire
+        setFormStatus('success');
+        e.currentTarget.reset();
+        return;
+      }
+
       const prenom = formData.get('firstName') as string;
       const nom = formData.get('lastName') as string;
       const email = formData.get('email') as string;
@@ -367,6 +375,12 @@ export default function LandingPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Honeypot (Anti-Spam Bot Trap) */}
+                  <div className="opacity-0 absolute -z-10 w-0 h-0 overflow-hidden" aria-hidden="true">
+                    <label htmlFor="bot_field">Ne remplissez pas ce champ</label>
+                    <input type="text" id="bot_field" name="bot_field" tabIndex={-1} autoComplete="off" />
+                  </div>
+
                   <div className="grid md:grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <label htmlFor="firstName" className="block text-sm font-medium text-stone-700">Prénom</label>
