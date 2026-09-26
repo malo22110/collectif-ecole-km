@@ -68,14 +68,7 @@ export default function LandingPage() {
         status: 'pending' // En attente de validation par l'administrateur
       });
 
-      // 2. On prépare un document dans la collection 'mail' pour déclencher l'envoi d'e-mail (Extension Firebase 'Trigger Email')
-      await addDoc(collection(db, 'mail'), {
-        to: email,
-        message: {
-          subject: "Bienvenue dans le collectif !",
-          html: "<p>Bonjour ${prenom},</p><p>Ce message sera remplacé par votre texte final...</p>" // TEMPORAIRE
-        }
-      });
+      
       
       setFormStatus("success");
     } catch (error) {
