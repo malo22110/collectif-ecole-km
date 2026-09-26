@@ -1,22 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.envoyerMailBienvenue = void 0;
-const firestore_1 = require("firebase-functions/v2/firestore");
+const functions = require("firebase-functions");
 const params_1 = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
 const logger = require("firebase-functions/logger");
-// Déclaration du secret (géré de manière chiffrée par Google Cloud Secret Manager)
 const emailPassword = (0, params_1.defineSecret)("GMAIL_PASSWORD");
-exports.envoyerMailBienvenue = (0, firestore_1.onDocumentCreated)({
-    document: "membres/{membreId}",
-    secrets: [emailPassword], // On donne l'accès au secret uniquement à cette fonction
-}, async (event) => {
-    const membre = event.data?.data();
+exports.envoyerMailBienvenue = functions
+    .runWith({ secrets: [emailPassword] })
+    .firestore.document("membres/{membreId}")
+    .onCreate(async (snap, context) => {
+    const membre = snap.data();
     if (!membre || !membre.email) {
-        logger.error("Pas d'email trouvé pour le membre", event.params.membreId);
+        logger.error("Pas d'email trouvé pour le membre", context.params.membreId);
         return;
     }
-    // Configuration du serveur SMTP avec le mot de passe déchiffré à la volée
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
