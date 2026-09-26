@@ -4,3 +4,7 @@ out/
 .env
 .env.local
 firebase-debug.log
+
+# Firebase Functions
+functions/.env
+functions/lib/

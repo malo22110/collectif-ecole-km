@@ -1,12 +1,8 @@
 import * as functions from "firebase-functions";
-import { defineSecret } from "firebase-functions/params";
 import * as nodemailer from "nodemailer";
 import * as logger from "firebase-functions/logger";
 
-const emailPassword = defineSecret("GMAIL_PASSWORD");
-
 export const envoyerMailBienvenue = functions
-  .runWith({ secrets: [emailPassword] })
   .firestore.document("membres/{membreId}")
   .onCreate(async (snap, context) => {
     const membre = snap.data();
@@ -20,7 +16,7 @@ export const envoyerMailBienvenue = functions
       service: "gmail",
       auth: {
         user: "collectif.ecole.km@gmail.com",
-        pass: emailPassword.value(),
+        pass: process.env.GMAIL_PASSWORD,
       },
     });
 

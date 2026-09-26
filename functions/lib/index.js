@@ -2,12 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.envoyerMailBienvenue = void 0;
 const functions = require("firebase-functions");
-const params_1 = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
 const logger = require("firebase-functions/logger");
-const emailPassword = (0, params_1.defineSecret)("GMAIL_PASSWORD");
 exports.envoyerMailBienvenue = functions
-    .runWith({ secrets: [emailPassword] })
     .firestore.document("membres/{membreId}")
     .onCreate(async (snap, context) => {
     const membre = snap.data();
@@ -19,7 +16,7 @@ exports.envoyerMailBienvenue = functions
         service: "gmail",
         auth: {
             user: "collectif.ecole.km@gmail.com",
-            pass: emailPassword.value(),
+            pass: process.env.GMAIL_PASSWORD,
         },
     });
     const mailOptions = {
