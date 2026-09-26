@@ -44,6 +44,7 @@ export default function LandingPage() {
     setFormStatus("submitting");
     
     try {
+      console.log("[DEBUG] handleSubmit: start");
       const formData = new FormData(e.currentTarget);
       const honeypot = formData.get('bot_field') as string;
       if (honeypot) {
@@ -59,6 +60,7 @@ export default function LandingPage() {
       const tel = formData.get('phone') as string;
       
       // 1. On enregistre le membre dans la base de données Firestore
+      console.log("[DEBUG] handleSubmit: calling addDoc...");
       await addDoc(collection(db, 'membres'), {
         prenom,
         nom,
@@ -70,6 +72,7 @@ export default function LandingPage() {
 
       
       
+      console.log("[DEBUG] handleSubmit: addDoc success");
       setFormStatus("success");
     } catch (error) {
       console.error("Erreur lors de l'inscription :", error);
