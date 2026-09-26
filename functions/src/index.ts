@@ -6,7 +6,7 @@ import * as logger from "firebase-functions/logger";
 // On force Firebase à déployer la fonction v2 EXACTEMENT là où est la base de données (Paris).
 setGlobalOptions({ region: "europe-west9" });
 
-export const envoyerMailBienvenue = onDocumentUpdated("membres/{membreId}", async (event) => {
+export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
   const membreAvant = event.data?.before.data();
   const membreApres = event.data?.after.data();
   

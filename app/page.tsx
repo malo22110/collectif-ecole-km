@@ -60,34 +60,15 @@ export default function LandingPage() {
       const tel = formData.get('phone') as string;
       
 
-      // 1. On enregistre le membre dans la base de données Firestore via REST API (Fetch) pour éviter les hangs WebSocket
-      console.log("[DEBUG] handleSubmit: calling REST API...");
-      const firestoreUrl = "https://firestore.googleapis.com/v1/projects/collectif-ecole-km/databases/(default)/documents/membres";
-      
-      const response = await fetch(firestoreUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          fields: {
-            prenom: { stringValue: prenom },
-            nom: { stringValue: nom },
-            email: { stringValue: email },
-            telephone: { stringValue: tel || '' },
-            dateInscription: { stringValue: new Date().toISOString() },
-            status: { stringValue: 'pending' }
-          }
-        })
+      // 1. On enregistre le membre dans la base de données Firestore
+      await addDoc(collection(db, 'membres'), {
+        prenom,
+        nom,
+        email,
+        telephone: tel || '',
+        dateInscription: new Date().toISOString(),
+        status: 'pending' // En attente de validation par l'administrateur
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("[DEBUG] REST API Error:", errorData);
-        throw new Error("Erreur Firestore REST");
-      }
-      
-      console.log("[DEBUG] handleSubmit: REST API success");
 
 
       

@@ -29,7 +29,10 @@
       "firebase-debug.*.log"
     ]
   },
-  "firestore": {
-    "rules": "firestore.rules"
-  }
+  "firestore": [
+    {
+      "database": "ecole-db",
+      "rules": "firestore.rules"
+    }
+  ]
 }

@@ -7,7 +7,7 @@ const nodemailer = require("nodemailer");
 const logger = require("firebase-functions/logger");
 // On force Firebase à déployer la fonction v2 EXACTEMENT là où est la base de données (Paris).
 (0, v2_1.setGlobalOptions)({ region: "europe-west9" });
-exports.envoyerMailBienvenue = (0, firestore_1.onDocumentUpdated)("membres/{membreId}", async (event) => {
+exports.envoyerMailBienvenue = (0, firestore_1.onDocumentUpdated)({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
     const membreAvant = event.data?.before.data();
     const membreApres = event.data?.after.data();
     if (!membreAvant || !membreApres)
