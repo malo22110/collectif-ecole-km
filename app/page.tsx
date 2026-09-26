@@ -91,9 +91,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-amber-100 p-2 rounded-lg text-amber-700">
-              <Leaf size={20} />
-            </div>
+            <img src="/images/logo.png" alt="Logo Collectif" className="w-10 h-10 object-contain rounded-full border border-stone-200 bg-white" />
             <span className="font-semibold text-stone-800 hidden sm:block text-sm md:text-base">
               Collectif citoyen pour la rénovation de l'école
             </span>
