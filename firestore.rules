@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Règles pour la collection "membres"
+    match /membres/{membreId} {
+      // N'importe qui peut soumettre une candidature (création)
+      allow create: if request.resource.data.keys().hasAll(['prenom', 'nom', 'email', 'dateInscription', 'status'])
+                    && request.resource.data.status == 'pending';
+      
+      // Seul un administrateur connecté (via Firebase Auth) peut lire, modifier ou supprimer
+      allow read, update, delete: if request.auth != null;
+    }
+  }
+}
