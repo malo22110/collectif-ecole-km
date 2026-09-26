@@ -34,5 +34,8 @@
       "database": "ecole-db",
       "rules": "firestore.rules"
     }
-  ]
+  ],
+  "storage": {
+    "rules": "storage.rules"
+  }
 }

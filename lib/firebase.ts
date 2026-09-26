@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 // Ces informations se trouvent dans Firebase Console > Paramètres du projet (Roue crantée) > Général > Vos applications
 const firebaseConfig = {
@@ -17,3 +18,4 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app, 'ecole-db');
 
 export const auth = getAuth(app);
+export const storage = getStorage(app);

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import ArticleManager from "./ArticleManager";
 import { Users, FileText, CheckCircle2, XCircle, LogOut, Settings } from "lucide-react";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, onSnapshot, updateDoc, doc } from "firebase/firestore";
@@ -164,11 +165,7 @@ export default function AdminDashboard() {
         {activeTab === "articles" && (
           <div>
             <h2 className="text-2xl font-bold text-stone-900 mb-6">Articles & Documents</h2>
-            <div className="bg-white p-12 rounded-2xl shadow-sm border border-stone-200 text-center border-dashed">
-              <Settings className="mx-auto text-stone-300 mb-4" size={48} />
-              <h3 className="text-lg font-semibold text-stone-700 mb-2">Module en construction</h3>
-              <p className="text-stone-500">Cet espace vous permettra bientôt de publier des articles (Phase 2).</p>
-            </div>
+            <ArticleManager />
           </div>
         )}
       </div>
