@@ -3,6 +3,7 @@ import * as nodemailer from "nodemailer";
 import * as logger from "firebase-functions/logger";
 
 export const envoyerMailBienvenue = functions
+  .region("europe-west9")
   .firestore.document("membres/{membreId}")
   .onCreate(async (snap, context) => {
     const membre = snap.data();
