@@ -277,34 +277,51 @@ export default function LandingPage() {
               <p className="text-stone-600">Les prochaines étapes pour faire avancer le projet ensemble.</p>
             </div>
 
-            <div className="relative border-l-2 border-amber-200 ml-4 md:ml-1/2 space-y-12 pb-4">
-              {/* Step 1 */}
-              <div className="relative pl-8 md:pl-0">
-                <div className="md:w-1/2 md:-ml-[2px] md:pr-12 md:text-right">
-                  <div className="absolute left-[-9px] md:left-auto md:right-[-9px] top-1 w-4 h-4 rounded-full bg-emerald-500 ring-4 ring-stone-50"></div>
-                  <div className="text-sm font-semibold text-emerald-600 mb-1">Samedi 26 Septembre</div>
-                  <h3 className="text-xl font-bold text-stone-900 mb-2">Réunion de lancement</h3>
-                  <p className="text-stone-600">Lancement officiel avec déjà {memberCount} membres mobilisés, en présence du Maire et de 3 adjoints, pour poser les bases de notre démarche citoyenne.</p>
-                </div>
-              </div>
+            <div className="relative py-8">
+              {/* Ligne centrale */}
+              <div className="absolute left-[19px] md:left-1/2 md:-ml-[1px] top-0 bottom-0 w-[2px] bg-amber-200"></div>
 
-              {/* Step 2 */}
-              <div className="relative pl-8 md:pl-0">
-                <div className="md:w-1/2 md:ml-auto md:pl-12">
-                  <div className="absolute left-[-9px] top-1 w-4 h-4 rounded-full bg-amber-500 ring-4 ring-stone-50 animate-pulse"></div>
-                  <div className="text-sm font-semibold text-amber-600 mb-1">À partir de lundi 28/09/2026 !</div>
-                  <h3 className="text-xl font-bold text-stone-900 mb-2">Pétition citoyenne</h3>
-                  <p className="text-stone-600">Lancement de la pétition demandant une révision budgétaire concertée pour valoriser les dépenses engagées. <br/><span className="text-sm italic text-stone-500">Resp. Axelle Bonnisseau</span></p>
+              <div className="space-y-12">
+                {/* Step 1 (Gauche sur Desktop) */}
+                <div className="relative flex flex-col md:flex-row md:items-start md:justify-center">
+                  {/* Point */}
+                  <div className="absolute left-[12px] md:left-1/2 md:-ml-2 top-1 w-4 h-4 rounded-full bg-emerald-500 ring-4 ring-stone-50 z-10"></div>
+                  {/* Contenu */}
+                  <div className="w-full md:w-1/2 pl-12 md:pl-0 md:pr-12 md:text-right">
+                    <div className="text-sm font-semibold text-emerald-600 mb-1">Samedi 26 Septembre</div>
+                    <h3 className="text-xl font-bold text-stone-900 mb-2">Réunion de lancement</h3>
+                    <p className="text-stone-600">Lancement officiel avec déjà {memberCount} membres mobilisés, en présence du Maire et de 3 adjoints, pour poser les bases de notre démarche citoyenne.</p>
+                  </div>
+                  {/* Espace vide à droite sur Desktop pour équilibrer */}
+                  <div className="hidden md:block md:w-1/2"></div>
                 </div>
-              </div>
 
-              {/* Step 3 */}
-              <div className="relative pl-8 md:pl-0">
-                <div className="md:w-1/2 md:-ml-[2px] md:pr-12 md:text-right">
-                  <div className="absolute left-[-9px] md:left-auto md:right-[-9px] top-1 w-4 h-4 rounded-full bg-stone-300 ring-4 ring-stone-50"></div>
-                  <div className="text-sm font-semibold text-stone-500 mb-1">13 Octobre</div>
-                  <h3 className="text-xl font-bold text-stone-900 mb-2">Création d'une commission</h3>
-                  <p className="text-stone-600">Demande par courrier au Maire pour la création d'une commission extra-municipale lors du prochain conseil. <br/><span className="text-sm italic text-stone-500">Resp. Malo Le Cam</span></p>
+                {/* Step 2 (Droite sur Desktop) */}
+                <div className="relative flex flex-col md:flex-row md:items-start md:justify-center">
+                  {/* Point */}
+                  <div className="absolute left-[12px] md:left-1/2 md:-ml-2 top-1 w-4 h-4 rounded-full bg-amber-500 ring-4 ring-stone-50 animate-pulse z-10"></div>
+                  {/* Espace vide à gauche sur Desktop */}
+                  <div className="hidden md:block md:w-1/2"></div>
+                  {/* Contenu */}
+                  <div className="w-full md:w-1/2 pl-12 md:pl-12">
+                    <div className="text-sm font-semibold text-amber-600 mb-1">À partir de lundi 28/09/2026 !</div>
+                    <h3 className="text-xl font-bold text-stone-900 mb-2">Pétition citoyenne</h3>
+                    <p className="text-stone-600">Lancement de la pétition demandant une révision budgétaire concertée pour valoriser les dépenses engagées. <br/><span className="text-sm italic text-stone-500">Resp. Axelle Bonnisseau</span></p>
+                  </div>
+                </div>
+
+                {/* Step 3 (Gauche sur Desktop) */}
+                <div className="relative flex flex-col md:flex-row md:items-start md:justify-center">
+                  {/* Point */}
+                  <div className="absolute left-[12px] md:left-1/2 md:-ml-2 top-1 w-4 h-4 rounded-full bg-stone-300 ring-4 ring-stone-50 z-10"></div>
+                  {/* Contenu */}
+                  <div className="w-full md:w-1/2 pl-12 md:pl-0 md:pr-12 md:text-right">
+                    <div className="text-sm font-semibold text-stone-500 mb-1">13 Octobre</div>
+                    <h3 className="text-xl font-bold text-stone-900 mb-2">Création d'une commission</h3>
+                    <p className="text-stone-600">Demande par courrier au Maire pour la création d'une commission extra-municipale lors du prochain conseil. <br/><span className="text-sm italic text-stone-500">Resp. Malo Le Cam</span></p>
+                  </div>
+                  {/* Espace vide à droite sur Desktop */}
+                  <div className="hidden md:block md:w-1/2"></div>
                 </div>
               </div>
             </div>
