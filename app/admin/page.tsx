@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Users, FileText, CheckCircle2, XCircle, LogOut, Settings } from "lucide-react";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, onSnapshot, updateDoc, doc } from "firebase/firestore";
-import { auth, db } from "../lib/firebase";
+import { auth, db } from "@/lib/firebase";
 
 interface Membre {
   id: string;
