@@ -1,4 +1,6 @@
-[
+const fs = require('fs');
+
+const timeline = [
   {
     "date": "Juillet 2023 – Décembre 2023",
     "title": "Lancement des études et cadrage",
@@ -122,4 +124,7 @@
     ],
     "conservable": false
   }
-]
+];
+
+fs.writeFileSync('data/timeline.json', JSON.stringify(timeline, null, 2));
+console.log('Timeline updated successfully with new text.');
