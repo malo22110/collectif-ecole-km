@@ -6,6 +6,8 @@ import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { PenTool, CheckCircle2, AlertCircle, Users, ChevronRight, FileText } from 'lucide-react';
 import Link from 'next/link';
+import UserAvatar from "../components/UserAvatar";
+import { ArrowLeft } from "lucide-react";
 
 export default function PetitionPage() {
   const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", qualite: "", qualiteAutre: "", honeypot: "" });
@@ -74,6 +76,18 @@ export default function PetitionPage() {
 
   return (
     <div className="min-h-screen bg-stone-50 pb-20">
+      <header className="bg-emerald-900 border-b border-emerald-800/50 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between text-emerald-100">
+          <Link href="/" className="flex items-center gap-2 hover:text-white font-medium transition-colors text-sm">
+            <ArrowLeft size={18} />
+            <span className="hidden sm:inline">Retour à l'accueil</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <UserAvatar />
+          </div>
+        </div>
+      </header>
+      
       {/* Header Héro */}
       <div className="bg-emerald-800 text-emerald-50 py-16 md:py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>

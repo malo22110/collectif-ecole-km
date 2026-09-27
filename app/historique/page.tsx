@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import UserAvatar from "../components/UserAvatar";
 import Comments from "../components/Comments";
 import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle, BookOpen, X, ChevronRight, Info, ShieldCheck, MessageCircle } from "lucide-react";
 import timelineEvents from "@/data/timeline.json";
@@ -105,9 +106,15 @@ export default function HistoriquePage() {
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-stone-600 hover:text-stone-900 font-medium transition-colors">
             <ArrowLeft size={20} />
-            Retour à l'accueil
+            <span className="hidden sm:inline">Retour à l'accueil</span>
           </Link>
-          <div className="font-bold text-stone-900">Le Collectif</div>
+          <div className="font-bold text-stone-900 hidden sm:block">Le Collectif</div>
+          <div className="flex items-center gap-4">
+            <Link href="/petition" className="text-sm font-bold bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors">
+              Pétition
+            </Link>
+            <UserAvatar />
+          </div>
         </div>
       </header>
 

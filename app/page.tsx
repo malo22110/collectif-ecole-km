@@ -21,6 +21,7 @@ import {
   X,
   BookOpen
 } from "lucide-react";
+import UserAvatar from "./components/UserAvatar";
 
 export default function LandingPage() {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success">("idle");
@@ -135,6 +136,7 @@ export default function LandingPage() {
             <a href="#rejoindre" className="text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full transition-colors">
               Rejoindre
             </a>
+            <UserAvatar />
           </div>
 
           {/* Mobile Nav Button */}
@@ -142,6 +144,9 @@ export default function LandingPage() {
             <a href="#rejoindre" className="text-xs sm:text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full transition-colors">
               Rejoindre
             </a>
+            <div className="flex items-center gap-2">
+              <UserAvatar />
+            </div>
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)} 
               className="p-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
