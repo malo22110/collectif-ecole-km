@@ -89,8 +89,12 @@ export default function PetitionPage() {
       </header>
       
       {/* Header Héro */}
-      <div className="bg-emerald-800 text-emerald-50 py-16 md:py-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+      <div className="bg-emerald-900 text-emerald-50 py-20 md:py-32 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img src="/images/hero_petition.jpg" alt="Enfants à l'école de Kergrist-Moëlou" className="w-full h-full object-cover object-center" />
+          <div className="absolute inset-0 bg-emerald-900/75 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/90 to-transparent pointer-events-none" />
+        </div>
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <div className="inline-flex items-center justify-center p-3 bg-emerald-700/50 rounded-2xl mb-6 ring-1 ring-emerald-400/30">
             <PenTool className="text-emerald-300 w-8 h-8" />
