@@ -69,7 +69,7 @@ const CommentBadge = ({ topic, label }: { topic: string, label?: string }) => {
       className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 hover:bg-emerald-50 text-stone-500 hover:text-emerald-600 rounded-full text-xs font-medium transition-colors border border-stone-200 ml-3 align-middle"
     >
       <MessageCircle size={14} />
-      <span>{label || 'Débattre'}</span>
+      <span>{label || 'Commenter'}</span>
     </button>
   );
 };
@@ -185,7 +185,7 @@ export default function HistoriquePage() {
                         className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative"
                       >
                         <div className="text-sm font-bold text-emerald-600 mb-1">{event.date}</div>
-                        <h3 className="text-xl font-bold text-stone-900 mb-2">{event.title}</h3>
+                        <h3 className="text-xl font-bold text-stone-900 mb-2 flex items-center flex-wrap gap-2">{event.title} <CommentBadge topic={`Étape : ${event.title}`} /></h3>
                         <p className="text-stone-600 mb-3 leading-relaxed md:text-left">
                           <HighlightTerms text={textToShow} />
                         </p>
@@ -252,7 +252,7 @@ export default function HistoriquePage() {
             </div>
             <h3 className="text-2xl font-bold text-stone-900 mb-4 flex items-center gap-3">
               <CheckCircle size={28} className="text-emerald-500" />
-              Option 1 : Optimisation de l'APD (Projet Révisé)
+              Option 1 : Optimisation de l'APD (Projet Révisé) <CommentBadge topic="Option 1" />
             </h3>
             <p className="text-stone-600 mb-6">
               Conserver l'Avant-Projet Définitif actuel en le révisant à la baisse (conservation des menuiseries, dalle béton simple, réseau SCIC Koad COB), pour rester sous la barre des 800 000 € demandée par le Sous-préfet.
@@ -319,7 +319,7 @@ export default function HistoriquePage() {
             <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-xl font-bold text-stone-900 mb-3 flex items-center gap-3">
                 <AlertCircle size={24} className="text-amber-500" />
-                Option 2 : Abandon de l'APD et table rase
+                Option 2 : Abandon de l'APD et table rase <CommentBadge topic="Option 2" />
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
                 Rompre les contrats, jeter 100% des plans de l'existant, et repartir de zéro pour faire du « bricolage ».
@@ -351,7 +351,7 @@ export default function HistoriquePage() {
             <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-xl font-bold text-stone-900 mb-3 flex items-center gap-3">
                 <XCircle size={24} className="text-rose-500" />
-                Option 3 : Abandon Total
+                Option 3 : Abandon Total <CommentBadge topic="Option 3" />
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
                 Geler l'opération, perdre l'ingénierie payée et repousser à la prochaine mandature.
@@ -383,7 +383,7 @@ export default function HistoriquePage() {
             <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-xl font-bold text-stone-900 mb-3 flex items-center gap-3">
                 <AlertCircle size={24} className="text-rose-500" />
-                Option 4 : Le Saupoudrage
+                Option 4 : Le Saupoudrage <CommentBadge topic="Option 4" />
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
                 Mise aux normes stricte (radon, élec) sans vision thermique ni pédagogique. Effet "Subvention Zéro".
