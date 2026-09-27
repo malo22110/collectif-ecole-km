@@ -154,6 +154,7 @@ export default function HistoriquePage() {
               </div>
             </div>
           </div>
+          <CommentBadge topic="Enjeux financiers" count={commentCounts["Enjeux financiers"] || 0} onOpen={() => setActiveTopic("Enjeux financiers")} />
         </div>
       </div>
 
@@ -174,7 +175,7 @@ export default function HistoriquePage() {
               Détails : On
             </button>
           </div>
-          <CommentBadge topic="Enjeux financiers" count={commentCounts["Enjeux financiers"] || 0} onOpen={() => setActiveTopic("Enjeux financiers")} />
+          
         </div>
 
         {/* TIMELINE SECTION */}
