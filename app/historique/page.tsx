@@ -677,6 +677,22 @@ export default function HistoriquePage() {
         </div>
       )}
 
+
+      {/* Commentaires contextuels (Drawer) */}
+      {activeTopic && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-stone-900/50 backdrop-blur-sm transition-opacity" onClick={() => setActiveTopic(null)}>
+          <div className="w-full max-w-md bg-stone-50 h-full overflow-y-auto shadow-2xl animate-in slide-in-from-right" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-stone-200 p-4 flex justify-between items-center z-10 shadow-sm">
+              <h3 className="font-bold text-stone-900 flex-1 truncate mr-4">Débat : {activeTopic}</h3>
+              <button onClick={() => setActiveTopic(null)} className="p-2 bg-stone-100 text-stone-600 hover:bg-stone-200 rounded-full transition-colors"><X size={20}/></button>
+            </div>
+            <div className="p-4">
+              <Comments topic={activeTopic} />
+            </div>
+          </div>
+        </div>
+      )}
     </main>
+
   );
 }
