@@ -6,7 +6,12 @@
     "simplifiedDescription": "La mairie décide de lancer un vrai projet pour l'école avec l'aide de professionnels. On consulte les professeurs et les parents pour lister ce dont les enfants ont besoin (nouvelles classes, toilettes, etc.) et on commence à chercher des aides financières.",
     "sourceLabel": "PV du 4 Juil. et 14 Déc. 2023",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2023/10/PV-DU-04072023.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Mission AMO ADAC actée",
+      "Programme fonctionnel initial (3 classes, BCD, sanitaires)"
+    ],
+    "conservable": true
   },
   {
     "date": "Mai 2024",
@@ -15,7 +20,11 @@
     "simplifiedDescription": "L'expert du patrimoine historique (Bâtiments de France) donne son feu vert : on a officiellement le droit d'agrandir l'école par l'arrière sans abîmer le charme du bâtiment.",
     "sourceLabel": "PV de Mai 2024",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2025/04/pv-kergrist-moelou-05-2024.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Accord écrit de l'Architecte des Bâtiments de France (ABF) pour l'extension"
+    ],
+    "conservable": false
   },
   {
     "date": "Avril 2025 – Juin 2025",
@@ -24,7 +33,14 @@
     "simplifiedDescription": "La mairie recrute une équipe d'architectes (Blandine Houssais) pour dessiner les plans exacts. Le projet total est alors estimé à environ 576 000 €.",
     "sourceLabel": "PV du 19 Juin 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-19-06-2025.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Contrat de Maîtrise d'œuvre (68 750 € HT)",
+      "Diagnostics géomètre",
+      "Diagnostics amiante/radon",
+      "Diagnostics structurels"
+    ],
+    "conservable": true
   },
   {
     "date": "Septembre 2025",
@@ -33,7 +49,11 @@
     "simplifiedDescription": "Bonne nouvelle : la Région et le Département accordent près de 160 000 € d'aides ! Mais attention, 127 000 € ont déjà été dépensés ou promis aux architectes et bureaux d'études. Si on arrête tout, cet argent est perdu.",
     "sourceLabel": "PV du 11 Sept. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-du-11-09-2025.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Arrêtés de subventions Département (99 405 €) et Région (60 450 €)"
+    ],
+    "conservable": false
   },
   {
     "date": "Octobre 2025",
@@ -42,7 +62,13 @@
     "simplifiedDescription": "Les élus votent et valident le budget du projet. Le montant inclut des travaux importants et obligatoires pour protéger les enfants du radon (un gaz naturel toxique).",
     "sourceLabel": "PV du 9 Oct. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-9-10-2025.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Avant-Projet Sommaire (APS)",
+      "Plans de masse et esquisses",
+      "Études thermiques (ALECOB/ACTEE+)"
+    ],
+    "conservable": false
   },
   {
     "date": "Novembre 2025",
@@ -51,7 +77,13 @@
     "simplifiedDescription": "Pour que ça coûte moins cher d'un coup, le projet est découpé en deux. On fera d'abord les urgences (classes, préau, chauffage). La salle de motricité est gardée pour plus tard, seulement si on a l'argent.",
     "sourceLabel": "PV du 27 Nov. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-27-11-2025.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Avant-Projet Définitif (APD)",
+      "Coupes détaillées",
+      "Allotissement et chiffrage des 2 phases"
+    ],
+    "conservable": false
   },
   {
     "date": "Mars 2026 – Septembre 2026",
