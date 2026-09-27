@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import ArticleManager from "./ArticleManager";
 import FaqManager from "./FaqManager";
+import ImportMembers from "./ImportMembers";
 import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot } from "lucide-react";
 import Link from "next/link";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
@@ -167,6 +168,7 @@ export default function AdminDashboard() {
                 )}
               </div>
             </div>
+            <ImportMembers />
           </div>
         )}
 
@@ -175,6 +177,10 @@ export default function AdminDashboard() {
             <h2 className="text-2xl font-bold text-stone-900 mb-6">Articles & Documents</h2>
             <ArticleManager />
           </div>
+        )}
+
+        {activeTab === "faq" && (
+          <FaqManager />
         )}
       </div>
     </div>
