@@ -8,3 +8,7 @@ firebase-debug.log
 # Firebase Functions
 functions/.env
 functions/lib/
+
+# Ne pas commiter les données personnelles des membres
+doc/Sources/Projet collectif/liste des membres du collectif/*.xlsx
+doc/Sources/Projet collectif/liste des membres du collectif/*.csv
