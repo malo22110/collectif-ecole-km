@@ -227,7 +227,7 @@ export default function HistoriquePage() {
           </p>
           
           <div className="bg-white border-2 border-emerald-500 rounded-3xl p-6 md:p-10 mb-8 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-emerald-500 text-white font-bold px-6 py-2 rounded-bl-2xl">
+            <div className="md:absolute md:top-0 md:right-0 bg-emerald-500 text-white font-bold px-4 py-1.5 md:px-6 md:py-2 md:rounded-bl-2xl rounded-lg inline-block mb-4 md:mb-0 text-sm shadow-sm">
               Option Recommandée
             </div>
             <h3 className="text-2xl font-bold text-stone-900 mb-4 flex items-center gap-3">
