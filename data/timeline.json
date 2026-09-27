@@ -114,8 +114,8 @@
   {
     "date": "Avril 2026",
     "title": "Cadrage budgétaire de la nouvelle mandature",
-    "description": "Le Trésor public confirme la capacité d'emprunt de 400 000 €. Le Sous-préfet demande de maintenir le projet sous 800 000 € TTC pour obtenir 30% de DETR (à engager avant fin décembre 2026), et confirme l'éligibilité aux 160 k€ d'aides (Région, Département). Vote d'une ligne d'urgence de 50 000 € pour le radon.",
-    "simplifiedDescription": "Le Trésorier valide la capacité financière pour emprunter. L'État confirme son soutien financier mais impose une condition stricte : le projet doit démarrer avant fin 2026.",
+    "description": "Le Trésor public confirme la capacité d'emprunt de 400 000 €. Le Sous-préfet indique qu'à 800 000 €, le projet global est trop onéreux pour prétendre à la DETR (à engager avant fin décembre 2026), et demande de le revoir à la baisse. Il confirme néanmoins que des subventions restent possibles pour un projet révisé (100 k€ Département, 60 k€ Région, et 30% de DETR). Vote d'une ligne d'urgence de 50 000 € pour le radon.",
+    "simplifiedDescription": "Le Trésorier valide la capacité d'emprunt. L'État indique que le projet initial est trop cher pour être subventionné et demande de le réduire, mais confirme que les aides financières (Département, Région, État) restent possibles pour un projet moins coûteux.",
     "sourceLabel": "PV du 28 avril 2026",
     "sourceUrl": "/docs/pvs/CR 28 04 2026.pdf",
     "color": "bg-emerald-500",
@@ -126,8 +126,8 @@
     "conservable": true,
     "budget": {
       "etudes": "127 110 € HT",
-      "travaux": "Cible imposée sous 800 000 € TTC (soit ~666 000 € HT)",
-      "total": "Cible globale sous 800 000 € TTC"
+      "travaux": "À revoir à la baisse (selon préconisation)",
+      "total": "Cible globale imposée sous la barre des 800 000 €"
     }
   },
   {
