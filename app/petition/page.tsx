@@ -7,7 +7,7 @@ import { PenTool, CheckCircle2, AlertCircle, Users, ChevronRight, FileText } fro
 import Link from 'next/link';
 
 export default function PetitionPage() {
-  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", qualite: "" });
+  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", qualite: "", qualiteAutre: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [stats, setStats] = useState({ count: 0, recent: [] as string[] });
 
@@ -24,10 +24,15 @@ export default function PetitionPage() {
     e.preventDefault();
     setStatus("submitting");
     try {
-      await addDoc(collection(db, "signatures"), {
-        ...formData,
-        createdAt: serverTimestamp()
-      });
+      
+
+      const { qualiteAutre, ...rest } = formData;
+      const payload: any = { ...rest, createdAt: serverTimestamp() };
+      if (payload.qualite === "Autre" && qualiteAutre) {
+        payload.qualite = qualiteAutre;
+      }
+      
+      await addDoc(collection(db, "signatures"), payload);
       setStatus("success");
     } catch (err) {
       console.error(err);
@@ -188,20 +193,42 @@ export default function PetitionPage() {
                       />
                     </div>
                     <div>
-                      <label className="input-label">Votre lien avec l'école (Optionnel)</label>
+                      <label className="input-label">
+                        Commune de résidence
+                        <span className="block text-xs text-stone-500 font-normal mt-0.5">Très important pour prouver la proximité géographique.</span>
+                      </label>
                       <input 
-                        type="text" 
-                        value={formData.qualite} onChange={e => setFormData({...formData, qualite: e.target.value})}
-                        className="input-base" placeholder="ex: Habitant, Parent d'élève, Ancien élève..."
+                        type="text" required
+                        value={formData.ville} onChange={e => setFormData({...formData, ville: e.target.value})}
+                        className="input-base" placeholder="Ex: Kergrist-Moëlou"
                       />
                     </div>
                     <div>
-                      <label className="input-label">Commune (Optionnel)</label>
-                      <input 
-                        type="text" 
-                        value={formData.ville} onChange={e => setFormData({...formData, ville: e.target.value})}
-                        className="input-base" placeholder="Kergrist-Moëlou"
-                      />
+                      <label className="input-label">Votre lien avec l'école</label>
+                      <select 
+                        required
+                        value={formData.qualite === "Autre" ? "Autre" : formData.qualite} 
+                        onChange={e => setFormData({...formData, qualite: e.target.value})}
+                        className="input-base"
+                      >
+                        <option value="" disabled>Sélectionnez une option</option>
+                        <option value="Habitant(e) de Kergrist-Moëlou">Habitant(e) de Kergrist-Moëlou</option>
+                        <option value="Parent d'élève (actuel ou futur)">Parent d'élève (actuel ou futur)</option>
+                        <option value="Ancien(ne) élève">Ancien(ne) élève</option>
+                        <option value="Ancien membre de l'équipe éducative ou du personnel">Ancien membre de l'équipe éducative ou du personnel</option>
+                        <option value="Habitant(e) d'une commune voisine">Habitant(e) d'une commune voisine (1/3 des élèves sont extérieurs)</option>
+                        <option value="Autre">Autre (précisez)</option>
+                      </select>
+                      
+                      {formData.qualite === "Autre" && (
+                        <div className="mt-3">
+                          <input 
+                            type="text" required
+                            onChange={e => setFormData({...formData, qualiteAutre: e.target.value})}
+                            className="input-base" placeholder="Précisez votre lien..."
+                          />
+                        </div>
+                      )}
                     </div>
                     
                     <button 
