@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
 admin.initializeApp();
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onDocumentUpdated, onDocumentCreated } from "firebase-functions/v2/firestore";
@@ -9,7 +10,7 @@ import { getEmailFooter, getBaseHtmlTemplate } from "./emailTemplates";
 
 setGlobalOptions({ region: "europe-west9" });
 
-export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{membreId}" }, async (event) => {
+export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
   const membreAvant = event.data?.before.data();
   const membreApres = event.data?.after.data();
   
@@ -87,7 +88,7 @@ ${getEmailFooter(false)}`;
 });
 
 
-export const envoyerMagicLink = onDocumentCreated({ document: "magicLinks/{linkId}" }, async (event) => {
+export const envoyerMagicLink = onDocumentCreated({ document: "magicLinks/{linkId}", database: "ecole-db" }, async (event) => {
   const data = event.data?.data();
   if (!data || !data.email || data.status !== 'pending') return;
 
@@ -181,8 +182,8 @@ async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
     if (isTest) {
       recipients = ["lecam.malo@gmail.com"];
     } else {
-      const snapshot = await admin.firestore().collection('membres').where('status', '==', 'validated').get();
-      snapshot.forEach(doc => {
+      const snapshot = await getFirestore("ecole-db").collection('membres').where('status', '==', 'validated').get();
+      snapshot.forEach((doc: any) => {
         const email = doc.data().email;
         if (email) recipients.push(email);
       });
@@ -225,7 +226,7 @@ async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
   }
 }
 
-export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mailId}" }, async (event) => {
+export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mailId}", database: "ecole-db" }, async (event) => {
   const data = event.data?.data();
   if (!data || data.status !== 'pending') return;
 
@@ -246,7 +247,7 @@ export const checkScheduledMails = onSchedule("every 5 minutes", async (event) =
   const now = new Date();
   
   // Cherche les mails en attente dont la date de programmation est passée
-  const snapshot = await admin.firestore().collection("mailOutbox")
+  const snapshot = await getFirestore("ecole-db").collection("mailOutbox")
     .where("status", "==", "pending")
     .where("scheduledAt", "<=", admin.firestore.Timestamp.fromDate(now))
     .get();
@@ -266,14 +267,14 @@ export const checkScheduledMails = onSchedule("every 5 minutes", async (event) =
 
 
 // --- PÉTITION ---
-export const onSignatureCreated = onDocumentCreated({ document: "signatures/{sigId}" }, async (event) => {
+export const onSignatureCreated = onDocumentCreated({ document: "signatures/{sigId}", database: "ecole-db" }, async (event) => {
   const data = event.data?.data();
   if (!data) return;
 
-  const statsRef = admin.firestore().collection('stats').doc('petition');
+  const statsRef = getFirestore("ecole-db").collection('stats').doc('petition');
   
   try {
-    await admin.firestore().runTransaction(async (transaction) => {
+    await getFirestore("ecole-db").runTransaction(async (transaction: any) => {
       const statsDoc = await transaction.get(statsRef);
       
       const prenom = data.prenom || "Anonyme";
