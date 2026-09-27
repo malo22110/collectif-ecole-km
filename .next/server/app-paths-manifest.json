@@ -3,7 +3,7 @@
   "/icon.png/route": "app/icon.png/route.js",
   "/actualites/page": "app/actualites/page.js",
   "/admin/assistant/page": "app/admin/assistant/page.js",
-  "/historique/page": "app/historique/page.js",
   "/admin/page": "app/admin/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/historique/page": "app/historique/page.js"
 }
