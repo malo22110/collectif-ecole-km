@@ -27,12 +27,12 @@ if (typeof window !== "undefined") {
   }
   
   try {
-    initializeAppCheck(app, {
-      // NOTE: Remplacer "TA_CLE_RECAPTCHA" par la vraie clé reCAPTCHA Enterprise
-      // créée dans Google Cloud Console quand le site sera en production.
-      provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "TA_CLE_RECAPTCHA"),
-      isTokenAutoRefreshEnabled: true
-    });
+    if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+    }
   } catch (err) {
     console.warn("App Check n'a pas pu être initialisé :", err);
   }
