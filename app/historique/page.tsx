@@ -1,58 +1,10 @@
 import React from "react";
+import timelineEvents from "@/data/timeline.json";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, AlertCircle, Clock } from "lucide-react";
 
 export default function HistoriquePage() {
-  const timelineEvents = [
-    {
-      date: "04 Juillet 2023",
-      title: "Sélection des architectes",
-      description: "Le conseil municipal retient le cabinet « Atelier du Canal » parmi 5 candidatures. L'enveloppe prévisionnelle globale des travaux est alors estimée à 497 000 € HT.",
-      sourceLabel: "PV du 4 Juillet 2023",
-      sourceUrl: "https://www.kergrist-moelou.bzh/wp-content/uploads/2023/10/PV-DU-04072023.pdf",
-      color: "bg-emerald-500"
-    },
-    {
-      date: "14 Septembre 2023",
-      title: "Signature du marché",
-      description: "Le conseil valide la signature officielle du marché de maîtrise d'œuvre. La somme ferme publiquement engagée est de 64 230 € HT (mission de base + assistance).",
-      sourceLabel: "PV du 14 Septembre 2023",
-      sourceUrl: "https://www.kergrist-moelou.bzh/wp-content/uploads/2023/10/01-PV-DU-14092023_signed.pdf",
-      color: "bg-emerald-500"
-    },
-    {
-      date: "14 Décembre 2023",
-      title: "Esquisse & Subventions",
-      description: "Le projet passe en phase d'esquisse. Le coût prévisionnel augmente suite aux premières études (575 147,20 € HT). Le conseil valide les demandes de subventions à l'État (DETR, DSIL).",
-      sourceLabel: "PV du 14 Décembre 2023",
-      sourceUrl: "https://www.kergrist-moelou.bzh/wp-content/uploads/2024/02/02-PV-CONSEIL-MUNICIPAL-de-KERGRIST-MOELOU-du-14-decembre-2023.pdf",
-      color: "bg-emerald-500"
-    },
-    {
-      date: "Mars 2024",
-      title: "Vote du budget (AP/CP)",
-      description: "Modification officielle du budget : le coût global du projet est réévalué et acté à 804 000 €. La municipalité prévoit un étalement budgétaire sur 3 ans.",
-      sourceLabel: "PV de Mars 2024",
-      sourceUrl: "https://www.kergrist-moelou.bzh/wp-content/uploads/2024/05/PV-CONSEIL-MUNICPAL-de-KERGRIST-MOELOU-03-2024.pdf",
-      color: "bg-emerald-500"
-    },
-    {
-      date: "Mai 2024",
-      title: "Déblocage Architectural",
-      description: "Après des négociations avec l'Architecte des Bâtiments de France (ABF), la mairie obtient l'accord officiel pour créer une extension sur la façade arrière, débloquant le verrou technique majeur du projet.",
-      sourceLabel: "PV de Mai 2024",
-      sourceUrl: "https://www.kergrist-moelou.bzh/wp-content/uploads/2025/04/pv-kergrist-moelou-05-2024.pdf",
-      color: "bg-emerald-500"
-    },
-    {
-      date: "03 Octobre 2024",
-      title: "Arrêt brutal du projet",
-      description: "Démission du Maire. Il déclare en séance : « Je laisse en plan de nombreux projets : rénovation de l'école... ». C'est la dernière mention officielle du projet.",
-      sourceLabel: "PV du 3 Octobre 2024",
-      sourceUrl: "https://www.kergrist-moelou.bzh/wp-content/uploads/2025/04/pv-kergrist-moelou-03-10-2024.pdf",
-      color: "bg-amber-500"
-    }
-  ];
+  
 
   return (
     <main className="min-h-screen bg-stone-50 pb-20">
