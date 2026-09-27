@@ -5,6 +5,18 @@ service cloud.firestore {
     // Règles pour la collection "membres"
     
     // Règles pour la collection "articles"
+    
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /commentaires/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+
     match /articles/{articleId} {
       // Tout le monde peut lire les articles publiés
       allow read: if resource == null || resource.data.status == 'published' || request.auth != null;

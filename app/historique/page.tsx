@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import Comments from "../components/Comments";
 import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle, BookOpen, X, ChevronRight, Info, ShieldCheck } from "lucide-react";
 import timelineEvents from "@/data/timeline.json";
 
@@ -423,6 +424,11 @@ export default function HistoriquePage() {
         </div>
       </div>
     
+            {/* ESPACE COMMENTAIRES */}
+      <div className="max-w-7xl mx-auto px-4 pb-16">
+        <Comments />
+      </div>
+      
       <section className="bg-stone-100 py-16 border-t border-stone-200 mt-12">
         <div className="max-w-4xl mx-auto px-4">
           <h2 className="text-2xl font-bold text-stone-900 mb-8 flex items-center gap-2">
