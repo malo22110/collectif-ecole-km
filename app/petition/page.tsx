@@ -59,11 +59,11 @@ export default function PetitionPage() {
           {/* Main Content (Texte de la pétition) */}
           <div className="flex-1 bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-stone-200/50 border border-stone-100">
             <h2 className="text-2xl font-bold text-stone-900 mb-6 border-b border-stone-100 pb-4">
-              Rénovation de l'école : valorisons les études engagées vers un projet maîtrisé
+              Rénovation de l'école de Kergrist-Moëlou : valorisons les études engagées vers un projet maîtrisé
             </h2>
             <div className="prose prose-stone max-w-none text-stone-700 space-y-6">
               <p className="text-lg font-medium text-stone-800 leading-relaxed border-l-4 border-emerald-500 pl-4 bg-emerald-50 py-3 pr-4 rounded-r-xl">
-                Nous demandons la réévaluation technique et budgétaire du dossier de rénovation engagé, afin d'aboutir à une solution économe et adaptée aux capacités de la commune, plutôt qu'à un abandon qui contraindrait à repartir de zéro.
+                Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation déjà engagé, afin d'aboutir à une solution économe (retour à l'enveloppe de 550 000 € HT) et adaptée aux capacités de la commune, plutôt qu'à un blocage ou un abandon qui contraindrait à repartir de zéro.
               </p>
               
               <ul className="space-y-6 mt-8 list-none pl-0">
@@ -71,23 +71,23 @@ export default function PetitionPage() {
                   <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
                   <div>
                     <strong className="text-stone-900 block mb-1">Un projet déjà mature :</strong>
-                    l'état d'avancement des études et des diagnostics techniques permet de démarrer sans repartir de zéro.
+                    L'état d'avancement des études, des plans et des diagnostics techniques permet de démarrer les travaux sans repartir d'une page blanche. L'objectif est d'optimiser ce qui existe, pas de tout recommencer.
                   </div>
                 </li>
                 
                 <li className="flex gap-4">
                   <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
                   <div>
-                    <strong className="text-stone-900 block mb-1">La préservation des finances publiques :</strong>
-                    entre 100 000 et 160 000 € de fonds communaux ont déjà été engagés ; abandonner le projet actuel transformerait ces investissements en pure perte pour la commune.
+                    <strong className="text-stone-900 block mb-1">La préservation de l'argent public :</strong>
+                    Exactement 127 110 € de fonds communaux ont déjà été engagés dans les études obligatoires (architectes, diagnostics) et devront être payés (règle du service fait). Refuser de voter la mise à jour de 2 170 € demandée par l'architecte pour baisser le coût des travaux conduit à bloquer le projet et transforme ces 127 110 € d'argent public en pure perte pour la commune.
                   </div>
                 </li>
 
                 <li className="flex gap-4">
                   <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
                   <div>
-                    <strong className="text-stone-900 block mb-1">Le risque sur les subventions :</strong>
-                    les calendriers d'attribution des aides financières sont stricts ; tout redémarrage à blanc ferait perdre les financements mobilisables à court terme.
+                    <strong className="text-stone-900 block mb-1">Le risque critique sur les subventions :</strong>
+                    Le dossier actuel permet de sécuriser 340 000 € d'aides (État, Région, Département). Ces financements exigent strictement un projet global assurant 40 % d'économie d'énergie et sont soumis à des calendriers très stricts (décembre 2026 pour l'État). Un abandon ou de petits "travaux rustines" nous feraient perdre définitivement cette manne financière. La mairie devra alors tout payer à 100 %.
                   </div>
                 </li>
 
@@ -95,22 +95,22 @@ export default function PetitionPage() {
                   <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
                   <div>
                     <strong className="text-stone-900 block mb-1">L'urgence du calendrier des travaux :</strong>
-                    différer la réhabilitation repousse la livraison de plusieurs années et fragilise l'accueil des enfants.
+                    Différer la réhabilitation repousse la livraison de plusieurs années (avec l'inflation inévitable des coûts de construction) et fragilise durablement les conditions d'apprentissage et l'accueil de nos enfants.
                   </div>
                 </li>
 
                 <li className="flex gap-4">
                   <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
                   <div>
-                    <strong className="text-stone-900 block mb-1">Les contraintes réglementaires :</strong>
-                    les diagnostics imposent des travaux incontournables (gestion du radon, désamiantage ou confinement de l'amiante, remise aux normes de l'électricité, réfection des sanitaires et mise en conformité de l'accessibilité PMR).
+                    <strong className="text-stone-900 block mb-1">Les contraintes réglementaires et sanitaires :</strong>
+                    Les diagnostics imposent des travaux incontournables et urgents : gestion du radon, désamiantage du préau, remise aux normes de l'électricité, isolation d'un bâtiment très énergivore, réfection des sanitaires par l'intérieur et mise en conformité de l'accessibilité PMR.
                   </div>
                 </li>
               </ul>
               
               <div className="bg-amber-50 border border-amber-200 p-6 rounded-xl text-amber-900 my-8 shadow-sm">
                 <p className="font-medium text-center">
-                  Repartir de zéro repousserait le traitement de ces impératifs prioritaires pour la santé et la sécurité des enfants.
+                  Repartir de zéro ou geler le projet repousserait dangereusement le traitement de ces impératifs prioritaires pour la santé et la sécurité des enfants.
                 </p>
               </div>
 
