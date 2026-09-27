@@ -58,21 +58,7 @@ export default function HistoriquePage() {
                 );
               })}
               
-              <div className="relative flex flex-col md:flex-row md:items-start md:justify-center pt-8">
-                <div className="absolute left-[12px] md:left-1/2 md:-ml-2 top-9 w-4 h-4 rounded-full bg-stone-300 ring-4 ring-stone-50 z-10 animate-pulse"></div>
-                <div className="hidden md:block md:w-1/2"></div>
-                <div className="w-full md:w-1/2 pl-12 md:pl-12">
-                  <div className="bg-white border border-stone-200 p-5 rounded-2xl shadow-sm inline-block">
-                    <div className="flex items-center gap-2 text-stone-900 font-bold mb-2">
-                      <Clock size={18} className="text-stone-400" />
-                      En attente de mise à jour...
-                    </div>
-                    <p className="text-sm text-stone-600">
-                      Nous attendons l'analyse des nouveaux PV pour mettre à jour la frise avec les derniers refus et avenants.
-                    </p>
-                  </div>
-                </div>
-              </div>
+
             </div>
           </div>
         </div>
@@ -149,7 +135,7 @@ export default function HistoriquePage() {
               </ul>
               <div className="pt-4 border-t border-stone-100">
                 <div className="text-xs text-stone-500 mb-1">Coût net mairie</div>
-                <div className="text-xl font-bold text-rose-600">> 750 000 € HT</div>
+                <div className="text-xl font-bold text-rose-600">&gt; 750 000 € HT</div>
               </div>
             </div>
 

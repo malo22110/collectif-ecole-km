@@ -1,4 +1,6 @@
-[
+const fs = require('fs');
+
+const timeline = [
   {
     "date": "Juillet 2023 – Décembre 2023",
     "title": "Lancement des études et cadrage",
@@ -55,4 +57,6 @@
     "sourceUrl": "#",
     "color": "bg-amber-500"
   }
-]
+];
+
+fs.writeFileSync('data/timeline.json', JSON.stringify(timeline, null, 2));
