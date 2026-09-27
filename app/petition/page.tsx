@@ -1,23 +1,55 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, addDoc, doc, onSnapshot, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { PenTool, CheckCircle2, AlertCircle, Users, ChevronRight, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PetitionPage() {
-  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", qualite: "", qualiteAutre: "" });
+  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", qualite: "", qualiteAutre: "", honeypot: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [stats, setStats] = useState({ count: 0, recent: [] as string[] });
+  const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "stats", "petition"), (docSnap) => {
+    const unsubStats = onSnapshot(doc(db, "stats", "petition"), (docSnap) => {
       if (docSnap.exists()) {
         setStats(docSnap.data() as { count: number; recent: string[] });
       }
     });
-    return () => unsub();
+
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
+      if (user && user.email) {
+        setIsMember(true);
+        // Try to fetch member details
+        try {
+          const q = query(collection(db, 'membres'), where('email', '==', user.email));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            const memberData = snap.docs[0].data();
+            setFormData(prev => ({
+              ...prev,
+              email: user.email || "",
+              prenom: memberData.prenom || "",
+              nom: memberData.nom || ""
+            }));
+          } else {
+            setFormData(prev => ({ ...prev, email: user.email || "" }));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        setIsMember(false);
+      }
+    });
+
+    return () => {
+      unsubStats();
+      unsubAuth();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,13 +198,35 @@ export default function PetitionPage() {
                 <>
                   <h3 className="text-xl font-bold text-stone-900 mb-6">Je signe la pétition</h3>
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Honeypot Field */}
+                    <div className="absolute left-[-9999px] top-[-9999px]" aria-hidden="true">
+                      <label htmlFor="website_url">Laissez ce champ vide si vous êtes humain</label>
+                      <input 
+                        type="text" 
+                        id="website_url"
+                        name="website_url"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={formData.honeypot} 
+                        onChange={e => setFormData({...formData, honeypot: e.target.value})}
+                      />
+                    </div>
+                    
+                    {isMember && (
+                      <div className="bg-emerald-50 text-emerald-800 p-3 rounded-xl border border-emerald-200 text-sm flex items-center gap-2 mb-2">
+                        <CheckCircle2 size={16} />
+                        Vous êtes identifié(e) comme membre du collectif.
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="input-label">Prénom</label>
                         <input 
                           type="text" required 
                           value={formData.prenom} onChange={e => setFormData({...formData, prenom: e.target.value})}
-                          className="input-base" placeholder="Jean"
+                          className={`input-base ${isMember ? 'bg-stone-50 text-stone-500 cursor-not-allowed' : ''}`} placeholder="Jean"
+                          readOnly={isMember && !!formData.prenom}
                         />
                       </div>
                       <div>
@@ -180,7 +234,8 @@ export default function PetitionPage() {
                         <input 
                           type="text" required 
                           value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})}
-                          className="input-base" placeholder="Dupont"
+                          className={`input-base ${isMember ? 'bg-stone-50 text-stone-500 cursor-not-allowed' : ''}`} placeholder="Dupont"
+                          readOnly={isMember && !!formData.nom}
                         />
                       </div>
                     </div>
@@ -189,7 +244,8 @@ export default function PetitionPage() {
                       <input 
                         type="email" required 
                         value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
-                        className="input-base" placeholder="jean.dupont@email.com"
+                        className={`input-base ${isMember ? 'bg-stone-50 text-stone-500 cursor-not-allowed' : ''}`} placeholder="jean.dupont@email.com"
+                        readOnly={isMember && !!formData.email}
                       />
                     </div>
                     <div>
