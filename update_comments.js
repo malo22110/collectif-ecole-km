@@ -1,4 +1,7 @@
-"use client";
+const fs = require('fs');
+const path = 'app/components/Comments.tsx';
+
+let code = `"use client";
 
 import React, { useState, useEffect } from "react";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
@@ -279,3 +282,7 @@ export default function Comments() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(path, code);
+console.log('Comments component updated successfully with Edit and Delete features.');
