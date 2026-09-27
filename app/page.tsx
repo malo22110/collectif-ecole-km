@@ -154,6 +154,9 @@ export default function LandingPage() {
         {/* Mobile Nav Menu */}
         {isMenuOpen && (
           <div className="lg:hidden absolute top-16 left-0 w-full bg-white border-b border-stone-200 shadow-xl flex flex-col p-4 gap-4 z-50">
+            <a onClick={() => setIsMenuOpen(false)} href="/petition" className="flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-800 font-bold rounded-xl border border-emerald-200">
+              <FileSignature size={18} /> Signer la pétition
+            </a>
             <a onClick={() => setIsMenuOpen(false)} href="/historique" className="flex items-center gap-3 px-4 py-3 bg-amber-50 text-amber-800 font-bold rounded-xl border border-amber-200">
               <Search size={18} /> Historique & Analyse Financière
             </a>

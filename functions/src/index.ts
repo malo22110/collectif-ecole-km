@@ -263,3 +263,47 @@ export const checkScheduledMails = onSchedule("every 5 minutes", async (event) =
   }
 });
 
+
+
+// --- PÉTITION ---
+export const onSignatureCreated = onDocumentCreated({ document: "signatures/{sigId}", database: "ecole-db" }, async (event) => {
+  const data = event.data?.data();
+  if (!data) return;
+
+  const statsRef = admin.firestore().collection('stats').doc('petition');
+  
+  try {
+    await admin.firestore().runTransaction(async (transaction) => {
+      const statsDoc = await transaction.get(statsRef);
+      
+      const prenom = data.prenom || "Anonyme";
+      const nom = data.nom || "";
+      const initiale = nom ? nom.charAt(0).toUpperCase() + "." : "";
+      const displayName = `${prenom} ${initiale}`.trim();
+
+      if (!statsDoc.exists) {
+        transaction.set(statsRef, {
+          count: 1,
+          recent: [displayName]
+        });
+      } else {
+        const currentData = statsDoc.data();
+        const currentCount = currentData?.count || 0;
+        let currentRecent = currentData?.recent || [];
+        
+        currentRecent.unshift(displayName);
+        if (currentRecent.length > 10) {
+          currentRecent = currentRecent.slice(0, 10);
+        }
+
+        transaction.update(statsRef, {
+          count: currentCount + 1,
+          recent: currentRecent
+        });
+      }
+    });
+    logger.info(`Nouvelle signature comptabilisée : ${data.prenom}`);
+  } catch (error) {
+    logger.error("Erreur lors de la mise à jour des stats de la pétition :", error);
+  }
+});
