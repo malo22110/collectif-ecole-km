@@ -1,9 +1,12 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle , BookOpen} from "lucide-react";
 import timelineEvents from "@/data/timeline.json";
 
 export default function HistoriquePage() {
+  const [isSimplified, setIsSimplified] = useState(true);
+
   return (
     <main className="min-h-screen bg-stone-50 pb-20">
       {/* Header */}
@@ -147,6 +150,34 @@ export default function HistoriquePage() {
         </div>
 
       </div>
-    </main>
+    
+      <section className="bg-stone-100 py-16 border-t border-stone-200 mt-12">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-2xl font-bold text-stone-900 mb-8 flex items-center gap-2">
+            <BookOpen className="text-emerald-600" />
+            Petit Lexique pour tout comprendre
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+              <h3 className="font-bold text-stone-900 mb-2">AMO (Assistant à Maîtrise d'Ouvrage)</h3>
+              <p className="text-sm text-stone-600">Un expert technique ou financier embauché par la mairie pour l'aider à définir le projet, choisir les architectes et suivre le chantier. Il défend les intérêts de la commune.</p>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+              <h3 className="font-bold text-stone-900 mb-2">Maîtrise d'Œuvre (Architectes)</h3>
+              <p className="text-sm text-stone-600">L'équipe (architectes, ingénieurs) chargée de concevoir les plans de l'école et de diriger les travaux sur le terrain.</p>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+              <h3 className="font-bold text-stone-900 mb-2">APS & APD</h3>
+              <p className="text-sm text-stone-600"><strong>APS (Avant-Projet Sommaire) :</strong> Les premières esquisses et le premier chiffrage global.<br/><strong>APD (Avant-Projet Définitif) :</strong> Les plans détaillés et le budget figé avant de demander les permis de construire.</p>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+              <h3 className="font-bold text-stone-900 mb-2">Tranche optionnelle / conditionnelle</h3>
+              <p className="text-sm text-stone-600">Une partie des travaux qui est dessinée sur les plans mais qui ne sera construite que si la mairie décide plus tard qu'elle a le budget nécessaire (ex: la salle de motricité).</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      </main>
   );
 }
