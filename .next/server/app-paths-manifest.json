@@ -1,9 +1,9 @@
 {
-  "/icon.png/route": "app/icon.png/route.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/icon.png/route": "app/icon.png/route.js",
   "/actualites/page": "app/actualites/page.js",
+  "/historique/page": "app/historique/page.js",
   "/admin/assistant/page": "app/admin/assistant/page.js",
   "/admin/page": "app/admin/page.js",
-  "/page": "app/page.js",
-  "/historique/page": "app/historique/page.js"
+  "/page": "app/page.js"
 }

@@ -156,7 +156,9 @@ export default function HistoriquePage() {
           </div>
         </div>
 
-                {/* ANALYSE GLOBALE */}
+      </div>
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 xl:px-12">
+        {/* ANALYSE GLOBALE */}
         <div className="mb-20">
           <h2 className="text-3xl font-bold text-stone-900 mb-8 text-center">Analyse Comparative Détaillée</h2>
           <p className="text-stone-600 text-center max-w-2xl mx-auto mb-10">
