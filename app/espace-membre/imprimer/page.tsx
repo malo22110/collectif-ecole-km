@@ -64,7 +64,7 @@ export default function PetitionPapier() {
             </tr>
           </thead>
           <tbody>
-            {Array.from({ length: 14 }).map((_, i) => (
+            {Array.from({ length: 11 }).map((_, i) => (
               <tr key={i} className="h-12">
                 <td className="border border-black p-1 text-center text-gray-500">{i + 1}</td>
                 <td className="border border-black p-1"></td>
@@ -94,9 +94,9 @@ export default function PetitionPapier() {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 22 }).map((_, i) => (
-                <tr key={i + 14} className="h-12">
-                  <td className="border border-black p-1 text-center text-gray-500">{i + 15}</td>
+              {Array.from({ length: 18 }).map((_, i) => (
+                <tr key={i + 11} className="h-12">
+                  <td className="border border-black p-1 text-center text-gray-500">{i + 12}</td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>
