@@ -214,11 +214,11 @@ export default function PetitionPage() {
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Honeypot Field */}
                     <div className="absolute left-[-9999px] top-[-9999px]" aria-hidden="true">
-                      <label htmlFor="website_url">Laissez ce champ vide si vous êtes humain</label>
+                      <label htmlFor="a_t_h_n_y_p_t"></label>
                       <input 
                         type="text" 
-                        id="website_url"
-                        name="website_url"
+                        id="a_t_h_n_y_p_t"
+                        name="a_t_h_n_y_p_t"
                         tabIndex={-1}
                         autoComplete="off"
                         value={formData.honeypot} 
