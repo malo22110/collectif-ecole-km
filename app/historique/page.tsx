@@ -549,7 +549,7 @@ export default function HistoriquePage() {
     
             {/* ESPACE COMMENTAIRES */}
       <div className="max-w-7xl mx-auto px-4 pb-16">
-        <Comments />
+        <Comments topic="Général" />
       </div>
       
       
@@ -687,7 +687,7 @@ export default function HistoriquePage() {
               <button onClick={() => setActiveTopic(null)} className="p-2 bg-stone-100 text-stone-600 hover:bg-stone-200 rounded-full transition-colors"><X size={20}/></button>
             </div>
             <div className="p-4">
-              <Comments topic={activeTopic} />
+              <Comments topic={activeTopic} inline={true} />
             </div>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User, signOut, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 import { MessageSquare, Send, UserCircle, LogOut, Edit2, Trash2, X, Check } from "lucide-react";
 
-export default function Comments({ topic }: { topic?: string }) {
+export default function Comments({ topic, inline }: { topic?: string, inline?: boolean }) {
   const [comments, setComments] = useState<any[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isMember, setIsMember] = useState(false);
@@ -119,7 +119,8 @@ export default function Comments({ topic }: { topic?: string }) {
         text: newComment.trim(),
         authorEmail: user.email,
         authorName: user.displayName || user.email?.split('@')[0],
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        topic: topic || "Général"
       });
       setNewComment("");
     } catch (err) {
@@ -158,8 +159,8 @@ export default function Comments({ topic }: { topic?: string }) {
   };
 
   return (
-    <div className={`bg-stone-50 border border-stone-200 rounded-3xl p-6 md:p-8 max-w-4xl mx-auto shadow-sm ${!topic ? "mt-16" : ""}`}>
-      <h3 className={`${topic ? "text-xl" : "text-2xl"} font-bold text-stone-900 mb-6 flex items-center gap-3`}>
+    <div className={`bg-stone-50 border border-stone-200 rounded-3xl p-6 md:p-8 max-w-4xl mx-auto shadow-sm ${!inline ? "mt-16" : ""}`}>
+      <h3 className={`${inline ? "text-xl" : "text-2xl"} font-bold text-stone-900 mb-6 flex items-center gap-3`}>
         <MessageSquare className="text-emerald-600" />
         Espace Débat & Corrections (Membres)
       </h3>
@@ -181,11 +182,7 @@ export default function Comments({ topic }: { topic?: string }) {
               if (groupComments.length === 0) return null;
               return (
                 <div key={groupTopic} className="mb-6 last:mb-0">
-                  {!topic && (
-                    <h4 className="font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-lg inline-block mb-3 text-sm border border-emerald-100">
-                      Sur : {groupTopic}
-                    </h4>
-                  )}
+                  
                   <div className="space-y-4">
                     {groupComments.map((c: any) => {
                       const isMyComment = user && user.email === c.authorEmail;
