@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import ArticleManager from "./ArticleManager";
-import { Users, FileText, CheckCircle2, XCircle, LogOut, Settings, Bot } from "lucide-react";
+import FaqManager from "./FaqManager";
+import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot } from "lucide-react";
 import Link from "next/link";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, onSnapshot, updateDoc, doc } from "firebase/firestore";
@@ -20,7 +21,7 @@ interface Membre {
 export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"membres" | "articles">("membres");
+  const [activeTab, setActiveTab] = useState<"membres" | "articles" | "faq">("membres");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
   
@@ -116,6 +117,12 @@ export default function AdminDashboard() {
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "articles" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
             <FileText size={20} /> Articles & Docs
+          </button>
+          <button 
+            onClick={() => setActiveTab("faq")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "faq" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+          >
+            <HelpCircle size={20} /> FAQ
           </button>
         </nav>
         <div className="p-4 border-t border-stone-800">
