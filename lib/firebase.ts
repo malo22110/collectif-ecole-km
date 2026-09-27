@@ -2,8 +2,8 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
-// Ces informations se trouvent dans Firebase Console > Paramètres du projet (Roue crantée) > Général > Vos applications
 const firebaseConfig = {
   apiKey: "AIzaSyB49RQeCyXWVTkX4nHtku5taKtrZZFtb7o",
   authDomain: "collectif-ecole-km.firebaseapp.com",
@@ -16,6 +16,24 @@ const firebaseConfig = {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app, 'ecole-db');
-
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
+// Initialisation de Firebase App Check (obligatoire pour AI Logic)
+if (typeof window !== "undefined") {
+  // En environnement local, on active le mode Debug pour générer un jeton
+  if (process.env.NODE_ENV === 'development') {
+    (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
+  
+  try {
+    initializeAppCheck(app, {
+      // NOTE: Remplacer "TA_CLE_RECAPTCHA" par la vraie clé reCAPTCHA Enterprise
+      // créée dans Google Cloud Console quand le site sera en production.
+      provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "TA_CLE_RECAPTCHA"),
+      isTokenAutoRefreshEnabled: true
+    });
+  } catch (err) {
+    console.warn("App Check n'a pas pu être initialisé :", err);
+  }
+}
