@@ -7,7 +7,7 @@ import { PenTool, CheckCircle2, AlertCircle, Users, ChevronRight, FileText } fro
 import Link from 'next/link';
 
 export default function PetitionPage() {
-  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "" });
+  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", qualite: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [stats, setStats] = useState({ count: 0, recent: [] as string[] });
 
@@ -162,6 +162,14 @@ export default function PetitionPage() {
                         type="email" required 
                         value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
                         className="input-base" placeholder="jean.dupont@email.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="input-label">Votre lien avec l'école (Optionnel)</label>
+                      <input 
+                        type="text" 
+                        value={formData.qualite} onChange={e => setFormData({...formData, qualite: e.target.value})}
+                        className="input-base" placeholder="ex: Habitant, Parent d'élève, Ancien élève..."
                       />
                     </div>
                     <div>

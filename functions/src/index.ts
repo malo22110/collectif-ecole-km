@@ -278,8 +278,9 @@ export const onSignatureCreated = onDocumentCreated({ document: "signatures/{sig
       
       const prenom = data.prenom || "Anonyme";
       const nom = data.nom || "";
+      const qualite = data.qualite ? ` (${data.qualite})` : "";
       const initiale = nom ? nom.charAt(0).toUpperCase() + "." : "";
-      const displayName = `${prenom} ${initiale}`.trim();
+      const displayName = `${prenom} ${initiale}${qualite}`.trim();
 
       if (!statsDoc.exists) {
         transaction.set(statsRef, {
