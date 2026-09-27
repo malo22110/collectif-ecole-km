@@ -130,7 +130,7 @@ export default function LandingPage() {
             <a href="#charte" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">
               Notre Charte
             </a>
-            <a href="#petition" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">
+            <a href="/petition" className="text-sm font-bold text-emerald-700 hover:text-emerald-800 transition-colors flex items-center gap-1.5"><FileSignature size={16}/>
               La Pétition
             </a>
             <a href="#rejoindre" className="text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full transition-colors">
@@ -167,7 +167,7 @@ export default function LandingPage() {
             </a>
             <a onClick={() => setIsMenuOpen(false)} href="/faq" className="px-4 py-2 text-stone-700 font-medium hover:bg-stone-50 rounded-lg">Foire Aux Questions (FAQ)</a>
             <a onClick={() => setIsMenuOpen(false)} href="#charte" className="px-4 py-2 text-stone-700 font-medium hover:bg-stone-50 rounded-lg">Notre Charte</a>
-            <a onClick={() => setIsMenuOpen(false)} href="#petition" className="px-4 py-2 text-stone-700 font-medium hover:bg-stone-50 rounded-lg">La Pétition</a>
+            <a onClick={() => setIsMenuOpen(false)} href="/petition" className="flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-800 font-bold rounded-xl border border-emerald-200"><FileSignature size={18}/> Signer la pétition</a>
           </div>
         )}
       </header>
@@ -198,9 +198,9 @@ export default function LandingPage() {
                 <Users size={16} className="text-emerald-500" />
                 Déjà {memberCount} membres mobilisés
               </div>
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-stone-100 text-sm font-medium text-stone-700">
-                <FileSignature size={16} className="text-amber-500" />
-                Pétition à partir de lundi 28/09/2026 !
+              <div className="flex items-center gap-2 bg-emerald-50 border-emerald-200 px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-emerald-800">
+                <FileSignature size={16} className="text-emerald-600" />
+                La pétition est en ligne !
               </div>
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-stone-100 text-sm font-medium text-stone-700">
                 <Clock size={16} className="text-blue-500" />
@@ -209,9 +209,9 @@ export default function LandingPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="#petition" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-8 py-3.5 rounded-full shadow-sm hover:shadow transition-all text-lg">
+              <a href="/petition" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3.5 rounded-full shadow-sm shadow-emerald-900/20 hover:shadow-lg transition-all text-lg">
                 <FileSignature size={20} />
-                Pétition à partir de lundi 28/09/2026 !
+                Signer la pétition
               </a>
               <a href="#rejoindre" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-stone-50 text-stone-700 font-semibold px-8 py-3.5 rounded-full shadow-sm border border-stone-200 hover:border-stone-300 transition-all text-lg">
                 Rejoindre le collectif
@@ -448,8 +448,8 @@ export default function LandingPage() {
                   <div className="hidden md:block md:w-1/2"></div>
                   {/* Contenu */}
                   <div className="w-full md:w-1/2 pl-12 md:pl-12">
-                    <div className="text-sm font-semibold text-amber-600 mb-1">À partir de lundi 28/09/2026 !</div>
-                    <h3 className="text-xl font-bold text-stone-900 mb-2">Pétition citoyenne</h3>
+                    <div className="text-sm font-semibold text-emerald-600 mb-1">En ligne !</div>
+                    <h3 className="text-xl font-bold text-stone-900 mb-2"><a href="/petition" className="text-emerald-700 hover:underline">Pétition citoyenne →</a></h3>
                     <p className="text-stone-600">Lancement de la pétition demandant une révision budgétaire concertée pour valoriser les dépenses engagées. <br/><span className="text-sm italic text-stone-500">Resp. Axelle Bonnisseau</span></p>
                   </div>
                 </div>
