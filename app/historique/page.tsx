@@ -133,7 +133,7 @@ export default function HistoriquePage() {
                         <div className="flex items-center justify-between mt-4 pt-4 border-t border-stone-100">
                           {event.sourceUrl && (
                             <span 
-                              onClick={(e) => { e.stopPropagation(); window.open(event.sourceUrl, '_blank'); }}
+                              onClick={(e) => { e.stopPropagation(); window.open(encodeURI(event.sourceUrl), '_blank'); }}
                               className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 hover:underline"
                             >
                               <ExternalLink size={14} />
@@ -172,7 +172,7 @@ export default function HistoriquePage() {
               <li className="flex items-start gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-2 shrink-0"></div>
                 <div>
-                  <strong>127 110 € HT d'études perdues à 100%</strong> : Sommes engagées auprès des prestataires.
+                  <strong>127 110 € HT d'études perdues à 100%</strong> : Sommes engagées au titre du service fait (art. L. 2191-1).
                 </div>
               </li>
               <li className="flex items-start gap-3">
@@ -194,7 +194,7 @@ export default function HistoriquePage() {
               <p className="text-sm text-stone-600 mb-4">Révision ciblée à la baisse (allotissement fin, ajustement des matériaux).</p>
               <div className="pt-4 border-t border-stone-100">
                 <div className="text-xs text-stone-500 mb-1">Coût net mairie</div>
-                <div className="text-xl font-bold text-emerald-600">~350 000 € HT</div>
+                <div className="text-xl font-bold text-emerald-600">~190 000 € à 240 000 € HT</div>
               </div>
             </div>
 
@@ -203,7 +203,7 @@ export default function HistoriquePage() {
               <p className="text-sm text-stone-600 mb-4">Abandon de l'extension, nouvelle maîtrise d'œuvre simplifiée.</p>
               <div className="pt-4 border-t border-stone-100">
                 <div className="text-xs text-stone-500 mb-1">Coût net mairie</div>
-                <div className="text-xl font-bold text-stone-900">380k à 475k € HT</div>
+                <div className="text-xl font-bold text-stone-900">300k à 415k € HT</div>
               </div>
             </div>
 
@@ -307,7 +307,7 @@ export default function HistoriquePage() {
                 <div className="mt-8 pt-8 border-t border-stone-100">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4">Document Source</h4>
                   <a 
-                    href={activeStep.sourceUrl} 
+                    href={encodeURI(activeStep.sourceUrl)} 
                     target="_blank" 
                     className="flex items-center justify-between p-4 bg-white border border-stone-200 shadow-sm hover:border-amber-300 hover:shadow-md text-stone-800 rounded-xl transition-all font-medium group"
                   >
