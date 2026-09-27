@@ -403,6 +403,10 @@ export default function HistoriquePage() {
               L'intégration d'un scénario du pire pour chaque option permet de démontrer que l'Option 1 est non seulement la plus rentable en temps normal, mais aussi la plus résiliente face aux imprévus.
             </p>
 
+            <div className="md:hidden flex items-center justify-center gap-2 text-amber-800 bg-amber-50 px-4 py-3 rounded-xl mb-4 text-sm font-medium border border-amber-200">
+              <div className="animate-pulse"><ChevronRight size={18} /></div>
+              Faites glisser le tableau vers la droite
+            </div>
             <div className="overflow-x-auto shadow-sm border border-stone-200 rounded-2xl mb-12">
               <table className="w-full text-left bg-white border-collapse min-w-[800px]">
                 <thead className="bg-stone-100 text-stone-700 text-sm">
@@ -414,60 +418,60 @@ export default function HistoriquePage() {
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-stone-100">
-                  <tr className="hover:bg-emerald-50/30 transition-colors block md:table-row border-b md:border-none border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
-                    <td className="p-4 align-top block md:table-cell">
+                  <tr className="hover:bg-emerald-50/30 transition-colors  border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
+                    <td className="p-4 align-top ">
                       <div className="font-bold text-stone-900 mb-1">1. Optimisation APD</div>
                       <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">Recommandée</span>
                     </td>
-                    <td className="p-4 align-top text-stone-700 block md:table-cell">
+                    <td className="p-4 align-top text-stone-700 ">
                       <strong className="text-stone-900 block mb-1">Refus de la subvention DETR (État).</strong> Le dossier est déposé à temps (avant déc 2026), mais la Préfecture refuse l'aide faute de crédits.
                     </td>
-                    <td className="p-4 align-top text-stone-700 block md:table-cell">
+                    <td className="p-4 align-top text-stone-700 ">
                       Perte estimée de ~150 000 €. Les 159 855 € (Région/Département) sont conservés. Les 127 110 € d'études payées sont pleinement exploités.
                     </td>
-                    <td className="p-4 align-top block md:table-cell">
+                    <td className="p-4 align-top ">
                       <div className="font-bold text-emerald-700 mb-1 text-base">~380 000 € HT</div>
                       <div className="text-stone-600 text-xs">Le projet reste sous le plafond d'emprunt (400 k€). Le bâtiment est rénové.</div>
                     </td>
                   </tr>
                   
-                  <tr className="hover:bg-stone-50 transition-colors block md:table-row border-b md:border-none border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
-                    <td className="p-4 align-top font-bold text-stone-900 block md:table-cell">2. Refonte totale / Table rase<br/><span className="text-xs font-normal text-stone-500">(Piste de l'opposition)</span></td>
-                    <td className="p-4 align-top text-stone-700 block md:table-cell">
+                  <tr className="hover:bg-stone-50 transition-colors  border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
+                    <td className="p-4 align-top font-bold text-stone-900 ">2. Refonte totale / Table rase<br/><span className="text-xs font-normal text-stone-500">(Piste de l'opposition)</span></td>
+                    <td className="p-4 align-top text-stone-700 ">
                       <strong className="text-stone-900 block mb-1">Perte intégrale des financements + Pénalités.</strong> La rupture des contrats en cours entraîne l'annulation des 159 855 € d'aides acquises. Le délai DETR est raté.
                     </td>
-                    <td className="p-4 align-top text-stone-700 block md:table-cell">
+                    <td className="p-4 align-top text-stone-700 ">
                       127 110 € d'études payés en pure perte (service fait). + ~4 000 € de pénalités. + ~35 000 € pour de nouvelles études. Les aides (État, Région, Département) tombent à 0 €.
                     </td>
-                    <td className="p-4 align-top block md:table-cell">
+                    <td className="p-4 align-top ">
                       <div className="font-bold text-rose-600 mb-1 text-base">&gt; 500 000 € HT</div>
                       <div className="text-stone-600 text-xs">Le plafond d'emprunt de 400 000 € est explosé juste pour financer des rustines et des études jetées.</div>
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-stone-50 transition-colors block md:table-row border-b md:border-none border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
-                    <td className="p-4 align-top font-bold text-stone-900 block md:table-cell">3. Abandon total</td>
-                    <td className="p-4 align-top text-stone-700 block md:table-cell">
+                  <tr className="hover:bg-stone-50 transition-colors  border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
+                    <td className="p-4 align-top font-bold text-stone-900 ">3. Abandon total</td>
+                    <td className="p-4 align-top text-stone-700 ">
                       <strong className="text-stone-900 block mb-1">Fermeture administrative + Inflation.</strong> L'abandon fige les travaux. Le délai légal de 3 ans pour le radon expire. Le Préfet ferme l'école.
                     </td>
-                    <td className="p-4 align-top text-stone-700 block md:table-cell">
+                    <td className="p-4 align-top text-stone-700 ">
                       127 110 € d'études payés pour rien. Le futur projet (2030) coûtera au minimum 15 % plus cher à cause de l'inflation de la construction.
                     </td>
-                    <td className="p-4 align-top block md:table-cell">
+                    <td className="p-4 align-top ">
                       <div className="font-bold text-rose-600 mb-1 text-base">&gt; 850 000 € HT</div>
                       <div className="text-stone-600 text-xs">Crise politique majeure, enfants scolarisés hors commune, finances exsangues.</div>
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-stone-50 transition-colors block md:table-row border-b md:border-none border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
-                    <td className="p-4 align-top font-bold text-stone-900 block md:table-cell">4. Le Saupoudrage</td>
-                    <td className="p-4 align-top text-stone-700 block md:table-cell">
+                  <tr className="hover:bg-stone-50 transition-colors  border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
+                    <td className="p-4 align-top font-bold text-stone-900 ">4. Le Saupoudrage</td>
+                    <td className="p-4 align-top text-stone-700 ">
                       <strong className="text-stone-900 block mb-1">Échec de la mise aux normes.</strong> Les 50 000 € provisionnés sont dépensés dans des rustines (dalle/VMC basique), mais les mesures radon restent &gt; 300 Bq/m³.
                     </td>
-                    <td className="p-4 align-top text-stone-700 block md:table-cell">
+                    <td className="p-4 align-top text-stone-700 ">
                       Les 50 000 € sont perdus. L'État exige des travaux lourds. Aucune subvention versée car ce n'est pas une rénovation globale.
                     </td>
-                    <td className="p-4 align-top block md:table-cell">
+                    <td className="p-4 align-top ">
                       <div className="font-bold text-rose-600 mb-1 text-base">177 110 € HT</div>
                       <div className="text-stone-600 text-xs">De pure perte (Études + rustines). Obligation de tout recommencer à zéro.</div>
                     </td>
