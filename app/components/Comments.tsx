@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User, signOut, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 import { MessageSquare, Send, UserCircle, LogOut, Edit2, Trash2, X, Check } from "lucide-react";
 
 export default function Comments() {
@@ -15,9 +15,32 @@ export default function Comments() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [linkSent, setLinkSent] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
+
+  
+  // Vérifier si l'utilisateur revient avec un Magic Link
+  useEffect(() => {
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      let savedEmail = window.localStorage.getItem('emailForSignIn');
+      if (!savedEmail) {
+        savedEmail = window.prompt("Veuillez confirmer votre adresse email pour finaliser la connexion.");
+      }
+      if (savedEmail) {
+        signInWithEmailLink(auth, savedEmail, window.location.href)
+          .then((result) => {
+            window.localStorage.removeItem('emailForSignIn');
+            window.history.replaceState({}, document.title, window.location.pathname);
+          })
+          .catch((err) => {
+            console.error("Erreur Magic Link", err);
+            setAuthError("Le lien de connexion est invalide ou a expiré.");
+          });
+      }
+    }
+  }, []);
 
   // Écouter l'authentification
   useEffect(() => {
@@ -64,18 +87,26 @@ export default function Comments() {
     }
   };
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
+  
+  const handleSendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email) return;
     setAuthError("");
+    setLinkSent(true);
+    
+    const actionCodeSettings = {
+      // Redirige vers la page courante
+      url: window.location.href,
+      handleCodeInApp: true,
+    };
+
     try {
-      if (authMode === "login") {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-      setAuthMode("idle");
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      window.localStorage.setItem('emailForSignIn', email);
     } catch (err: any) {
-      setAuthError("Erreur d'authentification. Vérifiez vos identifiants.");
+      console.error(err);
+      setAuthError("Erreur lors de l'envoi du lien de connexion.");
+      setLinkSent(false);
     }
   };
 
@@ -209,35 +240,39 @@ export default function Comments() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleEmailAuth} className="max-w-sm mx-auto text-left">
+            
+            <form onSubmit={handleSendMagicLink} className="max-w-sm mx-auto text-left">
               <h4 className="font-bold text-stone-900 mb-4 text-center">
-                {authMode === "login" ? "Connexion" : "Créer un mot de passe"}
+                Connexion sécurisée par email
               </h4>
-              {authError && <p className="text-red-500 text-sm mb-3">{authError}</p>}
-              <input 
-                type="email" 
-                placeholder="Votre adresse email" 
-                required 
-                className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-3 focus:outline-none focus:border-emerald-500 bg-white text-stone-900"
-                value={email} onChange={e => setEmail(e.target.value)}
-              />
-              <input 
-                type="password" 
-                placeholder="Mot de passe" 
-                required 
-                className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-4 focus:outline-none focus:border-emerald-500 bg-white text-stone-900"
-                value={password} onChange={e => setPassword(e.target.value)}
-              />
-              <div className="flex gap-2">
-                <button type="button" onClick={() => setAuthMode("idle")} className="w-1/3 px-4 py-2 border border-stone-300 rounded-lg text-stone-600 hover:bg-stone-50">Retour</button>
-                <button type="submit" className="w-2/3 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-                  {authMode === "login" ? "Se connecter" : "S'inscrire"}
-                </button>
-              </div>
-              <p className="text-center text-xs text-stone-500 mt-4 cursor-pointer hover:underline" onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}>
-                {authMode === "login" ? "Première fois ? Créer un mot de passe" : "Déjà inscrit ? Se connecter"}
-              </p>
+              {authError && <p className="text-red-500 text-sm mb-3 text-center">{authError}</p>}
+              
+              {linkSent ? (
+                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+                  <p className="text-emerald-800 font-medium mb-2">Lien envoyé !</p>
+                  <p className="text-sm text-emerald-700">Consultez votre boîte mail <strong>{email}</strong> et cliquez sur le lien magique pour vous connecter automatiquement.</p>
+                  <button type="button" onClick={() => setLinkSent(false)} className="text-xs text-emerald-600 underline mt-4">Je n'ai rien reçu, recommencer</button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-stone-600 mb-4 text-center">Entrez l'email utilisé lors de votre adhésion. Nous vous enverrons un lien de connexion magique (sans mot de passe).</p>
+                  <input 
+                    type="email" 
+                    placeholder="Votre adresse email" 
+                    required 
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-4 focus:outline-none focus:border-emerald-500 bg-white text-stone-900"
+                    value={email} onChange={e => setEmail(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setAuthMode("idle")} className="w-1/3 px-4 py-2 border border-stone-300 rounded-lg text-stone-600 hover:bg-stone-50 transition-colors">Retour</button>
+                    <button type="submit" className="w-2/3 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                      Recevoir le lien
+                    </button>
+                  </div>
+                </>
+              )}
             </form>
+
           )}
         </div>
       ) : !isMember ? (
