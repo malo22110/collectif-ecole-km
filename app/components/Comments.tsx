@@ -126,6 +126,7 @@ export default function Comments() {
           {authMode === "idle" ? (
             <div>
               <p className="text-stone-600 mb-4">Connectez-vous avec l'adresse email utilisée lors de votre adhésion pour participer au débat.</p>
+              {authError && <p className="text-rose-500 text-sm mb-4 font-bold bg-rose-50 p-2 rounded-lg border border-rose-200">{authError}</p>}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onClick={handleGoogleLogin} className="px-6 py-2 bg-white border-2 border-stone-200 text-stone-700 font-medium rounded-xl hover:bg-stone-50 transition-colors flex items-center justify-center gap-2">
                   <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
