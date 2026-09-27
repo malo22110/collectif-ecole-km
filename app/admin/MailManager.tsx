@@ -53,6 +53,7 @@ export default function MailManager() {
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
   const [testMode, setTestMode] = useState(true);
+  const [scheduledAt, setScheduledAt] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -82,13 +83,20 @@ export default function MailManager() {
 
     setStatus("sending");
     try {
-      await addDoc(collection(db, "mailOutbox"), {
+      
+      const payload: any = {
         subject,
         html: htmlContent,
         testMode,
         status: "pending",
         createdAt: serverTimestamp()
-      });
+      };
+      
+      if (scheduledAt) {
+        payload.scheduledAt = new Date(scheduledAt);
+      }
+      
+      await addDoc(collection(db, "mailOutbox"), payload);
       setStatus("success");
       setSubject("");
       if (editor) editor.commands.setContent("<p>Bonjour à tous,</p><p><br/></p><p>À très vite,<br/>Le Collectif</p>");
@@ -139,6 +147,18 @@ export default function MailManager() {
               <EditorContent editor={editor} />
             </div>
           </div>
+        </div>
+
+        
+        <div>
+          <label className="block text-sm font-semibold text-stone-700 mb-2">Programmer l'envoi (Optionnel)</label>
+          <input 
+            type="datetime-local" 
+            value={scheduledAt}
+            onChange={(e) => setScheduledAt(e.target.value)}
+            className="input-base"
+          />
+          <p className="text-xs text-stone-500 mt-1">Laissez vide pour envoyer immédiatement.</p>
         </div>
 
         <div className="flex items-center gap-3 bg-stone-50 p-4 rounded-xl border border-stone-200">

@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 admin.initializeApp();
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onDocumentUpdated, onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import * as nodemailer from "nodemailer";
 import * as logger from "firebase-functions/logger";
 import { getEmailFooter, getBaseHtmlTemplate } from "./emailTemplates";
@@ -157,8 +158,9 @@ Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sé
   }
 });
 
-export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mailId}", database: "ecole-db" }, async (event) => {
-  const data = event.data?.data();
+
+async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
+  const data = docSnap.data();
   if (!data || data.status !== 'pending') return;
 
   try {
@@ -179,29 +181,21 @@ export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mail
     if (isTest) {
       recipients = ["lecam.malo@gmail.com"];
     } else {
-      // Fetch all validated members
       const snapshot = await admin.firestore().collection('membres').where('status', '==', 'validated').get();
       snapshot.forEach(doc => {
         const email = doc.data().email;
         if (email) recipients.push(email);
       });
-      // Deduplicate emails just in case
       recipients = [...new Set(recipients)];
     }
 
     if (recipients.length === 0) {
       logger.info("Aucun destinataire trouvé pour ce mail.");
-      await event.data?.ref.update({ status: 'error', error: 'No recipients found.' });
+      await docSnap.ref.update({ status: 'error', error: 'No recipients found.' });
       return;
     }
 
     const htmlContent = getBaseHtmlTemplate(bodyContent);
-
-    // Send emails in batches or use BCC
-    // Using BCC is safer and easier to prevent members seeing each other
-    // Note: Gmail has limits (e.g. 500 emails/day, 100 BCC/email), but for a small collective it should be fine.
-    // To be safer from spam filters, we can just map and send individually.
-    
     let sentCount = 0;
     
     for (const email of recipients) {
@@ -211,7 +205,6 @@ export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mail
         subject: subject,
         html: htmlContent
       };
-      
       try {
         await transporter.sendMail(mailOptions);
         sentCount++;
@@ -221,15 +214,52 @@ export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mail
     }
 
     logger.info(`SpreadMail envoyé à ${sentCount} destinataires.`);
-    
-    await event.data?.ref.update({ 
+    await docSnap.ref.update({ 
       status: 'sent', 
       sentAt: admin.firestore.FieldValue.serverTimestamp(),
       sentCount: sentCount 
     });
-    
   } catch (error) {
     logger.error("Erreur lors de l'envoi du SpreadMail :", error);
-    await event.data?.ref.update({ status: 'error', error: String(error) });
+    await docSnap.ref.update({ status: 'error', error: String(error) });
+  }
+}
+
+export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mailId}", database: "ecole-db" }, async (event) => {
+  const data = event.data?.data();
+  if (!data || data.status !== 'pending') return;
+
+  // Si le mail est programmé dans le futur, on ne fait rien.
+  // C'est le Cron Job qui s'en chargera.
+  if (data.scheduledAt && data.scheduledAt.toDate() > new Date()) {
+    logger.info(`Mail ${event.params.mailId} programmé pour plus tard. On ignore.`);
+    return;
+  }
+
+  // Sinon, on envoie immédiatement.
+  if (event.data) {
+    await processSpreadMail(event.data);
   }
 });
+
+export const checkScheduledMails = onSchedule("every 5 minutes", async (event) => {
+  const now = new Date();
+  
+  // Cherche les mails en attente dont la date de programmation est passée
+  const snapshot = await admin.firestore().collection("mailOutbox")
+    .where("status", "==", "pending")
+    .where("scheduledAt", "<=", admin.firestore.Timestamp.fromDate(now))
+    .get();
+
+  if (snapshot.empty) {
+    logger.info("Aucun mail programmé en attente.");
+    return;
+  }
+
+  logger.info(`Trouvé ${snapshot.size} mail(s) programmé(s) à envoyer.`);
+  
+  for (const doc of snapshot.docs) {
+    await processSpreadMail(doc);
+  }
+});
+
