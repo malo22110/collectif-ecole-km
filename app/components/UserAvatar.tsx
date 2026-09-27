@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { User, LogOut, Settings, LayoutDashboard } from "lucide-react";
+import { User, LogOut, Settings, LayoutDashboard, Users } from "lucide-react";
 import Link from "next/link";
 
 export default function UserAvatar() {
@@ -58,6 +58,14 @@ export default function UserAvatar() {
           <div className="px-4 py-2 border-b border-stone-100 mb-1">
             <p className="text-xs text-stone-500 truncate">{user.email}</p>
           </div>
+          
+          <Link 
+            href="/espace-membre" 
+            className="flex items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 font-medium"
+            onClick={() => setShowMenu(false)}
+          >
+            <Users size={16} /> Espace Membre
+          </Link>
           
           {isAdmin && (
             <Link 
