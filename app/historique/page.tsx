@@ -4,6 +4,8 @@ import Link from "next/link";
 import Comments from "../components/Comments";
 import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle, BookOpen, X, ChevronRight, Info, ShieldCheck, MessageCircle } from "lucide-react";
 import timelineEvents from "@/data/timeline.json";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 // A simple interactive Tooltip component that works on mobile (tap to show) and desktop (hover)
 const TermTooltip = ({ children, tooltip }: { children: React.ReactNode, tooltip: string }) => {
@@ -62,25 +64,35 @@ const HighlightTerms = ({ text }: { text: string }) => {
   );
 };
 
-const CommentBadge = ({ topic, label }: { topic: string, label?: string }) => {
+const CommentBadge = ({ topic, count, onOpen }: { topic: string, count: number, onOpen: () => void }) => {
+  const label = count > 0 ? `${count} commentaire${count > 1 ? 's' : ''}` : 'Commenter';
   return (
-    <button 
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); document.dispatchEvent(new CustomEvent('open-comments', { detail: topic })); }}
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 hover:bg-emerald-50 text-stone-500 hover:text-emerald-600 rounded-full text-xs font-medium transition-colors border border-stone-200 ml-3 align-middle"
-    >
-      <MessageCircle size={14} />
-      <span>{label || 'Commenter'}</span>
-    </button>
+    <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+      <button 
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpen(); }}
+        className="inline-flex items-center gap-1.5 px-4 py-2 bg-stone-50 hover:bg-emerald-50 text-stone-600 hover:text-emerald-700 rounded-full text-sm font-medium transition-colors border border-stone-200 shadow-sm"
+      >
+        <MessageCircle size={16} />
+        <span>{label}</span>
+      </button>
+    </div>
   );
 };
 
 export default function HistoriquePage() {
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
 
   React.useEffect(() => {
-    const handleOpen = (e: any) => setActiveTopic(e.detail);
-    document.addEventListener('open-comments', handleOpen);
-    return () => document.removeEventListener('open-comments', handleOpen);
+    const unsubscribe = onSnapshot(collection(db, "commentaires"), (snapshot) => {
+      const counts: Record<string, number> = {};
+      snapshot.forEach(doc => {
+        const topic = doc.data().topic || "Général";
+        counts[topic] = (counts[topic] || 0) + 1;
+      });
+      setCommentCounts(counts);
+    });
+    return () => unsubscribe();
   }, []);
 
   const [isSimplified, setIsSimplified] = useState(false);
@@ -117,7 +129,7 @@ export default function HistoriquePage() {
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 text-left max-w-3xl mx-auto p-6 md:p-8 mb-8">
           <h2 className="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2 flex-wrap">
             <TrendingDown className="text-emerald-600" />
-            Aperçu des enjeux financiers <CommentBadge topic="Enjeux financiers" />
+            Aperçu des enjeux financiers
           </h2>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
@@ -162,6 +174,7 @@ export default function HistoriquePage() {
               Détails : On
             </button>
           </div>
+          <CommentBadge topic="Enjeux financiers" count={commentCounts["Enjeux financiers"] || 0} onOpen={() => setActiveTopic("Enjeux financiers")} />
         </div>
 
         {/* TIMELINE SECTION */}
@@ -185,7 +198,7 @@ export default function HistoriquePage() {
                         className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative"
                       >
                         <div className="text-sm font-bold text-emerald-600 mb-1">{event.date}</div>
-                        <h3 className="text-xl font-bold text-stone-900 mb-2 flex items-center flex-wrap gap-2">{event.title} <CommentBadge topic={`Étape : ${event.title}`} /></h3>
+                        <h3 className="text-xl font-bold text-stone-900 mb-2 flex items-center flex-wrap gap-2">{event.title}</h3>
                         <p className="text-stone-600 mb-3 leading-relaxed md:text-left">
                           <HighlightTerms text={textToShow} />
                         </p>
@@ -226,6 +239,7 @@ export default function HistoriquePage() {
                             Détails <ChevronRight size={16}/>
                           </span>
                         </div>
+                        <CommentBadge topic={`Étape : ${event.title}`} count={commentCounts[`Étape : ${event.title}`] || 0} onOpen={() => setActiveTopic(`Étape : ${event.title}`)} />
                       </div>
 
                     </div>
@@ -252,7 +266,7 @@ export default function HistoriquePage() {
             </div>
             <h3 className="text-2xl font-bold text-stone-900 mb-4 flex items-center gap-3">
               <CheckCircle size={28} className="text-emerald-500" />
-              Option 1 : Optimisation de l'APD (Projet Révisé) <CommentBadge topic="Option 1" />
+              Option 1 : Optimisation de l'APD (Projet Révisé)
             </h3>
             <p className="text-stone-600 mb-6">
               Conserver l'Avant-Projet Définitif actuel en le révisant à la baisse (conservation des menuiseries, dalle béton simple, réseau SCIC Koad COB), pour rester sous la barre des 800 000 € demandée par le Sous-préfet.
@@ -313,13 +327,14 @@ export default function HistoriquePage() {
                 </p>
               </div>
             </div>
+            <CommentBadge topic="Option 1" count={commentCounts["Option 1"] || 0} onOpen={() => setActiveTopic("Option 1")} />
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-xl font-bold text-stone-900 mb-3 flex items-center gap-3">
                 <AlertCircle size={24} className="text-amber-500" />
-                Option 2 : Abandon de l'APD et table rase <CommentBadge topic="Option 2" />
+                Option 2 : Abandon de l'APD et table rase
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
                 Rompre les contrats, jeter 100% des plans de l'existant, et repartir de zéro pour faire du « bricolage ».
@@ -346,12 +361,13 @@ export default function HistoriquePage() {
                 <span className="text-sm font-bold text-rose-900 leading-tight">Reste à charge<br/><span className="text-[10px] font-normal">(dont 131k€ pure perte)</span></span>
                 <span className="text-2xl font-bold text-rose-600">~211 110 €</span>
               </div>
+              <CommentBadge topic="Option 2" count={commentCounts["Option 2"] || 0} onOpen={() => setActiveTopic("Option 2")} />
             </div>
 
             <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-xl font-bold text-stone-900 mb-3 flex items-center gap-3">
                 <XCircle size={24} className="text-rose-500" />
-                Option 3 : Abandon Total <CommentBadge topic="Option 3" />
+                Option 3 : Abandon Total
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
                 Geler l'opération, perdre l'ingénierie payée et repousser à la prochaine mandature.
@@ -378,12 +394,13 @@ export default function HistoriquePage() {
                 <span className="text-sm font-bold text-rose-900">Argent jeté sans travaux</span>
                 <span className="text-2xl font-bold text-rose-600">131 110 € HT</span>
               </div>
+              <CommentBadge topic="Option 3" count={commentCounts["Option 3"] || 0} onOpen={() => setActiveTopic("Option 3")} />
             </div>
 
             <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-xl font-bold text-stone-900 mb-3 flex items-center gap-3">
                 <AlertCircle size={24} className="text-rose-500" />
-                Option 4 : Le Saupoudrage <CommentBadge topic="Option 4" />
+                Option 4 : Le Saupoudrage
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
                 Mise aux normes stricte (radon, élec) sans vision thermique ni pédagogique. Effet "Subvention Zéro".
@@ -410,6 +427,7 @@ export default function HistoriquePage() {
                 <span className="text-sm font-bold text-rose-900">Coût net (Rafistolage)</span>
                 <span className="text-2xl font-bold text-rose-600">177 110 € HT</span>
               </div>
+              <CommentBadge topic="Option 4" count={commentCounts["Option 4"] || 0} onOpen={() => setActiveTopic("Option 4")} />
             </div>
           </div>
 
@@ -523,6 +541,7 @@ export default function HistoriquePage() {
                   </p>
                 </div>
               </div>
+              <CommentBadge topic="Stress Test (Risques)" count={commentCounts["Stress Test (Risques)"] || 0} onOpen={() => setActiveTopic("Stress Test (Risques)")} />
             </div>
           </div>
         </div>
