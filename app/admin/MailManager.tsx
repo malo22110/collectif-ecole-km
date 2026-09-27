@@ -1,33 +1,97 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Send, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Send, AlertCircle, CheckCircle2, Bold, Italic, List, ListOrdered } from "lucide-react";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+
+const MenuBar = ({ editor }: { editor: any }) => {
+  if (!editor) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2 p-2 border-b border-stone-200 bg-stone-50 rounded-t-xl">
+      <button
+        onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleBold().run(); }}
+        className={`p-2 rounded hover:bg-stone-200 ${editor.isActive('bold') ? 'bg-stone-200 text-stone-900' : 'text-stone-600'}`}
+        type="button"
+        title="Gras"
+      >
+        <Bold size={18} />
+      </button>
+      <button
+        onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleItalic().run(); }}
+        className={`p-2 rounded hover:bg-stone-200 ${editor.isActive('italic') ? 'bg-stone-200 text-stone-900' : 'text-stone-600'}`}
+        type="button"
+        title="Italique"
+      >
+        <Italic size={18} />
+      </button>
+      <div className="w-px h-6 bg-stone-300 mx-1 self-center" />
+      <button
+        onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleBulletList().run(); }}
+        className={`p-2 rounded hover:bg-stone-200 ${editor.isActive('bulletList') ? 'bg-stone-200 text-stone-900' : 'text-stone-600'}`}
+        type="button"
+        title="Liste à puces"
+      >
+        <List size={18} />
+      </button>
+      <button
+        onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleOrderedList().run(); }}
+        className={`p-2 rounded hover:bg-stone-200 ${editor.isActive('orderedList') ? 'bg-stone-200 text-stone-900' : 'text-stone-600'}`}
+        type="button"
+        title="Liste numérotée"
+      >
+        <ListOrdered size={18} />
+      </button>
+    </div>
+  );
+};
 
 export default function MailManager() {
   const [subject, setSubject] = useState("");
-  const [html, setHtml] = useState("");
+  const [htmlContent, setHtmlContent] = useState("");
   const [testMode, setTestMode] = useState(true);
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: "<p>Bonjour à tous,</p><p><br/></p><p>À très vite,<br/>Le Collectif</p>",
+    editorProps: {
+      attributes: {
+        class: 'prose prose-stone max-w-none focus:outline-none min-h-[300px] p-4 text-sm',
+      },
+    },
+    onUpdate: ({ editor }) => {
+      setHtmlContent(editor.getHTML());
+    },
+  });
+
+  // Initialize htmlContent on load
+  useEffect(() => {
+    if (editor && htmlContent === "") {
+      setHtmlContent(editor.getHTML());
+    }
+  }, [editor]);
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subject.trim() || !html.trim()) return;
+    if (!subject.trim() || !htmlContent.trim() || htmlContent === "<p></p>") return;
 
     setStatus("sending");
     try {
       await addDoc(collection(db, "mailOutbox"), {
         subject,
-        html,
+        html: htmlContent,
         testMode,
         status: "pending",
         createdAt: serverTimestamp()
       });
       setStatus("success");
       setSubject("");
-      setHtml("");
+      if (editor) editor.commands.setContent("<p>Bonjour à tous,</p><p><br/></p><p>À très vite,<br/>Le Collectif</p>");
       setTimeout(() => setStatus("idle"), 5000);
     } catch (err: any) {
       console.error(err);
@@ -68,14 +132,13 @@ export default function MailManager() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-stone-700 mb-2">Contenu (Format HTML autorisé)</label>
-          <textarea 
-            value={html}
-            onChange={(e) => setHtml(e.target.value)}
-            className="input-base min-h-[300px] font-mono text-sm"
-            placeholder="<p>Bonjour à tous,</p>"
-            required
-          />
+          <label className="block text-sm font-semibold text-stone-700 mb-2">Contenu du message</label>
+          <div className="border border-stone-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all">
+            <MenuBar editor={editor} />
+            <div className="bg-white cursor-text" onClick={() => editor?.commands.focus()}>
+              <EditorContent editor={editor} />
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 bg-stone-50 p-4 rounded-xl border border-stone-200">
