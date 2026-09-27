@@ -94,14 +94,14 @@ export default function Comments() {
     setAuthError("");
     setLinkSent(true);
     
-    const actionCodeSettings = {
-      // Redirige vers la page courante
-      url: window.location.href,
-      handleCodeInApp: true,
-    };
-
     try {
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      // On demande au serveur d'envoyer le mail joli via Firestore
+      await addDoc(collection(db, "magicLinks"), {
+        email: email,
+        url: window.location.href,
+        createdAt: serverTimestamp(),
+        status: 'pending'
+      });
       window.localStorage.setItem('emailForSignIn', email);
     } catch (err: any) {
       console.error(err);
