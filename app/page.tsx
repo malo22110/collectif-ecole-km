@@ -405,9 +405,9 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mt-12 text-center">
-              <a href="#rejoindre" className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-8 py-3.5 rounded-full shadow-sm hover:shadow transition-all text-lg">
+              <a href="/petition" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3.5 rounded-full shadow-sm hover:shadow-lg transition-all text-lg">
                 <FileSignature size={20} />
-                Lancement officiel à partir de lundi 28/09/2026 !
+                Signer la pétition maintenant
               </a>
             </div>
           </div>
