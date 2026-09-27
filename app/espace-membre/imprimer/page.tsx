@@ -5,7 +5,7 @@ import { Printer } from "lucide-react";
 
 export default function PetitionPapier() {
   return (
-    <div className="bg-white min-h-screen text-black font-sans p-4 md:p-8 max-w-[210mm] mx-auto print:p-0 print:max-w-none">
+    <div className="bg-white min-h-screen text-black font-sans p-4 md:p-8 max-w-5xl mx-auto print:p-0 print:m-0 print:max-w-none print:w-full">
       <div className="print:hidden mb-8 text-center flex justify-center gap-4">
         <button 
           onClick={() => window.print()}
@@ -21,7 +21,16 @@ export default function PetitionPapier() {
         </button>
       </div>
 
-      <div className="print-container">
+      <style dangerouslySetInnerHTML={{__html: `
+        @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          @page { margin: 1cm; }
+        }
+      `}} />
+      <div className="w-full bg-white text-black">
         <div className="border-b-2 border-black pb-4 mb-4 text-center">
           <h1 className="text-2xl font-black uppercase tracking-tight mb-2">Pétition citoyenne</h1>
           <h2 className="text-xl font-bold">Rénovation de l'école de Kergrist-Moëlou : valorisons les études engagées vers un projet maîtrisé</h2>
