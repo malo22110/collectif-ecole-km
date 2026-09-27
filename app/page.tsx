@@ -16,13 +16,17 @@ import {
   Scale,
   MessageSquare,
   Search,
-  Newspaper
+  Newspaper,
+  Menu,
+  X,
+  BookOpen
 } from "lucide-react";
 
 export default function LandingPage() {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [memberCount, setMemberCount] = useState<number>(51); // Valeur par défaut
   const [articles, setArticles] = useState<any[]>([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     async function fetchArticles() {
@@ -117,20 +121,47 @@ export default function LandingPage() {
               Collectif École
             </span>
           </div>
-          <div className="flex items-center gap-3 md:gap-4">
-            <a href="/faq" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors hidden md:block">FAQ</a>
-            <a href="/historique" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors hidden md:flex items-center gap-1.5"><Search size={16} /> Historique & Analyse</a>
-            <a href="#charte" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors hidden md:block">
+          
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex items-center gap-4">
+            <a href="/faq" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">FAQ</a>
+            <a href="/historique" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors flex items-center gap-1.5"><Search size={16} /> Historique & Analyse</a>
+            <a href="#charte" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">
               Notre Charte
             </a>
-            <a href="#petition" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors hidden md:block">
+            <a href="#petition" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">
               La Pétition
             </a>
             <a href="#rejoindre" className="text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full transition-colors">
               Rejoindre
             </a>
           </div>
+
+          {/* Mobile Nav Button */}
+          <div className="flex items-center gap-3 lg:hidden">
+            <a href="#rejoindre" className="text-xs sm:text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full transition-colors">
+              Rejoindre
+            </a>
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)} 
+              className="p-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Nav Menu */}
+        {isMenuOpen && (
+          <div className="lg:hidden absolute top-16 left-0 w-full bg-white border-b border-stone-200 shadow-xl flex flex-col p-4 gap-4 z-50">
+            <a onClick={() => setIsMenuOpen(false)} href="/historique" className="flex items-center gap-3 px-4 py-3 bg-amber-50 text-amber-800 font-bold rounded-xl border border-amber-200">
+              <Search size={18} /> Historique & Analyse Financière
+            </a>
+            <a onClick={() => setIsMenuOpen(false)} href="/faq" className="px-4 py-2 text-stone-700 font-medium hover:bg-stone-50 rounded-lg">Foire Aux Questions (FAQ)</a>
+            <a onClick={() => setIsMenuOpen(false)} href="#charte" className="px-4 py-2 text-stone-700 font-medium hover:bg-stone-50 rounded-lg">Notre Charte</a>
+            <a onClick={() => setIsMenuOpen(false)} href="#petition" className="px-4 py-2 text-stone-700 font-medium hover:bg-stone-50 rounded-lg">La Pétition</a>
+          </div>
+        )}
       </header>
 
       <main>
