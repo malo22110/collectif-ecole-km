@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Comments from "../components/Comments";
-import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle, BookOpen, X, ChevronRight, Info, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle, BookOpen, X, ChevronRight, Info, ShieldCheck, MessageCircle } from "lucide-react";
 import timelineEvents from "@/data/timeline.json";
 
 // A simple interactive Tooltip component that works on mobile (tap to show) and desktop (hover)
@@ -62,7 +62,27 @@ const HighlightTerms = ({ text }: { text: string }) => {
   );
 };
 
+const CommentBadge = ({ topic, label }: { topic: string, label?: string }) => {
+  return (
+    <button 
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); document.dispatchEvent(new CustomEvent('open-comments', { detail: topic })); }}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 hover:bg-emerald-50 text-stone-500 hover:text-emerald-600 rounded-full text-xs font-medium transition-colors border border-stone-200 ml-3 align-middle"
+    >
+      <MessageCircle size={14} />
+      <span>{label || 'Débattre'}</span>
+    </button>
+  );
+};
+
 export default function HistoriquePage() {
+  const [activeTopic, setActiveTopic] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const handleOpen = (e: any) => setActiveTopic(e.detail);
+    document.addEventListener('open-comments', handleOpen);
+    return () => document.removeEventListener('open-comments', handleOpen);
+  }, []);
+
   const [isSimplified, setIsSimplified] = useState(false);
   const [activeStep, setActiveStep] = useState<any>(null);
 
@@ -95,9 +115,9 @@ export default function HistoriquePage() {
         
         {/* ENJEUX FINANCIERS */}
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 text-left max-w-3xl mx-auto p-6 md:p-8 mb-8">
-          <h2 className="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2 flex-wrap">
             <TrendingDown className="text-emerald-600" />
-            Aperçu des enjeux financiers
+            Aperçu des enjeux financiers <CommentBadge topic="Enjeux financiers" />
           </h2>
           <div className="space-y-4">
             <div className="flex items-start gap-3">

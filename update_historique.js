@@ -1,88 +1,100 @@
 const fs = require('fs');
+const path = 'app/historique/page.tsx';
+let code = fs.readFileSync(path, 'utf8');
 
-let code = fs.readFileSync('app/historique/page.tsx', 'utf8');
+// 1. Imports
+code = code.replace(
+  'import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle, BookOpen, X, ChevronRight, Info, ShieldCheck } from "lucide-react";',
+  'import { ArrowLeft, ExternalLink, AlertCircle, Clock, TrendingDown, CheckCircle, XCircle, BookOpen, X, ChevronRight, Info, ShieldCheck, MessageCircle } from "lucide-react";'
+);
 
-// 1. Add Toggle State
+// 2. Add activeTopic state
 code = code.replace(
   'export default function HistoriquePage() {',
-  'export default function HistoriquePage() {\n  const [isSimplified, setIsSimplified] = React.useState(true);\n'
+  `const CommentBadge = ({ topic, label }: { topic: string, label?: string }) => {
+  return (
+    <button 
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); document.dispatchEvent(new CustomEvent('open-comments', { detail: topic })); }}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 hover:bg-emerald-50 text-stone-500 hover:text-emerald-600 rounded-full text-xs font-medium transition-colors border border-stone-200 ml-3 align-middle"
+    >
+      <MessageCircle size={14} />
+      <span>{label || 'Débattre'}</span>
+    </button>
+  );
+};
+
+export default function HistoriquePage() {
+  const [activeTopic, setActiveTopic] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const handleOpen = (e: any) => setActiveTopic(e.detail);
+    document.addEventListener('open-comments', handleOpen);
+    return () => document.removeEventListener('open-comments', handleOpen);
+  }, []);
+`
 );
 
-// 2. Add Glossary UI at the bottom of the content container (before the </main>)
-const glossaryUI = `
-      <section className="bg-stone-100 py-16 border-t border-stone-200 mt-12">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-stone-900 mb-8 flex items-center gap-2">
-            <BookOpen className="text-emerald-600" />
-            Petit Lexique pour tout comprendre
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-              <h3 className="font-bold text-stone-900 mb-2">AMO (Assistant à Maîtrise d'Ouvrage)</h3>
-              <p className="text-sm text-stone-600">Un expert technique ou financier embauché par la mairie pour l'aider à définir le projet, choisir les architectes et suivre le chantier. Il défend les intérêts de la commune.</p>
-            </div>
-            <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-              <h3 className="font-bold text-stone-900 mb-2">Maîtrise d'Œuvre (Architectes)</h3>
-              <p className="text-sm text-stone-600">L'équipe (architectes, ingénieurs) chargée de concevoir les plans de l'école et de diriger les travaux sur le terrain.</p>
-            </div>
-            <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-              <h3 className="font-bold text-stone-900 mb-2">APS & APD</h3>
-              <p className="text-sm text-stone-600"><strong>APS (Avant-Projet Sommaire) :</strong> Les premières esquisses et le premier chiffrage global.<br/><strong>APD (Avant-Projet Définitif) :</strong> Les plans détaillés et le budget figé avant de demander les permis de construire.</p>
-            </div>
-            <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-              <h3 className="font-bold text-stone-900 mb-2">Tranche optionnelle / conditionnelle</h3>
-              <p className="text-sm text-stone-600">Une partie des travaux qui est dessinée sur les plans mais qui ne sera construite que si la mairie décide plus tard qu'elle a le budget nécessaire (ex: la salle de motricité).</p>
+// 3. Add badges to headers
+// Enjeux Financiers
+code = code.replace(
+  '<h2 className="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2">',
+  '<h2 className="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2 flex-wrap">'
+);
+code = code.replace(
+  '<TrendingDown className="text-emerald-600" />\n            Aperçu des enjeux financiers',
+  '<TrendingDown className="text-emerald-600" />\n            Aperçu des enjeux financiers <CommentBadge topic="Enjeux financiers" />'
+);
+
+// Options
+code = code.replace(
+  '<h2 className="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2">',
+  '<h2 className="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2 flex-wrap">'
+);
+code = code.replace(
+  '<CheckCircle className="text-emerald-600" />\n            Analyse des options de reprise',
+  '<CheckCircle className="text-emerald-600" />\n            Analyse des options de reprise <CommentBadge topic="Options de reprise" />'
+);
+
+// Timeline items
+code = code.replace(
+  '<h3 className="font-bold text-stone-900 text-lg mb-2">{event.title}</h3>',
+  '<h3 className="font-bold text-stone-900 text-lg mb-2 flex items-center flex-wrap gap-2">{event.title} <CommentBadge topic={`Étape : ${event.title}`} /></h3>'
+);
+
+// 4. Drawer & Bottom Comments
+const endMain = `
+        {/* Lexique & Comments */}
+`;
+const newEndMain = `
+        {/* Commentaires contextuels (Drawer) */}
+        {activeTopic && (
+          <div className="fixed inset-0 z-50 flex justify-end bg-stone-900/50 backdrop-blur-sm transition-opacity" onClick={() => setActiveTopic(null)}>
+            <div className="w-full max-w-md bg-stone-50 h-full overflow-y-auto shadow-2xl animate-in slide-in-from-right" onClick={e => e.stopPropagation()}>
+              <div className="sticky top-0 bg-white border-b border-stone-200 p-4 flex justify-between items-center z-10 shadow-sm">
+                <h3 className="font-bold text-stone-900 flex-1 truncate mr-4">Débat : {activeTopic}</h3>
+                <button onClick={() => setActiveTopic(null)} className="p-2 bg-stone-100 text-stone-600 hover:bg-stone-200 rounded-full transition-colors"><X size={20}/></button>
+              </div>
+              <div className="p-4">
+                <Comments topic={activeTopic} />
+              </div>
             </div>
           </div>
+        )}
+
+        {/* Espace débat global */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <Comments />
         </div>
-      </section>
+
+        {/* Lexique */}
 `;
 
-// Insert the glossary just before </main>
-code = code.replace('</main>', glossaryUI + '\n      </main>');
-
-// 3. Import BookOpen and Toggle icon (like Languages or Eye)
-if (!code.includes('BookOpen')) {
-  code = code.replace('import { CheckCircle2, XCircle, ArrowRight, Clock } from "lucide-react";', 'import { CheckCircle2, XCircle, ArrowRight, Clock, BookOpen, Quote } from "lucide-react";');
-}
-
-// 4. Add the Toggle Switch UI above the timeline
-const toggleUI = `
-        {/* Toggle Simple/Détaillé */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex bg-stone-200 p-1 rounded-full items-center">
-            <button
-              onClick={() => setIsSimplified(true)}
-              className={\`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 \${isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-600 hover:text-stone-900'}\`}
-            >
-              Version "Pour les nuls" (Résumé)
-            </button>
-            <button
-              onClick={() => setIsSimplified(false)}
-              className={\`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 \${!isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-600 hover:text-stone-900'}\`}
-            >
-              Version Administrative (Détaillée)
-            </button>
-          </div>
-        </div>
-`;
 code = code.replace(
-  '<div className="max-w-4xl mx-auto relative">',
-  toggleUI + '\n        <div className="max-w-4xl mx-auto relative">'
+  `        <Comments />\n\n      </main>`,
+  `      </main>`
 );
 
-// 5. Use the simplified description based on the state
-code = code.replace(
-  '<p className="text-stone-600 mb-4">{item.description}</p>',
-  '<p className="text-stone-600 mb-4">{isSimplified && item.simplifiedDescription ? item.simplifiedDescription : item.description}</p>'
-);
+code = code.replace(endMain, newEndMain);
 
-// 6. Fix "React" undefined since we just used React.useState, let's make sure it's imported
-if (!code.includes("import React")) {
-  code = code.replace('import Link from "next/link";', 'import React from "react";\nimport Link from "next/link";');
-} else {
-  code = code.replace('import React from "react";', 'import React, { useState } from "react";');
-  code = code.replace('React.useState(true)', 'useState(true)');
-}
-
-fs.writeFileSync('app/historique/page.tsx', code);
+fs.writeFileSync(path, code);
+console.log('Historique updated with inline comments');
