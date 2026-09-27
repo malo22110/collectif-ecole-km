@@ -177,7 +177,7 @@ export default function Comments({ topic }: { topic?: string }) {
               return acc;
             }, {});
             
-            return (topic ? [[topic, grouped[topic] || []]] : Object.entries(grouped)).map(([groupTopic, groupComments]: [string, any]) => {
+            return (topic ? [[topic, grouped[topic] || []]] : Object.entries(grouped)).map(([groupTopic, groupComments]: any) => {
               if (groupComments.length === 0) return null;
               return (
                 <div key={groupTopic} className="mb-6 last:mb-0">
