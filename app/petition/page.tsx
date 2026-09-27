@@ -12,6 +12,14 @@ import { ArrowLeft } from "lucide-react";
 export default function PetitionPage() {
   const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", qualite: "", qualiteAutre: "", honeypot: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("petition_signed")) {
+        setStatus("success");
+      }
+    } catch (e) {}
+  }, []);
   const [stats, setStats] = useState({ count: 0, recent: [] as string[] });
   const [isMember, setIsMember] = useState(false);
 
@@ -68,6 +76,9 @@ export default function PetitionPage() {
       
       await addDoc(collection(db, "signatures"), payload);
       setStatus("success");
+      try {
+        localStorage.setItem("petition_signed", "true");
+      } catch (e) {}
     } catch (err) {
       console.error(err);
       setStatus("error");

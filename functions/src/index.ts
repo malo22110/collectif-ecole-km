@@ -9,7 +9,7 @@ import { getEmailFooter, getBaseHtmlTemplate } from "./emailTemplates";
 
 setGlobalOptions({ region: "europe-west9" });
 
-export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
+export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{membreId}" }, async (event) => {
   const membreAvant = event.data?.before.data();
   const membreApres = event.data?.after.data();
   
@@ -87,7 +87,7 @@ ${getEmailFooter(false)}`;
 });
 
 
-export const envoyerMagicLink = onDocumentCreated({ document: "magicLinks/{linkId}", database: "ecole-db" }, async (event) => {
+export const envoyerMagicLink = onDocumentCreated({ document: "magicLinks/{linkId}" }, async (event) => {
   const data = event.data?.data();
   if (!data || !data.email || data.status !== 'pending') return;
 
@@ -225,7 +225,7 @@ async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
   }
 }
 
-export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mailId}", database: "ecole-db" }, async (event) => {
+export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mailId}" }, async (event) => {
   const data = event.data?.data();
   if (!data || data.status !== 'pending') return;
 
@@ -266,7 +266,7 @@ export const checkScheduledMails = onSchedule("every 5 minutes", async (event) =
 
 
 // --- PÉTITION ---
-export const onSignatureCreated = onDocumentCreated({ document: "signatures/{sigId}", database: "ecole-db" }, async (event) => {
+export const onSignatureCreated = onDocumentCreated({ document: "signatures/{sigId}" }, async (event) => {
   const data = event.data?.data();
   if (!data) return;
 
