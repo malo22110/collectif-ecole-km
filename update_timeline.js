@@ -2,61 +2,95 @@ const fs = require('fs');
 
 const timeline = [
   {
-    "date": "Juillet 2023 – Décembre 2023",
-    "title": "Lancement des études et cadrage",
-    "description": "Validation de l'ADAC en tant qu'Assistant à Maîtrise d'Ouvrage (AMO) pour la réhabilitation. Concertation avec les enseignantes, l'APE et le CAUE pour définir les besoins (3 classes, sanitaires, BCD). Premières demandes de subvention.",
-    "sourceLabel": "PV du 4 Juil. et 14 Déc. 2023",
+    "date": "Novembre 2022 – Juin 2023",
+    "title": "Genèse, concertation et identité",
+    "description": "• Prise de conscience énergétique : Cadrage initial des besoins d'isolation des bâtiments communaux (novembre 2022).\n• Engagement pour l'école : Le 2 mars 2023, le conseil municipal vote à l'unanimité une motion rappelant que « L'école demeure un service public de proximité. Ce n'est pas une variable d'ajustement qu'il suffit d'activer pour faire des économies ! ».\n• Nom de l'école : Le 8 juin 2023, adoption unanime du nom issu de la concertation APE/élèves : « Les écureuils de tal ar c'hoat ».",
+    "simplifiedDescription": "La municipalité réalise qu'il faut isoler ses bâtiments. Elle affirme son attachement fort à l'école, considérée comme un service public essentiel, et les enfants choisissent le nom officiel de l'école.",
+    "sourceLabel": "PV de Nov 2022, Mars & Juin 2023",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2023/10/PV-DU-04072023.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Motion d'engagement pour l'école",
+      "Nom officiel de l'école"
+    ],
+    "conservable": true
   },
   {
-    "date": "Mai 2024",
-    "title": "Déblocage des contraintes patrimoniales",
-    "description": "Après échange avec l'Architecte des Bâtiments de France (ABF), la mairie obtient l'accord écrit pour créer une extension sur la façade arrière sans dénaturer le patrimoine.",
-    "sourceLabel": "PV de Mai 2024",
-    "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2025/04/pv-kergrist-moelou-05-2024.pdf",
-    "color": "bg-emerald-500"
-  },
-  {
-    "date": "Avril 2025 – Juin 2025",
-    "title": "Structuration de la maîtrise d'œuvre",
-    "description": "Lancement de l'AMO Kerlotec. Choix définitif du cabinet d'architecte Blandine Houssais (en partenariat avec Patine Office) pour 68 750 € HT d'honoraires. Chiffrage prévisionnel des travaux à 576 500 € HT.",
-    "sourceLabel": "PV du 19 Juin 2025",
+    "date": "Juillet 2023 – Juin 2025",
+    "title": "Cadrage technique, AMO et maîtrise d'œuvre",
+    "description": "• AMO ADAC : Validation de la mission d'Assistance à Maîtrise d'Ouvrage (ADAC 22) pour la rénovation de l'école et de la cantine.\n• Concertation & besoins : Réunions associant élus, enseignantes, parents et CAUE 22 pour définir le programme (3 classes, BCD ouverte, préau, cour renaturée, matériaux biosourcés).\n• Audits énergétiques : Intégration de l'ALECOB financée par ACTEE+.\n• Accord ABF (Mai 2024) : Validation écrite pour l'extension arrière.\n• Désignation du maître d’œuvre : Attribution à Blandine Houssais et Patine Office pour 68 750 € HT.",
+    "simplifiedDescription": "La mairie décide de lancer un vrai projet et s'entoure de professionnels (architectes, ingénieurs, conseillers). Le programme détaillé est défini avec les professeurs et les parents, et le feu vert des Bâtiments de France est obtenu.",
+    "sourceLabel": "PV de Juil. 2023 à Juin 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-19-06-2025.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Programme fonctionnel (3 classes, BCD, sanitaires)",
+      "Accord écrit de l'Architecte des Bâtiments de France (ABF)",
+      "Diagnostics (géomètre, amiante/radon, structure)",
+      "Contrat de Maîtrise d'œuvre (68 750 € HT)"
+    ],
+    "conservable": true
   },
   {
-    "date": "Septembre 2025",
-    "title": "Présentation de l'Avant-Projet Sommaire",
-    "description": "Bilan comptable acté : 127 110 € HT d'études sont déjà engagés par contrats. Notification officielle des financements accordés par le Département et la Région, sécurisant fermement 159 855 € de subventions. Le conseil demande un recentrage du coût évalué.",
-    "sourceLabel": "PV du 11 Sept. 2025",
-    "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-du-11-09-2025.pdf",
-    "color": "bg-emerald-500"
-  },
-  {
-    "date": "Octobre 2025",
-    "title": "Validation de l'APS ferme",
-    "description": "Validation à la majorité par le conseil municipal du montant de 617 500 € HT. L'enveloppe intègre notamment 41 000 € HT de travaux obligatoires pour le traitement du radon.",
-    "sourceLabel": "PV du 9 Oct. 2025",
-    "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-9-10-2025.pdf",
-    "color": "bg-emerald-500"
-  },
-  {
-    "date": "Novembre 2025",
-    "title": "Validation de l'Avant-Projet Définitif (APD)",
-    "description": "Scission stratégique du projet en 2 phases pour alléger les coûts. Phase 1 (Classes, préau, chaufferie) : 615 278 € HT. Phase 2 optionnelle (Motricité) : 120 210 € HT. Vote d'une décision budgétaire ajoutant 22 243 € d'études.",
-    "sourceLabel": "PV du 27 Nov. 2025",
+    "date": "Septembre 2025 – Novembre 2025",
+    "title": "De l'APS à l'Avant-Projet Définitif (APD)",
+    "description": "• 11 septembre 2025 : Notification formelle des subventions accordées : 99 405 € (Département) et 60 450 € (Région), soit 159 855 € actés. Constat formel en conseil de 127 110 € HT déjà engagés sur le budget études. Demande de révision de la copie pour baisser le coût.\n• 9 octobre 2025 : Vote majoritaire (10 POUR, 1 CONTRE) validant l'APS ferme à 617 500 € HT, incluant le traitement prioritaire du radon (41 000 € HT). La motricité bascule en tranche conditionnelle.\n• 27 novembre 2025 : Vote de l'APD (9 POUR, 3 abstentions). Phase 1 (Classes, garderie, chaufferie, préau) à 615 278,09 € HT. Phase 2 (Salle de motricité) à 120 210,96 € HT.",
+    "simplifiedDescription": "Excellente nouvelle : 160 000 € de subventions sont décrochés ! Le Conseil constate que 127 000 € d'études sont déjà engagés. Pour maîtriser le budget, les élus votent un projet en deux parties : d'abord l'urgence (classes et préau) et plus tard la salle de motricité.",
+    "sourceLabel": "PV de Sept., Oct. et Nov. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-27-11-2025.pdf",
-    "color": "bg-emerald-500"
+    "color": "bg-emerald-500",
+    "produits": [
+      "Arrêtés de subventions Département (99 405 €) et Région (60 450 €)",
+      "Avant-Projet Sommaire (APS) et plans de masse",
+      "Avant-Projet Définitif (APD) et chiffrage des 2 phases"
+    ],
+    "conservable": false
   },
   {
-    "date": "Mars 2026 – Septembre 2026",
-    "title": "Arrêt du projet & mobilisation",
-    "description": "La nouvelle équipe municipale refuse de voter un devis complémentaire technique de seulement 2 170 € HT destiné à revoir le projet à la baisse, provoquant l'arrêt brutal des études. Le 26 septembre, lancement du collectif citoyen.",
+    "date": "Avril 2026",
+    "title": "Cadrage budgétaire de la nouvelle mandature",
+    "description": "• 8 avril 2026 : Le Trésor public confirme des finances communales saines et accorde la capacité d'un emprunt de 400 000 €.\n• 14 avril 2026 : Constat en conseil que la subvention DETR (État) doit impérativement être engagée avant fin décembre 2026.\n• 28 avril 2026 : Le Sous-préfet demande de réajuster l'enveloppe sous les 800 000 € TTC mais confirme l'éligibilité aux aides (100k€ Département, 60k€ Région, DETR 30 %). Vote d'une ligne d'urgence radon (50 000 €).",
+    "simplifiedDescription": "Le Trésorier valide la capacité financière de la commune pour emprunter. L'État confirme le soutien financier mais impose une condition stricte : le projet doit démarrer avant la fin de l'année 2026, sinon on perd les aides de l'État.",
+    "sourceLabel": "PV d'Avril 2026",
+    "sourceUrl": "/docs/pvs/CR 28 04 2026.pdf",
+    "color": "bg-emerald-500",
+    "produits": [
+      "Confirmation capacité d'emprunt (Trésor Public)",
+      "Maintien de l'éligibilité aux subventions",
+      "Échéance DETR fixée à décembre 2026"
+    ],
+    "conservable": true
+  },
+  {
+    "date": "Juin 2026",
+    "title": "Travail de concertation pour réduire les coûts",
+    "description": "9 juin 2026 : Acte des échanges avec l'équipe éducative et préparation d'une réunion (le 22 juin) avec l'architecte et l'AMO pour simplifier le projet (dalle béton radon simplifiée, conservation d'huisseries existantes, étude d'un raccordement au réseau de chaleur SCIC Koad COB).",
+    "simplifiedDescription": "Élus, professeurs et architectes se remettent autour de la table pour trouver des solutions intelligentes afin de baisser le coût final des travaux sans dégrader la qualité pour les enfants.",
+    "sourceLabel": "PV du 9 Juin 2026",
+    "sourceUrl": "/docs/pvs/PV 09 06 2026 (1).pdf",
+    "color": "bg-emerald-500",
+    "produits": [
+      "Pistes concrètes de réduction budgétaire",
+      "Maintien de l'équipe de Maîtrise d'œuvre"
+    ],
+    "conservable": true
+  },
+  {
+    "date": "Septembre 2026",
+    "title": "Blocage et réaction citoyenne",
+    "description": "• 24 septembre 2026 : Rejet par le conseil municipal (8 voix CONTRE, 6 POUR) d'un devis complémentaire d'études de 2 170 € HT, bloquant net la finalisation du dossier d'allègement budgétaire initié en juin.\n• 26 septembre 2026 : Lancement du collectif citoyen « Un nid tout neuf pour nos écureuils » demandant la tenue d'une commission extra-municipale au conseil du 13 octobre pour sortir de l'impasse et sécuriser les subventions.",
+    "simplifiedDescription": "Alors qu'on était sur le point de réduire le coût du projet, le conseil municipal refuse de voter une facture de 2 000 € et bloque tout le dossier. Face au risque de tout perdre (127 000 € déjà dépensés et 160 000 € d'aides), les citoyens se mobilisent et montent un collectif.",
     "sourceLabel": "Charte du Collectif",
     "sourceUrl": "#",
-    "color": "bg-amber-500"
+    "color": "bg-amber-500",
+    "produits": [
+      "Blocage de l'optimisation budgétaire",
+      "Risque d'annulation des subventions",
+      "Lancement de l'initiative citoyenne"
+    ],
+    "conservable": false
   }
 ];
 
 fs.writeFileSync('data/timeline.json', JSON.stringify(timeline, null, 2));
+console.log('Timeline updated successfully.');
