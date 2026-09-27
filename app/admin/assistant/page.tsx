@@ -6,7 +6,7 @@ import { ArrowLeft, Send, Bot, User, Loader2 } from "lucide-react";
 import { getApp } from "firebase/app";
 import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 
 
 export default function AssistantPage() {
@@ -17,7 +17,7 @@ export default function AssistantPage() {
   const [model, setModel] = useState<any>(null);
   const [chat, setChat] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
 
