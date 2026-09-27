@@ -260,7 +260,7 @@ export default function Comments() {
                     type="email" 
                     placeholder="Votre adresse email" 
                     required 
-                    className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-4 focus:outline-none focus:border-emerald-500 bg-white text-stone-900"
+                    className="input-base mb-4"
                     value={email} onChange={e => setEmail(e.target.value)}
                   />
                   <div className="flex gap-2">

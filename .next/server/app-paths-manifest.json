@@ -1,10 +1,10 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/icon.png/route": "app/icon.png/route.js",
-  "/admin/assistant/page": "app/admin/assistant/page.js",
+  "/actualites/page": "app/actualites/page.js",
   "/faq/page": "app/faq/page.js",
   "/page": "app/page.js",
-  "/admin/page": "app/admin/page.js",
   "/historique/page": "app/historique/page.js",
-  "/actualites/page": "app/actualites/page.js"
+  "/admin/assistant/page": "app/admin/assistant/page.js",
+  "/admin/page": "app/admin/page.js"
 }

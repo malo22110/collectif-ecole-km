@@ -532,20 +532,20 @@ export default function LandingPage() {
                   <div className="grid md:grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <label htmlFor="firstName" className="block text-sm font-medium text-stone-700">Prénom</label>
-                      <input required type="text" id="firstName" name="firstName" className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition-all" placeholder="Camille" />
+                      <input required type="text" id="firstName" name="firstName" className="input-base" placeholder="Camille" />
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="lastName" className="block text-sm font-medium text-stone-700">Nom</label>
-                      <input required type="text" id="lastName" name="lastName" className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition-all" placeholder="Dupont" />
+                      <input required type="text" id="lastName" name="lastName" className="input-base" placeholder="Dupont" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="email" className="block text-sm font-medium text-stone-700">Adresse e-mail</label>
-                    <input required type="email" id="email" name="email" className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition-all" placeholder="camille.dupont@exemple.fr" />
+                    <input required type="email" id="email" name="email" className="input-base" placeholder="camille.dupont@exemple.fr" />
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="phone" className="block text-sm font-medium text-stone-700">Téléphone (optionnel)</label>
-                    <input type="tel" id="phone" name="phone" className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition-all" placeholder="06 12 34 56 78" />
+                    <input type="tel" id="phone" name="phone" className="input-base" placeholder="06 12 34 56 78" />
                   </div>
                   
                   <div className="flex items-start gap-3 pt-2">

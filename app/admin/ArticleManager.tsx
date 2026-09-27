@@ -149,33 +149,33 @@ export default function ArticleManager() {
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Titre</label>
+            <label className="input-label">Titre</label>
             <input 
               required 
               type="text" 
               value={currentArticle.title || ''} 
               onChange={e => setCurrentArticle({...currentArticle, title: e.target.value})}
-              className="w-full px-4 py-2 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none" 
+              className="input-base" 
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">Date de publication</label>
+              <label className="input-label">Date de publication</label>
               <input 
                 required 
                 type="date" 
                 value={currentArticle.publishedAt ? currentArticle.publishedAt.split('T')[0] : new Date().toISOString().split('T')[0]} 
                 onChange={e => setCurrentArticle({...currentArticle, publishedAt: e.target.value})}
-                className="w-full px-4 py-2 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none" 
+                className="input-base" 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">Statut</label>
+              <label className="input-label">Statut</label>
               <select 
                 value={currentArticle.status || 'draft'} 
                 onChange={e => setCurrentArticle({...currentArticle, status: e.target.value as 'draft' | 'published'})}
-                className="w-full px-4 py-2 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
+                className="input-base"
               >
                 <option value="draft">Brouillon</option>
                 <option value="published">Publié</option>
@@ -184,7 +184,7 @@ export default function ArticleManager() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Image mise en avant (Optionnelle)</label>
+            <label className="input-label">Image mise en avant (Optionnelle)</label>
             <input 
               type="file" 
               accept="image/*"
@@ -197,7 +197,7 @@ export default function ArticleManager() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Contenu</label>
+            <label className="input-label">Contenu</label>
             <div className="border border-stone-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all">
               <MenuBar editor={editor} />
               <div className="bg-white">
@@ -210,7 +210,7 @@ export default function ArticleManager() {
             <button 
               type="submit" 
               disabled={isSaving}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-700 disabled:bg-emerald-400"
+              className="btn-primary"
             >
               {isSaving ? "Sauvegarde..." : <><Save size={18} /> Sauvegarder</>}
             </button>
@@ -231,7 +231,7 @@ export default function ArticleManager() {
             setIsEditing(true);
             if (editor) editor.commands.setContent('');
           }}
-          className="flex items-center gap-2 bg-stone-900 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-stone-800 transition-colors"
+          className="btn-primary"
         >
           <Plus size={18} /> Nouvel article
         </button>

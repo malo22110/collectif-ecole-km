@@ -82,14 +82,14 @@ export default function AdminDashboard() {
           <form onSubmit={handleLogin} className="space-y-4">
             {loginError && <div className="text-red-500 text-sm text-center">{loginError}</div>}
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
-              <input type="email" name="email" autoComplete="username" required className="w-full px-4 py-2 border border-stone-300 rounded-xl text-stone-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" onChange={e => setLoginForm({...loginForm, email: e.target.value})} />
+              <label className="input-label">Email</label>
+              <input type="email" name="email" autoComplete="username" required className="input-base" onChange={e => setLoginForm({...loginForm, email: e.target.value})} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">Mot de passe</label>
-              <input type="password" name="password" autoComplete="current-password" required className="w-full px-4 py-2 border border-stone-300 rounded-xl text-stone-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" onChange={e => setLoginForm({...loginForm, password: e.target.value})} />
+              <label className="input-label">Mot de passe</label>
+              <input type="password" name="password" autoComplete="current-password" required className="input-base" onChange={e => setLoginForm({...loginForm, password: e.target.value})} />
             </div>
-            <button type="submit" className="w-full bg-emerald-600 text-white font-semibold py-2.5 rounded-xl hover:bg-emerald-700">
+            <button type="submit" className="btn-primary w-full">
               Se connecter
             </button>
           </form>

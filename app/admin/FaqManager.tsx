@@ -61,7 +61,7 @@ export default function FaqManager() {
             setFormData({ question: "", answer: "", order: faqs.length + 1, isActive: true });
             setEditingId("new");
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+          className="btn-primary"
         >
           <Plus size={18} />
           Nouvelle question
@@ -74,20 +74,20 @@ export default function FaqManager() {
             <input 
               type="text" 
               placeholder="Question"
-              className="w-full p-2 border border-stone-300 rounded-lg mb-3"
+              className="input-base mb-3"
               value={formData.question}
               onChange={e => setFormData({...formData, question: e.target.value})}
             />
             <textarea 
               placeholder="Réponse"
-              className="w-full p-2 border border-stone-300 rounded-lg mb-3 h-32"
+              className="input-base mb-3 h-32"
               value={formData.answer}
               onChange={e => setFormData({...formData, answer: e.target.value})}
             />
             <div className="flex gap-4 mb-3">
               <label className="flex items-center gap-2">
                 <span>Ordre:</span>
-                <input type="number" className="p-2 border rounded-lg w-20" value={formData.order} onChange={e => setFormData({...formData, order: parseInt(e.target.value)})} />
+                <input type="number" className="input-base w-20" value={formData.order} onChange={e => setFormData({...formData, order: parseInt(e.target.value)})} />
               </label>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} />
@@ -95,8 +95,8 @@ export default function FaqManager() {
               </label>
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setEditingId(null)} className="px-4 py-2 border rounded-lg">Annuler</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 text-white rounded-lg flex items-center gap-2">
+              <button onClick={() => setEditingId(null)} className="btn-secondary">Annuler</button>
+              <button onClick={handleSave} className="btn-primary">
                 <Save size={18}/> Enregistrer
               </button>
             </div>
@@ -109,19 +109,19 @@ export default function FaqManager() {
               <div className="bg-stone-50 p-2 rounded">
                 <input 
                   type="text" 
-                  className="w-full p-2 border border-stone-300 rounded-lg mb-3"
+                  className="input-base mb-3"
                   value={formData.question}
                   onChange={e => setFormData({...formData, question: e.target.value})}
                 />
                 <textarea 
-                  className="w-full p-2 border border-stone-300 rounded-lg mb-3 h-32"
+                  className="input-base mb-3 h-32"
                   value={formData.answer}
                   onChange={e => setFormData({...formData, answer: e.target.value})}
                 />
                 <div className="flex gap-4 mb-3">
                   <label className="flex items-center gap-2">
                     <span>Ordre:</span>
-                    <input type="number" className="p-2 border rounded-lg w-20" value={formData.order} onChange={e => setFormData({...formData, order: parseInt(e.target.value)})} />
+                    <input type="number" className="input-base w-20" value={formData.order} onChange={e => setFormData({...formData, order: parseInt(e.target.value)})} />
                   </label>
                   <label className="flex items-center gap-2">
                     <input type="checkbox" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} />
@@ -129,8 +129,8 @@ export default function FaqManager() {
                   </label>
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => setEditingId(null)} className="px-4 py-2 border rounded-lg">Annuler</button>
-                  <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 text-white rounded-lg flex items-center gap-2">
+                  <button onClick={() => setEditingId(null)} className="btn-secondary">Annuler</button>
+                  <button onClick={handleSave} className="btn-primary">
                     <Save size={18}/> Enregistrer
                   </button>
                 </div>
