@@ -11,7 +11,12 @@
       "Mission AMO ADAC actée",
       "Programme fonctionnel initial"
     ],
-    "conservable": true
+    "conservable": true,
+    "budget": {
+      "etudes": "Non chiffré globalement à ce stade (AMO en cours)",
+      "travaux": "Non chiffré à ce stade",
+      "total": "Non chiffré"
+    }
   },
   {
     "date": "Mai 2024",
@@ -24,7 +29,12 @@
     "produits": [
       "Accord écrit de l'Architecte des Bâtiments de France (ABF)"
     ],
-    "conservable": false
+    "conservable": false,
+    "budget": {
+      "etudes": "En cours d'évaluation",
+      "travaux": "Non chiffré à ce stade",
+      "total": "Non chiffré"
+    }
   },
   {
     "date": "Avril 2025 – Juin 2025",
@@ -38,7 +48,12 @@
       "Contrat de Maîtrise d'œuvre (68 750 € HT)",
       "Diagnostics techniques complets"
     ],
-    "conservable": true
+    "conservable": true,
+    "budget": {
+      "etudes": "~68 750 € HT (Honoraires architectes)",
+      "travaux": "576 500 € HT (Prévisionnel)",
+      "total": "~645 250 € HT (Prévisionnel)"
+    }
   },
   {
     "date": "Septembre 2025",
@@ -51,12 +66,17 @@
     "produits": [
       "Arrêtés de subventions Département et Région (159 855 €)"
     ],
-    "conservable": false
+    "conservable": false,
+    "budget": {
+      "etudes": "127 110 € HT (Bilan acté et engagé)",
+      "travaux": "En cours de réévaluation",
+      "total": "127 110 € HT + (Travaux en réévaluation)"
+    }
   },
   {
     "date": "Octobre 2025",
     "title": "Validation de l'APS ferme",
-    "description": "Validation par le conseil municipal du montant de 617 500 € HT. L'enveloppe intègre notamment 41 000 € HT de travaux obligatoires pour le traitement du radon, et place déjà les travaux de la salle de motricité (89 000 € HT) en tranche optionnelle.",
+    "description": "Validation par le conseil municipal de la tranche ferme d'un montant de 617 500 € HT. Cette enveloppe intègre notamment 41 000 € HT de travaux obligatoires pour le traitement du radon. Les travaux de la salle de motricité (89 000 € HT) s'y ajoutent sous forme de tranche optionnelle.",
     "simplifiedDescription": "Les élus votent et valident le budget initial du projet. Le montant inclut des travaux obligatoires pour protéger les enfants du radon. Pour réduire la facture, la rénovation de la salle de motricité est déjà repoussée à plus tard si les finances le permettent.",
     "sourceLabel": "PV du 9 Oct. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-9-10-2025.pdf",
@@ -65,7 +85,12 @@
       "Avant-Projet Sommaire (APS) validé",
       "Études thermiques (ALECOB)"
     ],
-    "conservable": false
+    "conservable": false,
+    "budget": {
+      "etudes": "127 110 € HT",
+      "travaux": "706 500 € HT (Tranche ferme 617 500 € + optionnelle 89 000 €)",
+      "total": "833 610 € HT"
+    }
   },
   {
     "date": "Novembre 2025",
@@ -79,7 +104,12 @@
       "Avant-Projet Définitif (APD) validé",
       "Chiffrage des 2 phases"
     ],
-    "conservable": false
+    "conservable": false,
+    "budget": {
+      "etudes": "127 110 € HT",
+      "travaux": "735 488 € HT (Phase 1: 615 278 € + Phase 2: 120 210 €)",
+      "total": "862 598 € HT"
+    }
   },
   {
     "date": "Avril 2026",
@@ -93,7 +123,12 @@
       "Confirmation capacité d'emprunt (400 000 €)",
       "Échéance DETR fixée à fin 2026"
     ],
-    "conservable": true
+    "conservable": true,
+    "budget": {
+      "etudes": "127 110 € HT",
+      "travaux": "Cible imposée sous 800 000 € TTC (soit ~666 000 € HT)",
+      "total": "Cible globale sous 800 000 € TTC"
+    }
   },
   {
     "date": "Juin 2026",
@@ -106,7 +141,12 @@
     "produits": [
       "Pistes concrètes de réduction budgétaire"
     ],
-    "conservable": true
+    "conservable": true,
+    "budget": {
+      "etudes": "127 110 € HT",
+      "travaux": "En cours de réduction (Cible visée : ~500 000 € à 550 000 € HT)",
+      "total": "~627 110 € à 677 110 € HT"
+    }
   },
   {
     "date": "Septembre 2026",
@@ -120,6 +160,11 @@
       "Blocage de l'optimisation budgétaire",
       "Risque d'annulation des subventions"
     ],
-    "conservable": false
+    "conservable": false,
+    "budget": {
+      "etudes": "127 110 € HT (figés) + 2 170 € HT (avenant refusé)",
+      "travaux": "Bloqué",
+      "total": "Bloqué"
+    }
   }
 ]
