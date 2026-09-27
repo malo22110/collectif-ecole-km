@@ -97,6 +97,7 @@ export default function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-3 md:gap-4">
+            <a href="/historique" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors hidden md:block flex items-center gap-1"><Search size={16} /> Historique & Analyse</a>
             <a href="#charte" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors hidden md:block">
               Notre Charte
             </a>
