@@ -76,7 +76,7 @@
   {
     "date": "Octobre 2025",
     "title": "Validation de l'APS ferme",
-    "description": "Validation par le conseil municipal de la tranche ferme d'un montant de 617 500 € HT. Cette enveloppe intègre notamment 41 000 € HT de travaux obligatoires pour le traitement du radon. Les travaux de la salle de motricité (89 000 € HT) s'y ajoutent sous forme de tranche optionnelle.",
+    "description": "Scission stratégique du projet en 2 phases pour alléger les coûts suite au dérapage des estimations de l'architecte. Phase 1 (Classes, préau, chaufferie) : 615 278 € HT. Phase 2 optionnelle (Motricité) : 120 210 € HT.",
     "simplifiedDescription": "Les élus votent et valident le budget initial du projet. Le montant inclut des travaux obligatoires pour protéger les enfants du radon. Pour réduire la facture, la rénovation de la salle de motricité est déjà repoussée à plus tard si les finances le permettent.",
     "sourceLabel": "PV du 9 Oct. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-9-10-2025.pdf",
@@ -95,7 +95,7 @@
   {
     "date": "Novembre 2025",
     "title": "Validation de l'Avant-Projet Définitif (APD)",
-    "description": "Scission stratégique du projet en 2 phases pour alléger les coûts. Phase 1 (Classes, préau, chaufferie) : 615 278 € HT. Phase 2 optionnelle (Motricité) : 120 210 € HT.",
+    "description": "Le Trésor public confirme la capacité d'emprunt de 400 000 €. Le Sous-préfet indique qu'à 800 000 € TTC (soit environ 666 000 € HT), le projet global APD est trop onéreux pour prétendre à la DETR (à engager avant fin décembre 2026), et demande de revenir au budget initialement déposé par la mairie. Vote d'une ligne d'urgence de 50 000 € pour le radon.",
     "simplifiedDescription": "Pour maîtriser le budget d'un coup, le projet est découpé en deux. On fera d'abord les urgences (classes, préau). La salle de motricité est gardée pour plus tard.",
     "sourceLabel": "PV du 27 Nov. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-27-11-2025.pdf",
@@ -108,13 +108,13 @@
     "budget": {
       "etudes": "127 110 € HT",
       "travaux": "735 488 € HT (Phase 1: 615 278 € + Phase 2: 120 210 €)",
-      "total": "862 598 € HT"
+      "total": "À revoir à la baisse"
     }
   },
   {
     "date": "Avril 2026",
     "title": "Cadrage budgétaire de la nouvelle mandature",
-    "description": "Le Trésor public confirme la capacité d'emprunt de 400 000 €. Le Sous-préfet indique qu'à 800 000 €, le projet global est trop onéreux pour prétendre à la DETR (à engager avant fin décembre 2026), et demande de le revoir à la baisse. Il confirme néanmoins que des subventions restent possibles pour un projet révisé (100 k€ Département, 60 k€ Région, et 30% de DETR). Vote d'une ligne d'urgence de 50 000 € pour le radon.",
+    "description": "Réunion du 22 juin avec l'équipe éducative, le cabinet d'architectes et l'AMO pour simplifier techniquement l'APD et revenir à l'enveloppe d'origine : conservation des menuiseries étanches, dalle béton contre le radon sans ventilation complexe, raccordement au réseau de chaleur SCIC Koad COB.",
     "simplifiedDescription": "Le Trésorier valide la capacité d'emprunt. L'État indique que le projet initial est trop cher pour être subventionné et demande de le réduire, mais confirme que les aides financières (Département, Région, État) restent possibles pour un projet moins coûteux.",
     "sourceLabel": "PV du 28 avril 2026",
     "sourceUrl": "/docs/pvs/CR 28 04 2026.pdf",
@@ -126,14 +126,14 @@
     "conservable": true,
     "budget": {
       "etudes": "127 110 € HT",
-      "travaux": "À revoir à la baisse (selon préconisation)",
-      "total": "Cible globale imposée sous la barre des 800 000 €"
+      "travaux": "En cours de réduction (Cible visée : 550 000 € HT)",
+      "total": "À revoir à la baisse"
     }
   },
   {
     "date": "Juin 2026",
     "title": "Concertation pour réduire les coûts",
-    "description": "Réunion du 22 juin avec l'équipe éducative, le cabinet d'architectes et l'AMO pour simplifier techniquement l'APD : conservation des menuiseries étanches, dalle béton contre le radon sans ventilation complexe, raccordement au réseau de chaleur SCIC Koad COB.",
+    "description": "Rejet du devis complémentaire de 2 170 € HT destiné à contraindre l'architecte à finaliser le retour au budget initial demandé par le Sous-préfet, bloquant net les études. Le 26 septembre, lancement du collectif citoyen pour réclamer une commission extra-municipale.",
     "simplifiedDescription": "Élus, professeurs et architectes se réunissent pour trouver des solutions intelligentes afin de baisser le coût final des travaux sans dégrader la qualité pour les enfants.",
     "sourceLabel": "PV du 9 juin 2026",
     "sourceUrl": "/docs/pvs/PV 09 06 2026 (1).pdf",

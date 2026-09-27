@@ -122,7 +122,7 @@ export default function HistoriquePage() {
         
         <h1 className="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Historique & Analyse du Projet</h1>
         <p className="text-lg text-stone-600 max-w-2xl mx-auto mb-8">
-          Chronologie des décisions et analyse financière complète basée sur les procès-verbaux officiels du conseil municipal.
+          Chronologie des décisions et analyse financière complète basée exclusivement sur les actes officiels de la mairie (procès-verbaux du conseil municipal, arrêtés de subventions, et dossiers de demande à l'État).
         </p>
         
         {/* ENJEUX FINANCIERS */}
@@ -136,21 +136,21 @@ export default function HistoriquePage() {
               <div className="mt-1 bg-rose-100 p-1.5 rounded-lg text-rose-700 shrink-0"><AlertCircle size={18} /></div>
               <div>
                 <strong className="text-stone-900 block">Engagements et études d'ingénierie : 127 110 € HT</strong>
-                <span className="text-stone-600 text-sm">Formellement engagés auprès des prestataires (architectes, AMO, audits énergétiques) et dus au titre du service fait.</span>
+                <span className="text-stone-600 text-sm">Formellement engagés auprès des prestataires (architectes, AMO, audits énergétiques) et dus par la commune au titre de la règle comptable du "service fait".</span>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="mt-1 bg-emerald-100 p-1.5 rounded-lg text-emerald-700 shrink-0"><CheckCircle size={18} /></div>
               <div>
-                <strong className="text-stone-900 block">Subventions actées menacées d'annulation : 159 855 €</strong>
-                <span className="text-stone-600 text-sm">Sécurisés (99 405 € du Département des Côtes-d'Armor et 60 450 € de la Région Bretagne).</span>
+                <strong className="text-stone-900 block">Subventions actées ou déposées : 340 000 €</strong>
+                <span className="text-stone-600 text-sm">Le plan de financement repose sur trois leviers documentés par des actes administratifs officiels. Ces financements exigent une rénovation globale (dont une baisse stricte de 40 % de la consommation d'énergie).<br/><br/><strong>Département des Côtes-d'Armor (Sécurisé) : 99 405 €</strong><br/>Montant acté par l'arrêté officiel du Contrat de Territoire 2022-2027, signé par le Président du Conseil départemental le 17 novembre 2023.<br/><br/><strong>Région Bretagne (Sécurisé sous condition) : 60 450 €</strong><br/>Montant acté par la notification du dispositif « Bien vivre partout en Bretagne » (courrier du Président du Conseil régional du 7 juin 2024). Le versement est strictement conditionné à l'atteinte d'un gain énergétique minimum de 40 % et à l'utilisation de matériaux biosourcés ou d'énergies renouvelables.<br/><br/><strong>État - DETR / DSIL (Dossier déposé) : 180 145 €</strong><br/>Demande de subvention officiellement enregistrée en Préfecture le 13 décembre 2024 (Dossier n° 21386559) basée sur le projet ciblé à 550 000 € HT. Le cahier des charges du Fonds Vert de l'État exige également une réduction d'au moins 40 % de la consommation d'énergie finale pour être éligible.</span>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="mt-1 bg-blue-100 p-1.5 rounded-lg text-blue-700 shrink-0"><BookOpen size={18} /></div>
               <div>
-                <strong className="text-stone-900 block">Montant arrêté du projet (APD) : 735 489,05 € HT</strong>
-                <span className="text-stone-600 text-sm">615 278,09 € HT pour la Phase 1 (Classes, garderie, chaufferie, préau) et 120 210,96 € HT pour la Phase 2 (Salle de motricité).</span>
+                <strong className="text-stone-900 block">Le dérapage de la maîtrise d'œuvre (APD) : 735 489,05 € HT</strong>
+                <span className="text-stone-600 text-sm">Alors que la commande officielle de la mairie et le dossier de subvention exigeaient un projet à 550 000 € HT, l'architecte a présenté en novembre 2025 un projet dérapant à 735 489 € HT (615 278 € pour la Phase 1 et 120 210 € pour la Phase 2).</span>
               </div>
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function HistoriquePage() {
         <div className="mb-20">
           <h2 className="text-3xl font-bold text-stone-900 mb-8 text-center">Analyse Comparative Détaillée</h2>
           <p className="text-stone-600 text-center max-w-2xl mx-auto mb-10">
-            Évaluation financière des 4 options stratégiques basée sur les capacités réelles de la commune (emprunt de 400 000 € validé par le Trésor public, excédent 2025 de 176 103 €) et les exigences de subvention de l'État.
+            Évaluation financière des 4 options stratégiques basée sur les capacités réelles de la commune (emprunt de 400 000 € validé par le Trésor public) et les critères stricts des subventions (obligation d'atteindre 40 % d'économie d'énergie).
           </p>
           
           <div className="bg-white border-2 border-emerald-500 rounded-3xl p-6 md:p-10 mb-8 shadow-xl relative overflow-hidden">
@@ -267,10 +267,10 @@ export default function HistoriquePage() {
             </div>
             <h3 className="text-2xl font-bold text-stone-900 mb-4 flex items-center gap-3">
               <CheckCircle size={28} className="text-emerald-500" />
-              Option 1 : Optimisation de l'APD (Projet Révisé)
+              Option 1 : Le retour à l'enveloppe initiale (Le seul projet conforme)
             </h3>
             <p className="text-stone-600 mb-6">
-              Conserver l'Avant-Projet Définitif actuel en le révisant à la baisse (conservation des menuiseries, dalle béton simple, réseau SCIC Koad COB), pour rester sous la barre des 800 000 € TTC (soit environ 666 000 € HT) demandée par le Sous-préfet.
+              Ce projet n'est pas un "Plan B". L'enveloppe de 550 000 € HT est le budget exact que la mairie avait elle-même voté et déposé en Préfecture en décembre 2024. Le dérapage à 735 000 € est une erreur de maîtrise d'œuvre. L'avenant de 2 170 € sert uniquement à obliger l'architecte à corriger sa copie pour rentrer dans nos clous et sauver les 340 000 € d'aides.
             </p>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -289,14 +289,14 @@ export default function HistoriquePage() {
                 </div>
               </div>
               <div className="space-y-4">
-                <h4 className="font-bold text-stone-900 border-b border-stone-100 pb-2">Aides sécurisées (À engager avant déc. 2026)</h4>
+                <h4 className="font-bold text-stone-900 border-b border-stone-100 pb-2">Aides sécurisées et déposées</h4>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-stone-600">Département & Région <span className="text-xs text-stone-400">(précisément 159 855 €)</span></span>
-                  <span className="font-bold text-emerald-600">~ 160 000 €</span>
+                  <span className="text-stone-600">Département & Région</span>
+                  <span className="font-bold text-emerald-600">159 855 €</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-stone-600">DETR État (30% de 550k€)</span>
-                  <span className="font-bold text-emerald-600">165 000 €</span>
+                  <span className="text-stone-600">DETR État (Dossier déposé)</span>
+                  <span className="font-bold text-emerald-600">180 145 €</span>
                 </div>
               </div>
             </div>
@@ -304,7 +304,7 @@ export default function HistoriquePage() {
               <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 pb-6 border-b border-emerald-200/60">
                 <div className="text-xl md:text-2xl text-emerald-900 font-black">Bilan net pour la commune</div>
                 <div className="text-3xl md:text-4xl font-black text-emerald-700 whitespace-nowrap">
-                  227 170 € HT
+                  212 170 € HT
                 </div>
               </div>
               <div className="bg-white/60 rounded-xl p-4 mb-6 text-sm border border-emerald-200">
@@ -312,19 +312,19 @@ export default function HistoriquePage() {
                 <div className="space-y-1 font-mono text-emerald-800 text-xs sm:text-sm">
                   <div className="flex justify-between gap-2"><span>Coût total du projet :</span><span className="whitespace-nowrap text-right">552 170 €</span></div>
                   <div className="flex justify-between text-[10px] sm:text-xs text-emerald-700/70"><span>(550 000 € de travaux + 2 170 € d'avenant)</span></div>
-                  <div className="flex justify-between gap-2 text-emerald-600 pt-2"><span>Total des aides :</span><span className="whitespace-nowrap text-right">- 325 000 €</span></div>
-                  <div className="flex justify-between text-[10px] sm:text-xs text-emerald-600/70"><span>(160 000 € Région/Dép. + 165 000 € DETR)</span></div>
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between font-bold border-t border-emerald-200/60 pt-2 mt-2 text-base text-emerald-900"><span>Reste à charge réel :</span><span className="whitespace-nowrap text-right">= 227 170 € HT</span></div>
+                  <div className="flex justify-between gap-2 text-emerald-600 pt-2"><span>Total des aides :</span><span className="whitespace-nowrap text-right">- 340 000 €</span></div>
+                  <div className="flex justify-between text-[10px] sm:text-xs text-emerald-600/70"><span>(159 855 € Région/Dép. + 180 145 € DETR)</span></div>
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between font-bold border-t border-emerald-200/60 pt-2 mt-2 text-base text-emerald-900"><span>Reste à charge réel :</span><span className="whitespace-nowrap text-right">= 212 170 € HT</span></div>
                 </div>
               </div>
               <div className="space-y-4 text-sm md:text-base text-emerald-900/90 leading-relaxed">
                 <p>
                   <strong className="text-emerald-950 block mb-1">Faisabilité financière :</strong>
-                  Ce reste à charge est parfaitement absorbable et sécurisé. Il ne consomme qu'un peu plus de la moitié de la capacité d'emprunt de 400 000 € formellement validée par le Trésor public le 8 avril 2026.
+                  Ce reste à charge est parfaitement absorbable et sécurisé. Il consomme à peine la moitié de la capacité d'emprunt de 400 000 € validée par le Trésor public.
                 </p>
                 <p>
-                  <strong className="text-emerald-950 block mb-1">Avantage collatéral :</strong>
-                  Cela préserve une marge de manœuvre intacte d'environ 170 000 € d'emprunt pour financer le reste du programme municipal (voirie, Maison Bonhomme), sans même avoir besoin de puiser dans la totalité de l'excédent budgétaire de 2025.
+                  <strong className="text-emerald-950 block mb-1">Conformité écologique :</strong>
+                  C'est l'unique option qui garantit les 40 % d'économie d'énergie exigés par la Région et le Fonds Vert de l'État pour le versement des subventions.
                 </p>
               </div>
             </div>
@@ -353,14 +353,14 @@ export default function HistoriquePage() {
                   <span className="text-stone-600">Nouvelles études + Travaux radon</span>
                   <span className="font-bold text-rose-600">~80 000 €</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">Subventions (Région, Dép, État)</span>
-                  <span className="font-bold text-amber-600">0 € (Perdues)</span>
+                <div className="flex flex-col text-sm">
+                  <div className="flex justify-between"><span className="text-stone-600">Subventions (Région, Dép, État)</span><span className="font-bold text-amber-600">0 €</span></div>
+                  <span className="text-[10px] text-stone-500 mt-1 leading-tight">Les financeurs exigent 40 % d'économie d'énergie et une rénovation globale. Un projet rustine annule les aides d'office.</span>
                 </div>
               </div>
               <div className="pt-4 border-t border-stone-100 flex items-end justify-between">
-                <span className="text-sm font-bold text-rose-900 leading-tight">Reste à charge<br/><span className="text-[10px] font-normal">(dont 131k€ pure perte)</span></span>
-                <div className="text-right"><span className="text-2xl font-bold text-rose-600">~211 110 €</span><span className="block text-sm font-medium text-rose-500/80 -mt-1">(Minimum)</span></div>
+                <span className="text-sm font-bold text-rose-900 leading-tight">Reste à charge<br/><span className="text-[10px] font-normal max-w-[150px] inline-block">La commune paie sans aide, pour une passoire à refaire dans 5 ans.</span></span>
+                <div className="text-right"><span className="text-2xl font-bold text-rose-600">~211 110 € HT</span><span className="block text-sm font-medium text-rose-500/80 -mt-1">(Minimum)</span></div>
               </div>
               <CommentBadge topic="Option 2" count={commentCounts["Option 2"] || 0} onOpen={() => setActiveTopic("Option 2")} />
             </div>
@@ -384,11 +384,11 @@ export default function HistoriquePage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Subventions annulées</span>
-                  <span className="font-bold text-rose-600">- 159 855 €</span>
+                  <span className="font-bold text-rose-600">- 340 000 €</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Coût d'un futur projet (2030)</span>
-                  <span className="font-bold">&gt; 800 000 €</span>
+                  <span className="font-bold">&gt; 800 000 € <span className="font-normal text-[10px] text-stone-500 block">(inflation)</span></span>
                 </div>
               </div>
               <div className="pt-4 border-t border-stone-100 flex items-end justify-between">
@@ -415,9 +415,9 @@ export default function HistoriquePage() {
                   <span className="text-stone-600">Pertes sèches (Études jetées)</span>
                   <span className="font-bold text-rose-600">127 110 €</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">Subventions (Non éligible)</span>
-                  <span className="font-bold text-rose-600">0 €</span>
+                <div className="flex flex-col text-sm">
+                  <div className="flex justify-between"><span className="text-stone-600">Subventions (Non éligible)</span><span className="font-bold text-rose-600">0 €</span></div>
+                  <span className="text-[10px] text-stone-500 mt-1 leading-tight">Ne répond pas aux exigences d'économie d'énergie du Fonds Vert et de la Région.</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Futurs travaux inévitables</span>
@@ -477,7 +477,7 @@ export default function HistoriquePage() {
                   <tr className="hover:bg-stone-50 transition-colors  border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
                     <td className="p-4 align-top font-bold text-stone-900 ">2. Refonte totale / Table rase<br/><span className="text-xs font-normal text-stone-500">(Piste de l'opposition)</span></td>
                     <td className="p-4 align-top text-stone-700 ">
-                      <strong className="text-stone-900 block mb-1">Perte intégrale des financements + Pénalités.</strong> La rupture des contrats en cours entraîne l'annulation des 159 855 € d'aides acquises. Le délai DETR est raté.
+                      <strong className="text-stone-900 block mb-1">Perte intégrale des financements + Pénalités.</strong> La rupture des contrats en cours et la perte de l'ambition thermique (40% d'économie) entraîne l'annulation des 340 000 € d'aides.
                     </td>
                     <td className="p-4 align-top text-stone-700 ">
                       127 110 € d'études payés en pure perte (service fait). + ~4 000 € de pénalités. + ~35 000 € pour de nouvelles études. Les aides (État, Région, Département) tombent à 0 €.
@@ -508,7 +508,7 @@ export default function HistoriquePage() {
                       <strong className="text-stone-900 block mb-1">Échec de la mise aux normes.</strong> Les 50 000 € provisionnés sont dépensés dans des rustines (dalle/VMC basique), mais les mesures radon restent &gt; 300 Bq/m³.
                     </td>
                     <td className="p-4 align-top text-stone-700 ">
-                      Les 50 000 € sont perdus. L'État exige des travaux lourds. Aucune subvention versée car ce n'est pas une rénovation globale.
+                      Les 50 000 € sont perdus. L'État exige des travaux lourds. Aucune subvention versée car les 40% d'économies d'énergie ne sont pas atteints.
                     </td>
                     <td className="p-4 align-top ">
                       <div className="font-bold text-rose-600 mb-1 text-base">177 110 € HT</div>
@@ -528,17 +528,17 @@ export default function HistoriquePage() {
                 <div className="bg-stone-900 border border-stone-700 p-5 rounded-xl text-stone-300">
                   <strong className="text-rose-400 block mb-2 text-lg">Le comparatif financier (Option 1 vs Option 2)</strong>
                   <p className="mb-4">
-                    L'Option 2 (Table rase de l'existant) place immédiatement la commune dans un <strong>déficit comptable de près de 290 000 € avant même d'avoir posé le moindre parpaing</strong>. En rejetant l'APD actuel (qui se concentre déjà uniquement sur le bâtiment historique), la commune est juridiquement tenue de payer les 127 110 € d'études réalisées, tout en provoquant l'annulation mécanique des 159 855 € de subventions conditionnées à ce projet précis. À cela s'ajoute l'impossibilité matérielle de monter un nouveau dossier avant la date butoir de la DETR fixée à décembre 2026. L'Option 2 n'est donc pas une économie, mais un gouffre qui obligera la commune à autofinancer à 100 % de futures réparations, <strong>saturant instantanément sa capacité d'emprunt de 400 000 €</strong>.
+                    L'Option 2 (Table rase) ou 4 (Saupoudrage) place immédiatement la commune dans un <strong>déficit comptable majeur avant même d'avoir posé le moindre parpaing</strong>. En rejetant l'APD actuel, la commune est juridiquement tenue de payer les 127 110 € d'études réalisées. Plus grave encore, faire de petits travaux détruit l'éligibilité du projet aux critères de la Région et de l'État (qui exigent strictement une baisse de 40 % de la consommation d'énergie). Cela provoque l'annulation mécanique des 340 000 € de subventions déjà actées ou déposées. Ces options ne sont pas des économies, ce sont des gouffres qui satureront instantanément la capacité d'emprunt de 400 000 €.
                   </p>
                   <p>
-                    <strong className="text-emerald-400">L'Option 1 (Optimisation) est la seule stratégie qui valorise le capital déjà investi.</strong> En acceptant l'avenant de 2 170 € HT, la commune finalise les économies demandées par le Sous-préfet, valide les 127 110 € d'ingénierie passée, et sécurise un plan de financement couvert à plus de 60 % par des aides publiques. Avec un reste à charge avoisinant les 230 000 € (dont 176 000 € absorbables par l'excédent de fonctionnement de 2025), la commune obtient un outil scolaire aux normes pour les trente prochaines années, tout en préservant une large part de sa capacité d'emprunt pour les autres chantiers du mandat.
+                    <strong className="text-emerald-400">L'Option 1 (Optimisation) est la seule stratégie rationnelle.</strong> En acceptant l'avenant de 2 170 € HT, la commune contraint l'architecte à revenir au budget de 550 000 € HT déposé initialement en Préfecture. Cela valide les 127 110 € d'ingénierie passée et sécurise un plan de financement couvert à plus de 60 % par des aides publiques. Avec un reste à charge avoisinant les 212 000 €, la commune obtient un outil scolaire aux normes pour les trente prochaines années, tout en préservant la moitié de sa capacité d'emprunt pour les autres chantiers du mandat.
                   </p>
                 </div>
                 <div className="bg-stone-900 border border-stone-700 p-5 rounded-xl text-stone-300">
                   <strong className="text-emerald-400 block mb-2 text-lg">Bilan face aux imprévus</strong>
                   <p>
-                    L'Option 1 est également la seule à démontrer une résilience totale face aux imprévus. Même dans l'hypothèse extrême où l'État se désengagerait au dernier moment (refus de la DETR), le maintien du projet garantit la sauvegarde des subventions régionales et départementales, maintenant le reste à charge sous le seuil d'alerte des finances communales.<br/><br/>
-                    Le moindre accroc dans l'Option 2 fait au contraire dérailler le budget de la commune au-delà du soutenable, la laissant seule face au risque de fermeture administrative liée au radon.
+                    L'Option 1 est également la seule à démontrer une résilience totale face aux imprévus. Même dans l'hypothèse extrême où l'État refuserait la DETR au dernier moment, le maintien du projet garantit la sauvegarde des subventions régionales et départementales, maintenant le reste à charge sous le plafond des 400 000 € autorisés par le percepteur.<br/><br/>
+                    Le moindre accroc dans les autres options fait au contraire dérailler le budget de la commune au-delà du soutenable.
                   </p>
                 </div>
               </div>
