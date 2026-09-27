@@ -147,14 +147,14 @@ export default function Comments() {
                 type="email" 
                 placeholder="Votre adresse email" 
                 required 
-                className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-3 focus:outline-none focus:border-emerald-500 bg-white"
+                className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-3 focus:outline-none focus:border-emerald-500 bg-white text-stone-900"
                 value={email} onChange={e => setEmail(e.target.value)}
               />
               <input 
                 type="password" 
                 placeholder="Mot de passe" 
                 required 
-                className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-4 focus:outline-none focus:border-emerald-500 bg-white"
+                className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-4 focus:outline-none focus:border-emerald-500 bg-white text-stone-900"
                 value={password} onChange={e => setPassword(e.target.value)}
               />
               <div className="flex gap-2">
@@ -187,7 +187,7 @@ export default function Comments() {
           <form onSubmit={handlePostComment} className="flex flex-col gap-3">
             <textarea 
               placeholder="Ajouter une précision, signaler une erreur, ou partager un avis..."
-              className="w-full p-4 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white min-h-[100px]"
+              className="w-full p-4 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-stone-900 min-h-[100px]"
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
               required
