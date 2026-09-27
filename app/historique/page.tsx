@@ -282,32 +282,32 @@ export default function HistoriquePage() {
             <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
               <h3 className="text-xl font-bold text-stone-900 mb-3 flex items-center gap-3">
                 <AlertCircle size={24} className="text-amber-500" />
-                Option 2 : Refonte a minima
+                Option 2 : Abandon de l'APD et table rase
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
-                Abandon de l'extension. Nouveau projet ciblé sur l'isolation et les normes urgentes.
+                Rompre les contrats, jeter 100% des plans de l'existant, et repartir de zéro pour faire du « bricolage ».
               </p>
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">Nouveaux honoraires d'études</span>
-                  <span className="font-bold text-rose-600">35 000 €</span>
+                  <span className="text-stone-600">Pertes sèches (études jetées)</span>
+                  <span className="font-bold text-rose-600">127 110 €</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">Perte sèche (études extension jetées)</span>
-                  <span className="font-bold text-rose-600">~60 000 €</span>
+                  <span className="text-stone-600">Frais de résiliation contractuelle</span>
+                  <span className="font-bold text-rose-600">~4 000 €</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">Aides espérées (DETR 2026 perdue)</span>
-                  <span className="font-bold text-amber-600">~80 000 €</span>
+                  <span className="text-stone-600">Nouvelles études + Travaux radon</span>
+                  <span className="font-bold text-rose-600">~80 000 €</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">Coût des travaux</span>
-                  <span className="font-bold">380 000 €</span>
+                  <span className="text-stone-600">Subventions (Région, Dép, État)</span>
+                  <span className="font-bold text-amber-600">0 € (Perdues)</span>
                 </div>
               </div>
               <div className="pt-4 border-t border-stone-100 flex items-end justify-between">
-                <span className="text-sm font-bold text-stone-900">Reste à charge</span>
-                <span className="text-2xl font-bold text-stone-900">~335 000 € HT</span>
+                <span className="text-sm font-bold text-rose-900 leading-tight">Reste à charge<br/><span className="text-[10px] font-normal">(dont 131k€ pure perte)</span></span>
+                <span className="text-2xl font-bold text-rose-600">~211 110 €</span>
               </div>
             </div>
 
