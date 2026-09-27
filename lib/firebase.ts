@@ -23,7 +23,7 @@ export const storage = getStorage(app);
 if (typeof window !== "undefined") {
   // En environnement local, on active le mode Debug pour générer un jeton
   if (process.env.NODE_ENV === 'development') {
-    (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = "local-dev-kergrist-12345";
   }
   
   try {
