@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import ArticleManager from "./ArticleManager";
 import FaqManager from "./FaqManager";
 import ImportMembers from "./ImportMembers";
+import MailManager from "./MailManager";
+import { Mail } from "lucide-react";
 import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot } from "lucide-react";
 import Link from "next/link";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
@@ -22,7 +24,7 @@ interface Membre {
 export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"membres" | "articles" | "faq">("membres");
+  const [activeTab, setActiveTab] = useState<"membres" | "articles" | "faq" | "emails">("membres");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
   
@@ -125,6 +127,12 @@ export default function AdminDashboard() {
           >
             <HelpCircle size={20} /> FAQ
           </button>
+          <button 
+            onClick={() => setActiveTab("emails")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "emails" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+          >
+            <Mail size={20} /> E-mails
+          </button>
         </nav>
         <div className="p-4 border-t border-stone-800">
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-stone-800 transition-colors text-red-400">
@@ -181,6 +189,10 @@ export default function AdminDashboard() {
 
         {activeTab === "faq" && (
           <FaqManager />
+        )}
+
+        {activeTab === "emails" && (
+          <MailManager />
         )}
       </div>
     </div>
