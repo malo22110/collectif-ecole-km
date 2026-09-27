@@ -116,7 +116,7 @@ export default function HistoriquePage() {
           <AlertCircle size={20} className="text-amber-600 shrink-0" />
           <p>
             Ce document de synthèse est <strong>en cours de validation par la communauté</strong>. 
-            Les membres du collectif peuvent apporter leurs corrections dans l'espace commentaire en bas de page.
+            Les membres du collectif peuvent apporter leurs corrections et débattre en utilisant les boutons "Commenter" disponibles à chaque section, ou dans l'espace général en bas de page.
           </p>
         </div>
         
@@ -270,7 +270,7 @@ export default function HistoriquePage() {
               Option 1 : Optimisation de l'APD (Projet Révisé)
             </h3>
             <p className="text-stone-600 mb-6">
-              Conserver l'Avant-Projet Définitif actuel en le révisant à la baisse (conservation des menuiseries, dalle béton simple, réseau SCIC Koad COB), pour rester sous la barre des 800 000 € demandée par le Sous-préfet.
+              Conserver l'Avant-Projet Définitif actuel en le révisant à la baisse (conservation des menuiseries, dalle béton simple, réseau SCIC Koad COB), pour rester sous la barre des 800 000 € TTC (soit environ 666 000 € HT) demandée par le Sous-préfet.
             </p>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -360,7 +360,7 @@ export default function HistoriquePage() {
               </div>
               <div className="pt-4 border-t border-stone-100 flex items-end justify-between">
                 <span className="text-sm font-bold text-rose-900 leading-tight">Reste à charge<br/><span className="text-[10px] font-normal">(dont 131k€ pure perte)</span></span>
-                <span className="text-2xl font-bold text-rose-600">~211 110 €</span>
+                <div className="text-right"><span className="text-2xl font-bold text-rose-600">~211 110 €</span><span className="block text-sm font-medium text-rose-500/80 -mt-1">(Minimum)</span></div>
               </div>
               <CommentBadge topic="Option 2" count={commentCounts["Option 2"] || 0} onOpen={() => setActiveTopic("Option 2")} />
             </div>
