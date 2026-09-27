@@ -274,12 +274,12 @@ export default function HistoriquePage() {
               </div>
               <div className="bg-white/60 rounded-xl p-4 mb-6 text-sm border border-emerald-200">
                 <strong className="text-emerald-900 block mb-2">Détail de l'équation financière :</strong>
-                <div className="space-y-1 font-mono text-emerald-800">
-                  <div className="flex justify-between"><span>Coût total du projet :</span><span>552 170 €</span></div>
-                  <div className="flex justify-between text-xs text-emerald-700/70"><span>(550 000 € de travaux + 2 170 € d'avenant)</span></div>
-                  <div className="flex justify-between text-emerald-600 pt-2"><span>Total des aides :</span><span>- 325 000 €</span></div>
-                  <div className="flex justify-between text-xs text-emerald-600/70"><span>(160 000 € Région/Dép. + 165 000 € DETR)</span></div>
-                  <div className="flex justify-between font-bold border-t border-emerald-200/60 pt-2 mt-2 text-base text-emerald-900"><span>Reste à charge réel :</span><span>= 227 170 € HT</span></div>
+                <div className="space-y-1 font-mono text-emerald-800 text-xs sm:text-sm">
+                  <div className="flex justify-between gap-2"><span>Coût total du projet :</span><span className="whitespace-nowrap text-right">552 170 €</span></div>
+                  <div className="flex justify-between text-[10px] sm:text-xs text-emerald-700/70"><span>(550 000 € de travaux + 2 170 € d'avenant)</span></div>
+                  <div className="flex justify-between gap-2 text-emerald-600 pt-2"><span>Total des aides :</span><span className="whitespace-nowrap text-right">- 325 000 €</span></div>
+                  <div className="flex justify-between text-[10px] sm:text-xs text-emerald-600/70"><span>(160 000 € Région/Dép. + 165 000 € DETR)</span></div>
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between font-bold border-t border-emerald-200/60 pt-2 mt-2 text-base text-emerald-900"><span>Reste à charge réel :</span><span className="whitespace-nowrap text-right">= 227 170 € HT</span></div>
                 </div>
               </div>
               <div className="space-y-4 text-sm md:text-base text-emerald-900/90 leading-relaxed">
@@ -408,13 +408,13 @@ export default function HistoriquePage() {
               Faites glisser le tableau vers la droite
             </div>
             <div className="overflow-x-auto shadow-sm border border-stone-200 rounded-2xl mb-12">
-              <table className="w-full text-left bg-white border-collapse min-w-[800px]">
+              <table className="w-full text-left bg-white border-collapse min-w-[1020px]">
                 <thead className="bg-stone-100 text-stone-700 text-sm">
                   <tr>
-                    <th className="p-4 font-bold border-b border-stone-200 w-1/4">Option</th>
-                    <th className="p-4 font-bold border-b border-stone-200 w-1/4">Le Cas Critique (Pire scénario)</th>
-                    <th className="p-4 font-bold border-b border-stone-200 w-1/4">Conséquence & Impact Financier</th>
-                    <th className="p-4 font-bold border-b border-stone-200 w-1/4">Résultat Final (Reste à charge)</th>
+                    <th className="p-4 font-bold border-b border-stone-200 min-w-[200px]">Option</th>
+                    <th className="p-4 font-bold border-b border-stone-200 min-w-[300px]">Le Cas Critique (Pire scénario)</th>
+                    <th className="p-4 font-bold border-b border-stone-200 min-w-[300px]">Conséquence & Impact Financier</th>
+                    <th className="p-4 font-bold border-b border-stone-200 min-w-[220px]">Résultat Final (Reste à charge)</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-stone-100">
