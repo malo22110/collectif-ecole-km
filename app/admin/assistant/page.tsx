@@ -44,7 +44,7 @@ export default function AssistantPage() {
         const app = getApp();
         const ai = getAI(app, { backend: new GoogleAIBackend() });
         const generativeModel = getGenerativeModel(ai, {
-          model: "gemini-1.5-flash", 
+          model: "gemini-3.8-flash", 
           generationConfig: {
             temperature: 0.1, 
           },
