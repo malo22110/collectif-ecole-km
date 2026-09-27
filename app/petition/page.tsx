@@ -48,7 +48,7 @@ export default function PetitionPage() {
             Pétition Citoyenne pour la Sauvegarde de l'École
           </h1>
           <p className="text-lg md:text-xl text-emerald-100 max-w-2xl mx-auto font-medium leading-relaxed">
-            Non à un budget insoutenable, Oui à une rénovation responsable ! Demandez avec nous la création d'une commission extra-municipale.
+            Valorisons les études engagées vers un projet maîtrisé.
           </p>
         </div>
       </div>
@@ -59,37 +59,60 @@ export default function PetitionPage() {
           {/* Main Content (Texte de la pétition) */}
           <div className="flex-1 bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-stone-200/50 border border-stone-100">
             <h2 className="text-2xl font-bold text-stone-900 mb-6 border-b border-stone-100 pb-4">
-              Texte de la pétition
+              Rénovation de l'école : valorisons les études engagées vers un projet maîtrisé
             </h2>
             <div className="prose prose-stone max-w-none text-stone-700 space-y-6">
-              <p><strong>À l'attention de Madame la Maire et des membres du Conseil Municipal de Kergrist-Moëlou,</strong></p>
-              
-              <p>
-                Nous, citoyennes et citoyens, parents d'élèves, habitants de Kergrist-Moëlou et alentours, exprimons notre profonde inquiétude face à la gestion actuelle du projet de réhabilitation de notre école communale.
+              <p className="text-lg font-medium text-stone-800 leading-relaxed border-l-4 border-emerald-500 pl-4 bg-emerald-50 py-3 pr-4 rounded-r-xl">
+                Nous demandons la réévaluation technique et budgétaire du dossier de rénovation engagé, afin d'aboutir à une solution économe et adaptée aux capacités de la commune, plutôt qu'à un abandon qui contraindrait à repartir de zéro.
               </p>
               
-              <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-xl text-amber-900 my-8">
-                <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
-                  <AlertCircle size={20} />
-                  Nos constats
-                </h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Le projet a dérapé à <strong>735 000 € HT</strong> (contre 550 000 € votés initialement).</li>
-                  <li>Le refus d'un avenant d'architecte de 2 170 € bloque actuellement toute avancée et menace <strong>340 000 € de subventions</strong> publiques.</li>
-                  <li>L'abandon du projet ("table rase") ou le "saupoudrage" de petits travaux détruirait l'éligibilité aux aides, créant un déficit comptable majeur.</li>
-                </ul>
+              <ul className="space-y-6 mt-8 list-none pl-0">
+                <li className="flex gap-4">
+                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
+                  <div>
+                    <strong className="text-stone-900 block mb-1">Un projet déjà mature :</strong>
+                    l'état d'avancement des études et des diagnostics techniques permet de démarrer sans repartir de zéro.
+                  </div>
+                </li>
+                
+                <li className="flex gap-4">
+                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
+                  <div>
+                    <strong className="text-stone-900 block mb-1">La préservation des finances publiques :</strong>
+                    entre 100 000 et 160 000 € de fonds communaux ont déjà été engagés ; abandonner le projet actuel transformerait ces investissements en pure perte pour la commune.
+                  </div>
+                </li>
+
+                <li className="flex gap-4">
+                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
+                  <div>
+                    <strong className="text-stone-900 block mb-1">Le risque sur les subventions :</strong>
+                    les calendriers d'attribution des aides financières sont stricts ; tout redémarrage à blanc ferait perdre les financements mobilisables à court terme.
+                  </div>
+                </li>
+
+                <li className="flex gap-4">
+                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
+                  <div>
+                    <strong className="text-stone-900 block mb-1">L'urgence du calendrier des travaux :</strong>
+                    différer la réhabilitation repousse la livraison de plusieurs années et fragilise l'accueil des enfants.
+                  </div>
+                </li>
+
+                <li className="flex gap-4">
+                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
+                  <div>
+                    <strong className="text-stone-900 block mb-1">Les contraintes réglementaires :</strong>
+                    les diagnostics imposent des travaux incontournables (gestion du radon, désamiantage ou confinement de l'amiante, remise aux normes de l'électricité, réfection des sanitaires et mise en conformité de l'accessibilité PMR).
+                  </div>
+                </li>
+              </ul>
+              
+              <div className="bg-amber-50 border border-amber-200 p-6 rounded-xl text-amber-900 my-8 shadow-sm">
+                <p className="font-medium text-center">
+                  Repartir de zéro repousserait le traitement de ces impératifs prioritaires pour la santé et la sécurité des enfants.
+                </p>
               </div>
-
-              <p>
-                L'école est le cœur battant de notre commune. Son avenir ne peut être hypothéqué par des décisions précipitées ou des blocages administratifs qui compromettent la sécurité financière du village.
-              </p>
-
-              <h3 className="text-xl font-bold text-stone-900 mt-8 mb-4">Ce que nous demandons :</h3>
-              <ol className="list-decimal pl-5 space-y-4 font-medium text-stone-800">
-                <li><strong>La création immédiate d'une commission extra-municipale</strong> intégrant des citoyens et des parents d'élèves pour garantir la transparence du projet.</li>
-                <li><strong>Le retour à l'enveloppe budgétaire initiale de 550 000 € HT</strong> (Option 1), seule garante de l'obtention des 340 000 € d'aides (État, Région, Département).</li>
-                <li><strong>La reprise immédiate du dialogue</strong> avec le cabinet d'architectes pour finaliser les plans et lancer les travaux avant l'échéance des subventions (décembre 2026).</li>
-              </ol>
 
               <div className="mt-8 pt-8 border-t border-stone-100 flex flex-col sm:flex-row items-center gap-4 justify-between">
                 <p className="text-sm text-stone-500 italic">
