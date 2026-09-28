@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { PenTool, CheckCircle2, AlertCircle, Users, ChevronRight, FileText } from 'lucide-react';
 import Link from 'next/link';
 import UserAvatar from "../components/UserAvatar";
+import ShareButton from "../components/ShareButton";
 import { ArrowLeft } from "lucide-react";
 
 export default function PetitionPage() {
@@ -240,7 +241,19 @@ export default function PetitionPage() {
                     <CheckCircle2 size={32} />
                   </div>
                   <h3 className="text-2xl font-bold text-stone-900 mb-2">Merci pour votre signature !</h3>
-                  <p className="text-stone-600">Votre voix compte pour l'avenir de l'école.</p>
+                  <p className="text-stone-600 mb-8">Votre voix compte pour l'avenir de l'école.</p>
+                  
+                  <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
+                    <h4 className="font-bold text-emerald-900 mb-3">La mobilisation continue !</h4>
+                    <p className="text-sm text-emerald-800 mb-6">Partagez la pétition autour de vous pour donner plus de poids à notre demande.</p>
+                    <ShareButton 
+                      url="https://collectif-ecole-km.fr/petition" 
+                      title="Pétition : Sauvons le projet de rénovation de l'école de Kergrist-Moëlou" 
+                      text="Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation engagé, afin d'aboutir à une solution économe plutôt qu'à un abandon." 
+                      variant="primary" 
+                      className="w-full justify-center inline-flex items-center gap-2 font-bold px-6 py-4 rounded-2xl transition-all text-base border"
+                    />
+                  </div>
                 </div>
               ) : (
                 <>

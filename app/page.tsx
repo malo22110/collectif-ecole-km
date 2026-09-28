@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { collection, addDoc, setDoc, query, where, getDocs, doc, onSnapshot, getCountFromServer } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
-import { 
+import {
   Leaf, 
   ShieldCheck, 
   Clock, 
@@ -22,6 +22,7 @@ import {
   BookOpen
 } from "lucide-react";
 import UserAvatar from "./components/UserAvatar";
+import ShareButton from "./components/ShareButton";
 
 export default function LandingPage() {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success">("idle");
@@ -62,6 +63,30 @@ export default function LandingPage() {
       console.error("Erreur lors de l'écoute du compteur:", err);
     });
     return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    async function fetchPetitionCount() {
+      try {
+        const snap = await getCountFromServer(collection(db, "signatures"));
+        setPetitionCount(snap.data().count);
+      } catch (err) {
+        console.error("Erreur getCountFromServer petition:", err);
+      }
+    }
+    fetchPetitionCount();
+
+    const unsubPetition = onSnapshot(doc(db, "stats", "petition"), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (typeof data.count === "number") {
+          setPetitionCount((prev) => prev !== null ? Math.max(prev, data.count) : data.count);
+        }
+      }
+    }, (err) => {
+      console.error("Erreur lors de l'écoute stats/petition:", err);
+    });
+    return () => unsubPetition();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -235,13 +260,22 @@ export default function LandingPage() {
                   </p>
                 </div>
 
-                <a 
-                  href="/petition" 
-                  className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 bg-white hover:bg-emerald-50 text-emerald-950 font-extrabold px-6 py-4 rounded-2xl shadow-lg hover:shadow-2xl transition-all text-base hover:scale-105 active:scale-95 border border-emerald-100"
-                >
-                  <FileSignature size={20} className="text-emerald-700" />
-                  Signer la pétition
-                </a>
+                <div className="w-full sm:w-auto flex flex-col gap-3 shrink-0">
+                  <a 
+                    href="/petition" 
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-emerald-50 text-emerald-950 font-extrabold px-6 py-4 rounded-2xl shadow-lg hover:shadow-2xl transition-all text-base hover:scale-105 active:scale-95 border border-emerald-100"
+                  >
+                    <FileSignature size={20} className="text-emerald-700" />
+                    Signer la pétition
+                  </a>
+                  <ShareButton 
+                    url="https://collectif-ecole-km.fr/petition" 
+                    title="Pétition : Sauvons le projet de rénovation de l'école de Kergrist-Moëlou" 
+                    text="Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation engagé, afin d'aboutir à une solution économe plutôt qu'à un abandon." 
+                    variant="outline" 
+                    className="w-full inline-flex items-center justify-center gap-2 font-bold px-6 py-3 rounded-2xl transition-all text-sm border"
+                  />
+                </div>
               </div>
             </div>
 
