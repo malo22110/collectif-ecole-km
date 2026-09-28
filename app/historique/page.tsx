@@ -118,6 +118,26 @@ export default function HistoriquePage() {
         </div>
       </header>
 
+      {/* Barre collante pour le toggle */}
+      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-md border-b border-stone-200 py-3 mb-8">
+        <div className="max-w-5xl mx-auto px-4 flex justify-center">
+            <div className="inline-flex bg-stone-100 p-1 rounded-full items-center border border-stone-200 shadow-inner">
+              <button
+                onClick={() => setIsSimplified(true)}
+                className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              >
+                Version Courte (Résumé)
+              </button>
+              <button
+                onClick={() => setIsSimplified(false)}
+                className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${!isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              >
+                Détails Complets
+              </button>
+            </div>
+        </div>
+      </div>
+
       <div className="max-w-4xl mx-auto px-4 pt-12 pb-8 text-center">
         <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl mb-8 flex flex-col md:flex-row items-center justify-center gap-3 text-sm font-medium shadow-sm max-w-2xl mx-auto">
           <AlertCircle size={20} className="text-amber-600 shrink-0" />
@@ -204,24 +224,7 @@ export default function HistoriquePage() {
       <div className="max-w-4xl mx-auto px-4">
 
         {/* Toggle Détails */}
-{/* Toggle Détails */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex bg-stone-200 p-1 rounded-full items-center">
-            <button
-              onClick={() => setIsSimplified(true)}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-600 hover:text-stone-900'}`}
-            >
-              Résumé
-            </button>
-            <button
-              onClick={() => setIsSimplified(false)}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${!isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-600 hover:text-stone-900'}`}
-            >
-              Détails : On
-            </button>
-          </div>
-          
-        </div>
+
 
         {/* TIMELINE SECTION */}
         <div className="mb-20">
@@ -319,6 +322,7 @@ export default function HistoriquePage() {
               <p className="text-sm text-stone-600 mb-6 flex-grow">
                 L'avenant de 2 170 € permet d'intégrer les modifications techniques visant à ramener le coût des travaux au budget de 550 000 € HT déposé en Préfecture.
               </p>
+              {!isSimplified && (
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Travaux révisés Phase 1</span>
@@ -345,6 +349,7 @@ export default function HistoriquePage() {
                   <span className="font-bold text-emerald-600">180 145 €</span>
                 </div>
               </div>
+              )}
               <div className="pt-4 border-t border-emerald-200 flex items-center justify-between bg-emerald-50 -mx-6 md:-mx-8 -mb-6 md:-mb-8 p-6 md:p-8 mt-2">
                 <span className="text-lg font-black text-emerald-900">Reste à charge</span>
                 <span className="text-2xl font-black text-emerald-700">212 170 € HT</span>
@@ -359,6 +364,7 @@ export default function HistoriquePage() {
               <p className="text-sm text-stone-600 mb-6 flex-grow">
                 Résiliation des contrats en cours et relance d'un nouveau projet réduit.
               </p>
+              {!isSimplified && (
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Pertes (Service fait facturable)</span>
@@ -377,6 +383,7 @@ export default function HistoriquePage() {
                   <span className="font-bold text-rose-600">0 €</span>
                 </div>
               </div>
+              )}
               <div className="pt-4 border-t border-stone-100 flex items-end justify-between mt-auto">
                 <span className="text-sm font-bold text-amber-900">Reste à charge</span>
                 <span className="text-xl font-bold text-amber-600">~ 154 000 € HT min.</span>
@@ -391,6 +398,7 @@ export default function HistoriquePage() {
               <p className="text-sm text-stone-600 mb-6 flex-grow">
                 Gel total des travaux et report à une date indéterminée.
               </p>
+              {!isSimplified && (
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Pertes (Service fait facturable)</span>
@@ -405,6 +413,7 @@ export default function HistoriquePage() {
                   <span className="font-bold text-rose-600">0 €</span>
                 </div>
               </div>
+              )}
               <div className="pt-4 border-t border-stone-100 flex items-end justify-between mt-auto">
                 <span className="text-sm font-bold text-rose-900">Reste à charge immédiat</span>
                 <span className="text-xl font-bold text-rose-600">~ 74 000 € HT</span>
@@ -419,6 +428,7 @@ export default function HistoriquePage() {
               <p className="text-sm text-stone-600 mb-6 flex-grow">
                 Travaux d'urgence (radon, électricité) sans traitement de l'enveloppe thermique.
               </p>
+              {!isSimplified && (
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Travaux d'urgence</span>
@@ -433,6 +443,7 @@ export default function HistoriquePage() {
                   <span className="font-bold text-rose-600">0 €</span>
                 </div>
               </div>
+              )}
               <div className="pt-4 border-t border-stone-100 flex items-end justify-between mt-auto">
                 <span className="text-sm font-bold text-rose-900">Coût net</span>
                 <span className="text-xl font-bold text-rose-600">~ 120 000 € HT</span>
@@ -447,7 +458,9 @@ export default function HistoriquePage() {
               Stress Test : La matrice des risques
             </h3>
             
-            <div className="md:hidden flex items-center justify-center gap-2 text-amber-800 bg-amber-50 px-4 py-3 rounded-xl mb-4 text-sm font-medium border border-amber-200">
+            {!isSimplified ? (
+              <>
+                <div className="md:hidden flex items-center justify-center gap-2 text-amber-800 bg-amber-50 px-4 py-3 rounded-xl mb-4 text-sm font-medium border border-amber-200">
               <div className="animate-pulse"><ChevronRight size={18} /></div>
               Faites glisser le tableau vers la droite
             </div>
@@ -490,6 +503,12 @@ export default function HistoriquePage() {
                 </tbody>
               </table>
             </div>
+              </>
+            ) : (
+              <div className="bg-stone-50 border border-stone-200 rounded-xl p-6 text-stone-700 text-center text-lg">
+                <p>La matrice complète des risques démontre que l'<strong>Option 1 (L'ajustement)</strong> est la seule stratégie qui évite les surcoûts explosifs, sécurise le calendrier des travaux et garantit la santé des enfants sans perdre les 340 000 € de subventions.</p>
+              </div>
+            )}
 
             <div className="mt-8 bg-emerald-50 border border-emerald-200 p-6 md:p-8 rounded-2xl">
               <h4 className="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2">
