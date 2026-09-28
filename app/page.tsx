@@ -269,7 +269,7 @@ export default function LandingPage() {
                     Signer la pétition
                   </a>
                   <ShareButton 
-                    url="https://collectif-ecole-km.fr/petition" 
+                    url="https://collectif-ecole-km.web.app/petition" 
                     title="Pétition : Sauvons le projet de rénovation de l'école de Kergrist-Moëlou" 
                     text="Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation engagé, afin d'aboutir à une solution économe plutôt qu'à un abandon." 
                     variant="outline" 

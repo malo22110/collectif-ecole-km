@@ -258,7 +258,7 @@ export default function PetitionPage() {
                     <h4 className="font-bold text-emerald-900 mb-3">La mobilisation continue !</h4>
                     <p className="text-sm text-emerald-800 mb-6">Partagez la pétition autour de vous pour donner plus de poids à notre demande.</p>
                     <ShareButton 
-                      url="https://collectif-ecole-km.fr/petition" 
+                      url="https://collectif-ecole-km.web.app/petition" 
                       title="Pétition : Sauvons le projet de rénovation de l'école de Kergrist-Moëlou" 
                       text="Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation engagé, afin d'aboutir à une solution économe plutôt qu'à un abandon." 
                       variant="primary" 

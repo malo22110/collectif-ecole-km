@@ -93,7 +93,7 @@ export const envoyerMagicLink = onDocumentCreated({ document: "magicLinks/{linkI
   if (!data || !data.email || data.status !== 'pending') return;
 
   const email = data.email;
-  const redirectUrl = data.url || 'https://collectif-ecole-km.fr/';
+  const redirectUrl = data.url || 'https://collectif-ecole-km.web.app/';
 
   try {
     const actionCodeSettings = {

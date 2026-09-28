@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://collectif-ecole-km.fr'),
+  metadataBase: new URL('https://collectif-ecole-km.web.app'),
   title: "Un nid tout neuf pour nos écureuils | École de Kergrist-Moëlou",
   description: "Collectif citoyen pour la rénovation concertée, responsable et durable de l'école de Kergrist-Moëlou (22110).",
   openGraph: {
