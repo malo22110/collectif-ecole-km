@@ -1,116 +1,25 @@
-"use client";
+import fs from 'fs';
 
-import React, { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { ArrowLeft, Printer, ShieldAlert, CheckCircle2, XCircle, AlertTriangle, FileText, Target, Lightbulb, Handshake, Info, ShieldQuestion } from "lucide-react";
-import Link from "next/link";
-import UserAvatar from "../components/UserAvatar";
+let content = fs.readFileSync('app/espace-membre/page.tsx', 'utf8');
 
-export default function EspaceMembre() {
-  const [user, setUser] = useState<any>(null);
-  const [isMember, setIsMember] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
+const cheatSheetStart = content.indexOf('{/* Cheat Sheet */}');
+const cheatSheetEndMarker = '        </div>\n      </main>';
+const cheatSheetEnd = content.indexOf(cheatSheetEndMarker);
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        setUser(u);
-        try {
-          const { doc, getDoc } = await import("firebase/firestore");
-          const { db } = await import("@/lib/firebase");
-          const docRef = doc(db, "membres", u.email!);
-          const docSnap = await getDoc(docRef);
-          setIsMember(docSnap.exists() && docSnap.data().status === "validated");
-        } catch (err) {
-          console.error(err);
-          setIsMember(false);
-        }
-      } else {
-        setUser(null);
-        setIsMember(false);
-      }
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
+if (cheatSheetStart > -1 && cheatSheetEnd > -1) {
+  // We need to preserve the closing div of the flex container!
+  // Looking at the original file:
+  // {/* Cheat Sheet */}
+  // <div className="bg-white rounded-3xl ...">
+  // ...
+  // </div> // ends Cheat Sheet container
+  // </div> // ends flex container
+  // </main>
+  
+  // So we replace everything from `{/* Cheat Sheet */}` up to `        </div>\n      </main>` 
+  // BUT we need to make sure we leave the closing </div> for the flex container.
 
-  if (loading) return <div className="min-h-screen bg-stone-50 flex items-center justify-center">Chargement...</div>;
-
-  if (!user || isMember === false) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full">
-          <ShieldAlert className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-stone-900 mb-2">Accès restreint</h1>
-          <p className="text-stone-600 mb-6">
-            {!user 
-              ? "Vous devez être connecté pour accéder à cette page." 
-              : "Votre compte est en attente de validation ou l'adresse email utilisée n'est pas inscrite au collectif."}
-          </p>
-          <Link href="/" className="btn-primary w-full justify-center">Retour à l'accueil</Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-stone-100 pb-20">
-      <header className="bg-stone-900 border-b border-stone-800 sticky top-0 z-50 shadow-md">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between text-stone-100">
-          <Link href="/" className="flex items-center gap-2 hover:text-white font-medium transition-colors">
-            <ArrowLeft size={20} />
-            <span className="hidden sm:inline">Retour à l'accueil</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <UserAvatar />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 pt-8 md:pt-12">
-        <div className="mb-8 md:mb-12">
-          <h1 className="text-3xl md:text-5xl font-black text-stone-900 mb-3 tracking-tight">Espace Membre</h1>
-          <p className="text-lg md:text-xl text-stone-600">Votre quartier général pour la mobilisation sur le terrain.</p>
-        </div>
-
-        <div className="space-y-6 md:space-y-12">
-          
-          {/* Action : Print Petition (Top) */}
-          <div className="bg-white p-6 md:p-10 rounded-3xl shadow-md border border-stone-200 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center shrink-0">
-              <Printer size={40} className="md:w-12 md:h-12" />
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-black text-stone-900 mb-2">Pétition Papier</h2>
-              <p className="text-stone-600 mb-4 md:mb-0 text-base md:text-lg">
-                Imprimez la version papier pour récolter des signatures lors de votre porte-à-porte.
-              </p>
-            </div>
-            <div className="w-full md:w-auto shrink-0">
-              <Link 
-                href="/espace-membre/imprimer" 
-                target="_blank"
-                className="btn-primary justify-center flex items-center gap-2 py-4 px-8 text-lg w-full md:w-auto shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-500 ring-offset-2 ring-offset-white"
-              >
-                <Printer size={24} /> Imprimer le document
-              </Link>
-            </div>
-          </div>
-          
-          {/* Consignes */}
-          <div className="bg-emerald-50 p-6 md:p-8 rounded-3xl border-2 border-emerald-200 flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center">
-            <div className="font-black text-emerald-900 flex items-center gap-2 shrink-0 text-xl">
-              <AlertTriangle size={28} /> Consignes clés
-            </div>
-            <ul className="text-emerald-900 flex-1 space-y-3 md:space-y-0 md:flex md:flex-wrap gap-x-8 gap-y-4 list-none text-base md:text-lg font-medium">
-              <li className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div> Faire écrire <strong>en MAJUSCULES</strong></li>
-              <li className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div> Ne pas oublier le <strong>lien avec l'école</strong></li>
-              <li className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div> Remettre les feuilles à Axelle / Malo</li>
-            </ul>
-          </div>
-
-          {/* Cheat Sheet */}
+const newCheatSheet = `{/* Cheat Sheet */}
           <div className="bg-white rounded-3xl shadow-xl shadow-stone-200/60 border border-stone-200 overflow-hidden print:shadow-none print:border-none print:m-0 print:p-0">
             <div className="bg-stone-900 p-6 md:p-10 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 print:bg-white print:text-stone-900 print:border-b-4 print:border-stone-900 print:p-0 print:pb-4">
               <div className="flex items-center gap-4">
@@ -157,7 +66,7 @@ export default function EspaceMembre() {
                 </h3>
                 <div className="bg-stone-50 border-l-4 border-stone-900 p-6 md:p-8 rounded-r-2xl print:bg-white print:p-4">
                   <p className="text-lg md:text-xl italic font-medium text-stone-700 leading-relaxed print:text-base">
-                    "Bonjour ! Je suis [Prénom], du collectif pour l'école de Kergrist-Moëlou. Je passe car la rénovation de notre école est bloquée, ce qui met en péril 340 000 € de subventions pour la commune. Si on abandonne, on va aussi devoir jeter au minimum 70 000 € d'études par les fenêtres, payées avec nos impôts. Vous avez 2 minutes ?"
+                    "Bonjour ! Je suis [Prénom], du collectif pour l'école de Kergrist-Moëlou. Je passe car la rénovation de notre école est bloquée, ce qui met en péril 340 000 € de subventions pour la commune. Si on abandonne, on va aussi devoir jeter environ 70 000 € d'études par les fenêtres, payées avec nos impôts. Vous avez 2 minutes ?"
                   </p>
                 </div>
               </div>
@@ -192,7 +101,7 @@ export default function EspaceMembre() {
                       <span className="text-emerald-600 print:text-stone-900">3️⃣</span> Le piège mortel de l'annulation
                     </h4>
                     <p className="text-stone-600 md:text-lg leading-relaxed print:text-sm print:text-stone-900">
-                      "Si on abandonne, on doit quand même payer ce qui a été fait (diagnostics, architectes) : c'est <strong>plus de 70 000 € de perte sèche</strong> immédiate. De plus, on devra renoncer aux aides (conditionnées à des travaux globaux). Faire juste des rustines plus tard nous coûtera au final bien plus cher, 100 % à notre charge."
+                      "Si on abandonne, on doit quand même payer ce qui a été fait (diagnostics, architectes) : c'est <strong>~70 000 € de perte sèche</strong> immédiate. De plus, on devra renoncer aux aides (conditionnées à des travaux globaux). Faire juste des rustines plus tard nous coûtera au final bien plus cher, 100 % à notre charge."
                     </p>
                   </div>
                 </div>
@@ -207,7 +116,7 @@ export default function EspaceMembre() {
                 <div className="grid md:grid-cols-2 gap-6 print:gap-4 print:grid-cols-1">
                   <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4">
                     <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"Ça va ruiner la commune"</span></div>
-                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900">Faux. Le projet optimisé à 550k€ laisse un reste à charge gérable (~212k€). L'abandon total serait bien pire puisqu'il endetterait la commune pour du vent (plus de 70k€ de frais d'études).</span></div>
+                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900">Faux. Le projet optimisé à 550k€ laisse un reste à charge gérable (~212k€). L'abandon total serait bien pire puisqu'il endetterait la commune pour du vent (70k€ de frais d'études).</span></div>
                   </div>
 
                   <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4">
@@ -231,9 +140,16 @@ export default function EspaceMembre() {
 
             </div>
           </div>
+`;
 
-        </div>
-      </main>
-    </div>
-  );
+  let newContent = content.substring(0, cheatSheetStart) + newCheatSheet + "\n" + content.substring(cheatSheetEnd);
+  
+  if (!newContent.includes('Printer')) {
+    newContent = newContent.replace('import { ', 'import { Printer, ');
+  }
+
+  fs.writeFileSync('app/espace-membre/page.tsx', newContent);
+  console.log("Cheat sheet replaced successfully!");
+} else {
+  console.log("Could not find boundaries.");
 }

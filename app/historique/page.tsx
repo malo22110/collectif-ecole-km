@@ -171,7 +171,7 @@ export default function HistoriquePage() {
             <div className="flex items-start gap-3">
               <div className="mt-1 bg-rose-100 p-1.5 rounded-lg text-rose-700 shrink-0"><AlertCircle size={18} /></div>
               <div>
-                <strong className="text-stone-900 block text-lg mb-2">🔎 Zoom Financier : Comprendre les 127 110 € d'études et le risque de perte réelle (70 000 €)</strong>
+                <strong className="text-stone-900 block text-lg mb-2">🔎 Zoom Financier : Comprendre les 127 110 € d'études et le risque de perte réelle (plus de 70 000 €)</strong>
                 <p className="text-stone-600 text-sm mb-3">
                   Il est crucial de clarifier les chiffres liés aux études d'ingénierie pour sortir des approximations. Trois montants différents existent, ils sont tous justes mais ne correspondent pas à la même chose :
                 </p>
@@ -196,7 +196,7 @@ export default function HistoriquePage() {
                   <li className="flex gap-2">
                     <span className="text-emerald-600 font-bold">3.</span>
                     <div>
-                      <strong>~ 70 000 € HT (Le risque de perte sèche immédiate) :</strong> C'est le montant des prestations <em>effectivement réalisées à ce jour</em> (stade APD). Si la mairie annule le projet demain, elle ne paiera pas 133 000 €, mais elle devra obligatoirement payer ces 70 000 € au titre du "service fait" (diagnostics achevés, AMO, honoraires d'architectes dus à l'étape APD s'élevant à environ 19 438 €). <strong>C'est cet argent qui sera jeté par les fenêtres en cas d'abandon.</strong>
+                      <strong>plus de 70 000 € HT (Le risque de perte sèche immédiate) :</strong> C'est le montant des prestations <em>effectivement réalisées à ce jour</em> (stade APD). Si la mairie annule le projet demain, elle ne paiera pas 133 000 €, mais elle devra obligatoirement payer ces 70 000 € au titre du "service fait" (diagnostics achevés, AMO, honoraires d'architectes dus à l'étape APD s'élevant à environ 19 438 €). <strong>C'est cet argent qui sera jeté par les fenêtres en cas d'abandon.</strong>
                     </div>
                   </li>
                 </ul>
@@ -228,12 +228,12 @@ export default function HistoriquePage() {
             ) : (
               <div className="space-y-4">
                 <div className="bg-rose-50 text-rose-800 p-4 md:p-6 rounded-xl border border-rose-200">
-                  <strong className="block mb-2 flex items-center gap-2 text-rose-900"><AlertCircle size={20} /> Le risque immédiat : ~ 70 000 €</strong>
-                  <p className="text-sm">C'est le coût des études (diagnostics, architectes) <strong>déjà réalisées</strong> à ce jour. Si on abandonne l'école, la mairie devra quand même payer cette somme (règle légale du "service fait"). 70 000 € d'argent public seront perdus dans le vide.</p>
+                  <strong className="block mb-2 flex items-center gap-2 text-rose-900"><AlertCircle size={20} /> Le risque immédiat : plus de 70 000 €</strong>
+                  <p className="text-sm">C'est le coût des études (diagnostics, architectes) <strong>déjà réalisées</strong> à ce jour. Si on abandonne l'école, la mairie devra quand même payer cette somme (règle légale du "service fait"). Au moins 70 000 € d'argent public seront perdus dans le vide.</p>
                 </div>
                 <div className="bg-emerald-50 text-emerald-800 p-4 md:p-6 rounded-xl border border-emerald-200">
                   <strong className="block mb-2 flex items-center gap-2 text-emerald-900"><CheckCircle size={20} /> La solution (Option 1)</strong>
-                  <p className="text-sm">Continuer le projet d'ajustement permet de rentabiliser ces 70 000 € et de sécuriser <strong>340 000 € de subventions</strong>, ramenant le reste à charge des travaux à environ 212 000 €, ce qui est largement dans la capacité de la commune.</p>
+                  <p className="text-sm">Continuer le projet d'ajustement permet de rentabiliser ces plus de 70 000 € d'études et de sécuriser <strong>340 000 € de subventions</strong>, ramenant le reste à charge des travaux à environ 212 000 €, ce qui est largement dans la capacité de la commune.</p>
                 </div>
               </div>
             )}
@@ -389,7 +389,7 @@ export default function HistoriquePage() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Pertes (Service fait facturable)</span>
-                  <span className="font-bold text-rose-600">~ 70 000 €</span>
+                  <span className="font-bold text-rose-600">plus de 70 000 €</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Frais de résiliation</span>
@@ -423,7 +423,7 @@ export default function HistoriquePage() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Pertes (Service fait facturable)</span>
-                  <span className="font-bold text-rose-600">~ 70 000 €</span>
+                  <span className="font-bold text-rose-600">plus de 70 000 €</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Frais de résiliation</span>
@@ -457,7 +457,7 @@ export default function HistoriquePage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-stone-600">Pertes (Études abandonnées)</span>
-                  <span className="font-bold text-rose-600">~ 70 000 €</span>
+                  <span className="font-bold text-rose-600">plus de 70 000 €</span>
                 </div>
                 <div className="flex justify-between text-sm pt-2 border-t border-stone-100">
                   <span className="text-stone-600">Subventions</span>
@@ -506,19 +506,19 @@ export default function HistoriquePage() {
                   <tr className="hover:bg-stone-50 transition-colors border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
                     <td className="p-4 align-top font-bold text-stone-900">2. Refonte totale</td>
                     <td className="p-4 align-top text-stone-700"><strong className="text-stone-900 block mb-1">Perte intégrale des financements.</strong> L'abandon des objectifs thermiques (40%) annule toutes les aides.</td>
-                    <td className="p-4 align-top text-stone-700">~ 70 000 € d'études perdues<br/>+ frais de rupture<br/>+ relance d'études complètes.</td>
+                    <td className="p-4 align-top text-stone-700">plus de 70 000 € d'études perdues<br/>+ frais de rupture<br/>+ relance d'études complètes.</td>
                     <td className="p-4 align-top"><strong className="text-rose-600 text-base block mb-1">&gt; 150 000 € HT</strong><div className="text-stone-600 text-xs">Dépense à 100% à la charge de la commune.</div></td>
                   </tr>
                   <tr className="hover:bg-stone-50 transition-colors border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
                     <td className="p-4 align-top font-bold text-stone-900">3. Abandon total</td>
                     <td className="p-4 align-top text-stone-700"><strong className="text-stone-900 block mb-1">Maintien des non-conformités.</strong> Le bâtiment reste exposé au radon.</td>
-                    <td className="p-4 align-top text-stone-700">~ 70 000 € d'études payées en pure perte.<br/>Majoration future du coût des travaux (inflation).</td>
+                    <td className="p-4 align-top text-stone-700">plus de 70 000 € d'études payées en pure perte.<br/>Majoration future du coût des travaux (inflation).</td>
                     <td className="p-4 align-top"><strong className="text-rose-600 text-base block mb-1">&gt; 74 000 € HT (immédiat)</strong><div className="text-stone-600 text-xs">Surcoûts reportés sur les exercices futurs.</div></td>
                   </tr>
                   <tr className="hover:bg-stone-50 transition-colors border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
                     <td className="p-4 align-top font-bold text-stone-900">4. Le Saupoudrage</td>
                     <td className="p-4 align-top text-stone-700"><strong className="text-stone-900 block mb-1">Inefficacité des interventions.</strong> Les travaux isolés ne règlent pas les désordres thermiques.</td>
-                    <td className="p-4 align-top text-stone-700">50 000 € de travaux<br/>+ ~ 70 000 € d'études perdues.</td>
+                    <td className="p-4 align-top text-stone-700">50 000 € de travaux<br/>+ plus de 70 000 € d'études perdues.</td>
                     <td className="p-4 align-top"><strong className="text-rose-600 text-base block mb-1">~ 120 000 € HT</strong><div className="text-stone-600 text-xs">Trésorerie absorbée sans pérenniser le bâtiment.</div></td>
                   </tr>
                 </tbody>
@@ -541,7 +541,7 @@ export default function HistoriquePage() {
 
                 <p>Toute analyse budgétaire rigoureuse menée sur ce dossier aboutit à la même conclusion technique et financière : l'Option 1 (l'ajustement à l'enveloppe initiale de 550 000 € HT) est la seule voie viable pour la commune, pour trois raisons mathématiques et légales :</p>
                 <ol className="list-decimal pl-5 space-y-3 font-medium text-stone-700">
-                  <li><strong>La valorisation des dépenses engagées :</strong> La commune a déjà contracté pour environ 70 000 € d'études et de diagnostics facturables au titre du service fait à ce stade du projet. Choisir l'abandon ou la refonte revient à solder ces factures avec les impôts locaux pour obtenir un résultat matériel nul. L'Option 1 est la seule qui transforme cette dépense inéluctable en investissement utile.</li>
+                  <li><strong>La valorisation des dépenses engagées :</strong> La commune a déjà contracté pour au minimum 70 000 € d'études et de diagnostics facturables au titre du service fait à ce stade du projet. Choisir l'abandon ou la refonte revient à solder ces factures avec les impôts locaux pour obtenir un résultat matériel nul. L'Option 1 est la seule qui transforme cette dépense inéluctable en investissement utile.</li>
                   <li><strong>L'effet levier des subventions :</strong> Les 340 000 € d'aides extérieures sont strictement conditionnés à une rénovation globale générant 40 % d'économie d'énergie. Abandonner l'Avant-Projet Définitif annule mécaniquement ces aides. Faire "moins cher" en rafistolant ou "repartir de zéro" obligerait la commune à payer la totalité des futurs travaux sur ses fonds propres, ce qui saturerait instantanément sa capacité d'emprunt de 400 000 €.</li>
                   <li><strong>L'incompressibilité des normes :</strong> Le bâtiment souffre de vulnérabilités légales et sanitaires avérées (radon, accessibilité, amiante/plomb, isolation). Le saupoudrage n'est qu'un expédient temporaire. L'État finira par exiger une mise aux normes complète, obligeant la commune à relancer un projet global dans quelques années, avec des coûts d'ingénierie à repayer de zéro et des coûts de construction gonflés par l'inflation.</li>
                 </ol>
@@ -552,7 +552,7 @@ export default function HistoriquePage() {
                 </div>
               ) : (
                 <div className="text-emerald-900 font-bold text-base md:text-lg leading-relaxed bg-white/50 p-4 rounded-xl">
-                  Refuser l'Option 1 revient à endetter le village d'environ 70 000 € dans le vide pour des plans inutilisés, tout en gardant une école qui se dégrade et perd ses subventions. À l'inverse, l'Option 1 protège les finances de la commune en faisant financer plus de 60 % du chantier par l'État, la Région et le Département.
+                  Refuser l'Option 1 revient à endetter le village d'au minimum 70 000 € dans le vide pour des plans inutilisés, tout en gardant une école qui se dégrade et perd ses subventions. À l'inverse, l'Option 1 protège les finances de la commune en faisant financer plus de 60 % du chantier par l'État, la Région et le Département.
                 </div>
               )}
             </div>

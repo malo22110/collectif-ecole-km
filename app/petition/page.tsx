@@ -169,7 +169,7 @@ export default function PetitionPage() {
                   <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
                   <div>
                     <strong className="text-stone-900 block mb-1">La préservation de l'argent public :</strong>
-                    Sur l'enveloppe globale d'ingénierie budgétée par la mairie, environ 70 000 € de prestations ont déjà été effectivement réalisées à ce jour (plans d'architectes, assistance à maîtrise d'ouvrage, diagnostics obligatoires). La commune est légalement tenue de les payer (règle du "service fait"). Refuser de voter l'ajustement de 2 170 € nécessaire pour faire baisser le coût des travaux conduit à bloquer le projet et transforme ces 70 000 € d'argent public en perte sèche immédiate.
+                    Sur l'enveloppe globale d'ingénierie budgétée par la mairie, au minimum 70 000 € de prestations ont déjà été effectivement réalisées à ce jour (plans d'architectes, assistance à maîtrise d'ouvrage, diagnostics obligatoires). La commune est légalement tenue de les payer (règle du "service fait"). Refuser de voter l'ajustement de 2 170 € nécessaire pour faire baisser le coût des travaux conduit à bloquer le projet et transforme ces montants d'argent public en perte sèche immédiate.
                   </div>
                 </li>
 
@@ -223,10 +223,10 @@ export default function PetitionPage() {
                     Dans les premières heures du lancement de cette pétition, nous indiquions que l'abandon du projet transformerait "127 110 € d'études en pure perte". Notre collectif ayant depuis décortiqué les contrats administratifs précis (actes d'engagement des prestataires), nous avons tenu à affiner ce chiffre pour être d'une rigueur absolue.
                   </p>
                   <p>
-                    <strong className="text-stone-900">Pourquoi ce changement ?</strong> 127 110 € est bien l'enveloppe globale et historique budgétée par la mairie pour les études. En revanche, si le projet est annulé demain, la somme que la commune devra débourser immédiatement de sa poche (pour le travail effectivement déjà réalisé à ce jour) est évaluée à environ 70 000 €.
+                    <strong className="text-stone-900">Pourquoi ce changement ?</strong> 127 110 € est bien l'enveloppe globale et historique budgétée par la mairie pour les études. En revanche, si le projet est annulé demain, la somme que la commune devra débourser immédiatement de sa poche (pour le travail effectivement déjà réalisé à ce jour) est évaluée à au minimum 70 000 €.
                   </p>
                   <p>
-                    <strong className="text-stone-900">Est-ce que cela change notre diagnostic ? Absolument pas.</strong> Le fond du problème reste exactement le même. Qu'il s'agisse de l'enveloppe globale ou de la perte sèche immédiate de 70 000 €, jeter des dizaines de milliers d'euros de nos impôts par les fenêtres pour n'avoir aucun travaux à la fin reste une aberration financière inacceptable. De plus, le risque de perdre les 340 000 € de subventions reste, lui, totalement inchangé.
+                    <strong className="text-stone-900">Est-ce que cela change notre diagnostic ? Absolument pas.</strong> Le fond du problème reste exactement le même. Qu'il s'agisse de l'enveloppe globale ou de la perte sèche immédiate d'au moins 70 000 €, jeter des dizaines de milliers d'euros de nos impôts par les fenêtres pour n'avoir aucun travaux à la fin reste une aberration financière inacceptable. De plus, le risque de perdre les 340 000 € de subventions reste, lui, totalement inchangé.
                   </p>
                   <p className="font-medium text-stone-900 bg-stone-100 p-3 rounded-lg border border-stone-200">
                     Votre signature initiale est donc plus que jamais légitime, justifiée et fondée. En 4 jours, notre collectif a fait le choix de la transparence totale : nous ajustons nos textes au fur et à mesure que nous accédons aux documents officiels pour vous garantir l'information la plus juste possible.
