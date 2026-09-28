@@ -56,7 +56,7 @@ export default function EspaceMembre() {
 
   return (
     <div className="min-h-screen bg-stone-100 pb-20">
-      <header className="bg-stone-900 border-b border-stone-800 sticky top-0 z-50 shadow-md">
+      <header className="bg-stone-900 border-b border-stone-800 sticky top-0 z-50 shadow-md print:hidden">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between text-stone-100">
           <Link href="/" className="flex items-center gap-2 hover:text-white font-medium transition-colors">
             <ArrowLeft size={20} />
@@ -69,7 +69,7 @@ export default function EspaceMembre() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 pt-8 md:pt-12">
-        <div className="mb-8 md:mb-12">
+        <div className="mb-8 md:mb-12 print:hidden">
           <h1 className="text-3xl md:text-5xl font-black text-stone-900 mb-3 tracking-tight">Espace Membre</h1>
           <p className="text-lg md:text-xl text-stone-600">Votre quartier général pour la mobilisation sur le terrain.</p>
         </div>
@@ -77,7 +77,7 @@ export default function EspaceMembre() {
         <div className="space-y-6 md:space-y-12">
           
           {/* Action : Print Petition (Top) */}
-          <div className="bg-white p-6 md:p-10 rounded-3xl shadow-md border border-stone-200 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+          <div className="bg-white p-6 md:p-10 rounded-3xl shadow-md border border-stone-200 flex flex-col md:flex-row items-center gap-6 md:gap-10 print:hidden">
             <div className="w-20 h-20 md:w-24 md:h-24 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center shrink-0">
               <Printer size={40} className="md:w-12 md:h-12" />
             </div>
@@ -99,7 +99,7 @@ export default function EspaceMembre() {
           </div>
           
           {/* Consignes */}
-          <div className="bg-emerald-50 p-6 md:p-8 rounded-3xl border-2 border-emerald-200 flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center">
+          <div className="bg-emerald-50 p-6 md:p-8 rounded-3xl border-2 border-emerald-200 flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center print:hidden">
             <div className="font-black text-emerald-900 flex items-center gap-2 shrink-0 text-xl">
               <AlertTriangle size={28} /> Consignes clés
             </div>
