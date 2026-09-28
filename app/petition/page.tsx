@@ -11,7 +11,7 @@ import ShareButton from "../components/ShareButton";
 import { ArrowLeft } from "lucide-react";
 
 export default function PetitionPage() {
-  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", qualite: "", qualiteAutre: "", honeypot: "" });
+  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", villeAutre: "", qualite: "", qualiteAutre: "", honeypot: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   
   useEffect(() => {
@@ -73,12 +73,16 @@ export default function PetitionPage() {
     try {
       
 
-      const { qualiteAutre, ...rest } = formData;
+      const { qualiteAutre, villeAutre, ...rest } = formData;
       const cleanEmail = (formData.email || "").trim().toLowerCase();
       const payload: any = { ...rest, email: cleanEmail, createdAt: serverTimestamp() };
       
       if (payload.qualite === "Autre" && qualiteAutre) {
         payload.qualite = qualiteAutre;
+      }
+      
+      if (payload.ville === "Autre" && villeAutre) {
+        payload.ville = villeAutre;
       }
       
       try {
@@ -354,11 +358,27 @@ export default function PetitionPage() {
                         Commune de résidence
                         <span className="block text-xs text-stone-500 font-normal mt-0.5">Très important pour prouver la proximité géographique.</span>
                       </label>
-                      <input 
-                        type="text" required
-                        value={formData.ville} onChange={e => setFormData({...formData, ville: e.target.value})}
-                        className="input-base" placeholder="Ex: Kergrist-Moëlou"
-                      />
+                      <select 
+                        required
+                        value={formData.ville} 
+                        onChange={e => setFormData({...formData, ville: e.target.value})}
+                        className="input-base"
+                      >
+                        <option value="" disabled>Sélectionnez une option</option>
+                        <option value="Kergrist-Moëlou">Kergrist-Moëlou</option>
+                        <option value="Autre">Autre commune (précisez)</option>
+                      </select>
+                      
+                      {formData.ville === "Autre" && (
+                        <div className="mt-3">
+                          <input 
+                            type="text" required
+                            value={formData.villeAutre}
+                            onChange={e => setFormData({...formData, villeAutre: e.target.value})}
+                            className="input-base" placeholder="Précisez votre commune..."
+                          />
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="input-label">Votre lien avec l'école</label>

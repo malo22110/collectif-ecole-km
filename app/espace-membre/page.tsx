@@ -9,11 +9,27 @@ import UserAvatar from "../components/UserAvatar";
 
 export default function EspaceMembre() {
   const [user, setUser] = useState<any>(null);
+  const [isMember, setIsMember] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        setUser(u);
+        try {
+          const { collection, query, where, getDocs } = await import("firebase/firestore");
+          const { db } = await import("@/lib/firebase");
+          const q = query(collection(db, "membres"), where("email", "==", u.email), where("status", "==", "validated"));
+          const snap = await getDocs(q);
+          setIsMember(!snap.empty);
+        } catch (err) {
+          console.error(err);
+          setIsMember(false);
+        }
+      } else {
+        setUser(null);
+        setIsMember(false);
+      }
       setLoading(false);
     });
     return () => unsub();
@@ -21,13 +37,17 @@ export default function EspaceMembre() {
 
   if (loading) return <div className="min-h-screen bg-stone-50 flex items-center justify-center">Chargement...</div>;
 
-  if (!user) {
+  if (!user || isMember === false) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full">
           <ShieldAlert className="w-16 h-16 text-amber-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-stone-900 mb-2">Accès restreint</h1>
-          <p className="text-stone-600 mb-6">Vous devez être membre du collectif pour accéder à cette page.</p>
+          <p className="text-stone-600 mb-6">
+            {!user 
+              ? "Vous devez être connecté pour accéder à cette page." 
+              : "Votre compte est en attente de validation ou l'adresse email utilisée n'est pas inscrite au collectif."}
+          </p>
           <Link href="/" className="btn-primary w-full justify-center">Retour à l'accueil</Link>
         </div>
       </div>

@@ -24,28 +24,12 @@ export default function ConnexionPage() {
     return () => unsub();
   }, [router]);
 
-  const checkIsMember = async (checkEmail: string) => {
-    try {
-      const q = query(collection(db, "membres"), where("email", "==", checkEmail), where("status", "==", "validated"));
-      const snap = await getDocs(q);
-      return !snap.empty;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
   const handleGoogleLogin = async () => {
     setAuthError("");
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const isMem = await checkIsMember(result.user.email || "");
-      if (!isMem) {
-        setAuthError("Votre compte est en attente de validation par l'administrateur, ou n'est pas inscrit au Collectif.");
-      } else {
-        router.push("/espace-membre");
-      }
+      await signInWithPopup(auth, provider);
+      router.push("/espace-membre");
     } catch (err: any) {
       if (err.code !== 'auth/popup-closed-by-user') {
         setAuthError(err.message || "Erreur de connexion");
@@ -57,11 +41,6 @@ export default function ConnexionPage() {
     e.preventDefault();
     setAuthError("");
     try {
-      const isMem = await checkIsMember(email);
-      if (!isMem) {
-        setAuthError("Aucun membre validé ne correspond à cet email. Avez-vous rejoint le collectif ?");
-        return;
-      }
       const actionCodeSettings = {
         url: window.location.origin + '/espace-membre',
         handleCodeInApp: true,
