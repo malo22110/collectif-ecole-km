@@ -2,7 +2,7 @@ import * as admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 admin.initializeApp();
 import { setGlobalOptions } from "firebase-functions/v2";
-import { onDocumentUpdated, onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentUpdated, onDocumentCreated, onDocumentWritten } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import * as nodemailer from "nodemailer";
 import * as logger from "firebase-functions/logger";
@@ -307,5 +307,19 @@ export const onSignatureCreated = onDocumentCreated({ document: "signatures/{sig
     logger.info(`Nouvelle signature comptabilisée : ${data.prenom}`);
   } catch (error) {
     logger.error("Erreur lors de la mise à jour des stats de la pétition :", error);
+  }
+});
+
+
+export const updateMemberStats = onDocumentWritten({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
+  try {
+    const snapshot = await getFirestore("ecole-db").collection('membres').where('status', '==', 'validated').get();
+    const count = snapshot.size;
+    await getFirestore("ecole-db").collection('stats').doc('membres').set({
+      count: Math.max(count, 51),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (err) {
+    logger.error("Erreur lors de la mise à jour des stats membres:", err);
   }
 });

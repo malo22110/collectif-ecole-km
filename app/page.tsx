@@ -50,7 +50,7 @@ export default function LandingPage() {
 
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "stats", "petition"), (docSnap) => {
+    const unsub = onSnapshot(doc(db, "stats", "membres"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (typeof data.count === "number") {
@@ -205,7 +205,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-stone-100 text-sm font-medium text-stone-700">
                 <Users size={16} className="text-emerald-500" />
-                Déjà {memberCount !== null ? memberCount : "..."} personnes mobilisées
+                Déjà {memberCount !== null ? memberCount : 51} membres mobilisés
               </div>
               <div className="flex items-center gap-2 bg-emerald-50 border-emerald-200 px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-emerald-800">
                 <FileSignature size={16} className="text-emerald-600" />
