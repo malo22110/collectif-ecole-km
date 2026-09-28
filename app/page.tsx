@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, addDoc, query, where, getDocs, doc, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, setDoc, query, where, getDocs, doc, onSnapshot } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
 import { 
@@ -84,15 +84,26 @@ export default function LandingPage() {
       const tel = formData.get('phone') as string;
       
 
-      // 1. On enregistre le membre dans la base de données Firestore
-      await addDoc(collection(db, 'membres'), {
-        prenom,
-        nom,
-        email,
-        telephone: tel || '',
-        dateInscription: new Date().toISOString(),
-        status: 'pending' // En attente de validation par l'administrateur
-      });
+      const cleanEmail = (email || '').trim().toLowerCase();
+
+      // 1. On enregistre le membre dans la base de données Firestore (id = email pour unicité)
+      try {
+        await setDoc(doc(db, 'membres', cleanEmail), {
+          prenom,
+          nom,
+          email: cleanEmail,
+          telephone: tel || '',
+          dateInscription: new Date().toISOString(),
+          status: 'pending'
+        });
+      } catch (err: any) {
+        if (err.code === 'permission-denied' || err.code === 'already-exists') {
+          alert("Cette adresse e-mail est déjà inscrite au collectif.");
+          setFormStatus("idle");
+          return;
+        }
+        throw err;
+      }
 
 
       

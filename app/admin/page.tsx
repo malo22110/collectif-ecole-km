@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import ArticleManager from "./ArticleManager";
 import FaqManager from "./FaqManager";
 import ImportMembers from "./ImportMembers";
+import DuplicateManager from "./DuplicateManager";
 import MailManager from "./MailManager";
 import { Mail } from "lucide-react";
 import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot } from "lucide-react";
@@ -176,6 +177,7 @@ export default function AdminDashboard() {
                 )}
               </div>
             </div>
+            <DuplicateManager />
             <ImportMembers />
           </div>
         )}
