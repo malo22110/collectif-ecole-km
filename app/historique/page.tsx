@@ -100,7 +100,7 @@ export default function HistoriquePage() {
   const [activeStep, setActiveStep] = useState<any>(null);
 
   return (
-    <main className="min-h-screen bg-stone-50 pb-20 overflow-x-hidden">
+    <main className="min-h-screen bg-stone-50 pb-20">
       {/* Header */}
       <header className="bg-white border-b border-stone-200 sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
