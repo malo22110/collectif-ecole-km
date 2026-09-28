@@ -70,12 +70,23 @@ export default function PetitionPage() {
       
 
       const { qualiteAutre, ...rest } = formData;
-      const payload: any = { ...rest, createdAt: serverTimestamp() };
+      const cleanEmail = (formData.email || "").trim().toLowerCase();
+      const payload: any = { ...rest, email: cleanEmail, createdAt: serverTimestamp() };
+      
       if (payload.qualite === "Autre" && qualiteAutre) {
         payload.qualite = qualiteAutre;
       }
       
-      await addDoc(collection(db, "signatures"), payload);
+      try {
+        await setDoc(doc(db, "signatures", cleanEmail), payload);
+      } catch (err: any) {
+        if (err.code === 'permission-denied' || err.code === 'already-exists') {
+          alert("Cette adresse e-mail a déjà été utilisée pour signer la pétition.");
+          setStatus("idle");
+          return;
+        }
+        throw err;
+      }
 
       // Auto-mise à jour du compteur public d'un coup
       try {
