@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, doc, onSnapshot, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, doc, onSnapshot, serverTimestamp, getDocs, query, where, getCountFromServer, setDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { PenTool, CheckCircle2, AlertCircle, Users, ChevronRight, FileText } from 'lucide-react';
@@ -75,6 +75,25 @@ export default function PetitionPage() {
       }
       
       await addDoc(collection(db, "signatures"), payload);
+
+      // Auto-mise à jour du compteur public d'un coup
+      try {
+        const snapCount = await getCountFromServer(collection(db, "signatures"));
+        const realCount = snapCount.data().count;
+        const statsRef = doc(db, "stats", "petition");
+        const statsSnap = await getDoc(statsRef);
+        const currentRecent = statsSnap.exists() ? (statsSnap.data().recent || []) : [];
+        const newName = `${payload.prenom} ${payload.nom.charAt(0)}.${payload.qualite ? ` (${payload.qualite})` : ''}`;
+        
+        await setDoc(statsRef, {
+          count: realCount,
+          recent: [newName, ...currentRecent.filter((n: string) => n !== newName)].slice(0, 10),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (e) {
+        console.error("Auto-sync stats petition:", e);
+      }
+
       setStatus("success");
       try {
         localStorage.setItem("petition_signed", "true");
