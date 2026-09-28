@@ -21,13 +21,17 @@ export default function PetitionPage() {
       }
     } catch (e) {}
   }, []);
-  const [stats, setStats] = useState({ count: 0, recent: [] as string[] });
+  const [stats, setStats] = useState<{ 
+    count: number; 
+    recent: string[]; 
+    breakdown?: { habitantsKergrist: number; parentsEleves: number; communesVoisines: number; autres: number; } 
+  }>({ count: 0, recent: [] });
   const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
     const unsubStats = onSnapshot(doc(db, "stats", "petition"), (docSnap) => {
       if (docSnap.exists()) {
-        setStats(docSnap.data() as { count: number; recent: string[] });
+        setStats(docSnap.data() as any);
       }
     });
 
@@ -227,7 +231,7 @@ export default function PetitionPage() {
             
             {/* Stats Card */}
             <div className="bg-emerald-900 text-white p-8 rounded-3xl shadow-lg border border-emerald-800 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
+              <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                 <Users size={120} />
               </div>
               <div className="relative z-10">
@@ -238,9 +242,49 @@ export default function PetitionPage() {
                 <div className="text-6xl font-black mb-2 tracking-tighter">
                   {stats.count}
                 </div>
-                <div className="text-emerald-100 font-medium">
+                <div className="text-emerald-100 font-medium mb-6">
                   citoyens ont déjà signé la pétition.
                 </div>
+                
+                {stats.breakdown && (
+                  <div className="space-y-3 mt-6 pt-6 border-t border-emerald-800/50">
+                    <h4 className="text-sm font-bold text-emerald-300 uppercase tracking-wider mb-4">Profil des signataires</h4>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-emerald-100 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                        Habitants de Kergrist
+                      </span>
+                      <span className="font-bold text-white">{stats.breakdown.habitantsKergrist}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-emerald-100 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                        Parents d'élèves
+                      </span>
+                      <span className="font-bold text-white">{stats.breakdown.parentsEleves}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-emerald-100 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                        Communes voisines
+                      </span>
+                      <span className="font-bold text-white">{stats.breakdown.communesVoisines}</span>
+                    </div>
+
+                    {stats.breakdown.autres > 0 && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-emerald-100 flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-stone-400"></div>
+                          Anciens élèves / Autres
+                        </span>
+                        <span className="font-bold text-white">{stats.breakdown.autres}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: "Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation engagé, afin d'aboutir à une solution économe plutôt qu'à un abandon. Signez la pétition !",
     images: [
       {
-        url: "/images/hero_petition.jpg",
+        url: "https://collectif-ecole-km.web.app/images/hero_petition.jpg",
         width: 1200,
         height: 630,
         alt: "Enfants à l'école de Kergrist-Moëlou",
