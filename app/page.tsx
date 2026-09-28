@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, addDoc, query, where, getCountFromServer, getDocs, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, doc, onSnapshot } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
 import { 
@@ -25,7 +25,7 @@ import UserAvatar from "./components/UserAvatar";
 
 export default function LandingPage() {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success">("idle");
-  const [memberCount, setMemberCount] = useState<number>(51); // Valeur par défaut
+  const [memberCount, setMemberCount] = useState<number | null>(null);
   const [articles, setArticles] = useState<any[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -50,19 +50,17 @@ export default function LandingPage() {
 
 
   useEffect(() => {
-    async function fetchMemberCount() {
-      try {
-        const q = query(collection(db, 'membres'), where('status', '==', 'validated'));
-        const snapshot = await getCountFromServer(q);
-        const count = snapshot.data().count;
-        if (count > 51) {
-          setMemberCount(count);
+    const unsub = onSnapshot(doc(db, "stats", "petition"), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (typeof data.count === "number") {
+          setMemberCount(data.count);
         }
-      } catch (error) {
-        console.error('Erreur lors du comptage des membres:', error);
       }
-    }
-    fetchMemberCount();
+    }, (err) => {
+      console.error("Erreur lors de l'écoute du compteur:", err);
+    });
+    return () => unsub();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -196,7 +194,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-stone-100 text-sm font-medium text-stone-700">
                 <Users size={16} className="text-emerald-500" />
-                Déjà {memberCount} membres mobilisés
+                Déjà {memberCount !== null ? memberCount : "..."} personnes mobilisées
               </div>
               <div className="flex items-center gap-2 bg-emerald-50 border-emerald-200 px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-emerald-800">
                 <FileSignature size={16} className="text-emerald-600" />
@@ -434,7 +432,7 @@ export default function LandingPage() {
                   <div className="w-full md:w-1/2 pl-12 md:pl-0 md:pr-12 md:text-right">
                     <div className="text-sm font-semibold text-emerald-600 mb-1">Samedi 26 Septembre</div>
                     <h3 className="text-xl font-bold text-stone-900 mb-2">Réunion de lancement</h3>
-                    <p className="text-stone-600">Lancement officiel avec déjà {memberCount} membres mobilisés, en présence du Maire et de 3 adjoints, pour poser les bases de notre démarche citoyenne.</p>
+                    <p className="text-stone-600">Lancement officiel avec déjà 51 personnes mobilisées, en présence du Maire et de 3 adjoints, pour poser les bases de notre démarche citoyenne.</p>
                   </div>
                   {/* Espace vide à droite sur Desktop pour équilibrer */}
                   <div className="hidden md:block md:w-1/2"></div>
