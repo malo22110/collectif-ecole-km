@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, setDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function ImportMembers() {
@@ -122,7 +122,8 @@ TANGUY,Yvette,,0677219282,Non,Oui`;
       };
       
       try {
-        await addDoc(membersRef, docData);
+        const emailId = email.trim().toLowerCase();
+        await setDoc(doc(db, "membres", emailId), docData);
         setLogs(prev => [...prev, `[AJOUTÉ] ${prenom} ${nom} (${email})`]);
         addedCount++;
       } catch (e: any) {

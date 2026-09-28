@@ -1,1 +1,10 @@
-{}
+{
+  "app/espace-membre/page.tsx -> @/lib/firebase": {
+    "id": 9664,
+    "files": []
+  },
+  "app/espace-membre/page.tsx -> firebase/firestore": {
+    "id": 3935,
+    "files": []
+  }
+}

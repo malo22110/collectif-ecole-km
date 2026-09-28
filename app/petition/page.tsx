@@ -40,10 +40,10 @@ export default function PetitionPage() {
         setIsMember(true);
         // Try to fetch member details
         try {
-          const q = query(collection(db, 'membres'), where('email', '==', user.email));
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            const memberData = snap.docs[0].data();
+          const docRef = doc(db, 'membres', user.email);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const memberData = docSnap.data();
             setFormData(prev => ({
               ...prev,
               email: user.email || "",

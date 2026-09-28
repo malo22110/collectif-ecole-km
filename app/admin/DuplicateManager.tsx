@@ -206,6 +206,34 @@ export default function DuplicateManager() {
             <RefreshCw size={18} className={analyzing ? "animate-spin" : ""} />
             {analyzing ? "Analyse en cours..." : "Analyser la base membres"}
           </button>
+          <button
+            onClick={async () => {
+              setAnalyzing(true);
+              setLogs(["Démarrage de la migration des ID..."]);
+              try {
+                const snap = await getDocs(collection(db, "membres"));
+                let migrated = 0;
+                for (const d of snap.docs) {
+                  if (!d.id.includes('@')) {
+                    const data = d.data();
+                    const emailId = data.email.trim().toLowerCase();
+                    setLogs(prev => [...prev, `Migration de ${emailId}...`]);
+                    await setDoc(doc(db, "membres", emailId), data);
+                    await deleteDoc(doc(db, "membres", d.id));
+                    migrated++;
+                  }
+                }
+                setLogs(prev => [...prev, `[SUCCÈS] ${migrated} membres migrés vers des ID emails.`]);
+              } catch (e: any) {
+                setLogs(prev => [...prev, `[ERREUR] ${e.message}`]);
+              }
+              setAnalyzing(false);
+            }}
+            disabled={analyzing}
+            className="px-3.5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-2"
+          >
+            <RefreshCw size={16} className={analyzing ? "animate-spin" : ""} /> Migrer ID vers Email
+          </button>
         </div>
       </div>
 

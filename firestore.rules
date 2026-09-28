@@ -31,10 +31,10 @@ service cloud.firestore {
       );
     }
 
-    match /membres/{membreId} {
+    match /membres/{membreEmail} {
       allow create: if (request.resource.data.keys().hasAll(['prenom', 'nom', 'email', 'dateInscription', 'status'])
                     && request.resource.data.status == 'pending') || isAdmin();
-      allow read: if request.auth != null && (request.auth.token.email == resource.data.email || isAdmin());
+      allow read: if request.auth != null && (request.auth.token.email == membreEmail || isAdmin());
       allow update, delete: if isAdmin();
     }
     

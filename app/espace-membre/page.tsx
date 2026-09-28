@@ -17,11 +17,11 @@ export default function EspaceMembre() {
       if (u) {
         setUser(u);
         try {
-          const { collection, query, where, getDocs } = await import("firebase/firestore");
+          const { doc, getDoc } = await import("firebase/firestore");
           const { db } = await import("@/lib/firebase");
-          const q = query(collection(db, "membres"), where("email", "==", u.email), where("status", "==", "validated"));
-          const snap = await getDocs(q);
-          setIsMember(!snap.empty);
+          const docRef = doc(db, "membres", u.email!);
+          const docSnap = await getDoc(docRef);
+          setIsMember(docSnap.exists() && docSnap.data().status === "validated");
         } catch (err) {
           console.error(err);
           setIsMember(false);
