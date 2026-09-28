@@ -164,6 +164,9 @@ export default function HistoriquePage() {
             Aperçu des enjeux financiers
           </h2>
           <div className="space-y-6">
+            {!isSimplified ? (
+              <>
+
             
             <div className="flex items-start gap-3">
               <div className="mt-1 bg-rose-100 p-1.5 rounded-lg text-rose-700 shrink-0"><AlertCircle size={18} /></div>
@@ -220,7 +223,21 @@ export default function HistoriquePage() {
                 <p className="text-stone-600 text-sm">Alors que la commande initiale visait un projet à 550 000 € HT, les chiffrages successifs de l'Avant-Projet Définitif (APD) ont atteint 735 489 € HT (615 278 € pour la Phase 1 et 120 210 € pour la Phase 2), nécessitant le recadrage budgétaire actuel.</p>
               </div>
             </div>
-          </div>
+          
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-rose-50 text-rose-800 p-4 md:p-6 rounded-xl border border-rose-200">
+                  <strong className="block mb-2 flex items-center gap-2 text-rose-900"><AlertCircle size={20} /> Le risque immédiat : ~ 70 000 €</strong>
+                  <p className="text-sm">C'est le coût des études (diagnostics, architectes) <strong>déjà réalisées</strong> à ce jour. Si on abandonne l'école, la mairie devra quand même payer cette somme (règle légale du "service fait"). 70 000 € d'argent public seront perdus dans le vide.</p>
+                </div>
+                <div className="bg-emerald-50 text-emerald-800 p-4 md:p-6 rounded-xl border border-emerald-200">
+                  <strong className="block mb-2 flex items-center gap-2 text-emerald-900"><CheckCircle size={20} /> La solution (Option 1)</strong>
+                  <p className="text-sm">Continuer le projet d'ajustement permet de rentabiliser ces 70 000 € et de sécuriser <strong>340 000 € de subventions</strong>, ramenant le reste à charge des travaux à environ 212 000 €, ce qui est largement dans la capacité de la commune.</p>
+                </div>
+              </div>
+            )}
+</div>
           <CommentBadge topic="Enjeux financiers" count={commentCounts["Enjeux financiers"] || 0} onOpen={() => setActiveTopic("Enjeux financiers")} />
         </div>
       </div>
