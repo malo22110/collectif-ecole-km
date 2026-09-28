@@ -92,23 +92,8 @@ export default function PetitionPage() {
         throw err;
       }
 
-      // Auto-mise à jour du compteur public d'un coup
-      try {
-        const snapCount = await getCountFromServer(collection(db, "signatures"));
-        const realCount = snapCount.data().count;
-        const statsRef = doc(db, "stats", "petition");
-        const statsSnap = await getDoc(statsRef);
-        const currentRecent = statsSnap.exists() ? (statsSnap.data().recent || []) : [];
-        const newName = `${payload.prenom} ${payload.nom.charAt(0)}.${payload.qualite ? ` (${payload.qualite})` : ''}`;
-        
-        await setDoc(statsRef, {
-          count: realCount,
-          recent: [newName, ...currentRecent.filter((n: string) => n !== newName)].slice(0, 10),
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-      } catch (e) {
-        console.error("Auto-sync stats petition:", e);
-      }
+      // Auto-mise à jour déléguée à la Cloud Function `updatePetitionStats`
+      // qui va recalculer le compte et dédupliquer les noms de manière 100% fiable.
 
       setStatus("success");
       try {

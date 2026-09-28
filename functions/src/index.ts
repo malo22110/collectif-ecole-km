@@ -267,46 +267,66 @@ export const checkScheduledMails = onSchedule("every 5 minutes", async (event) =
 
 
 // --- PÉTITION ---
-export const onSignatureCreated = onDocumentCreated({ document: "signatures/{sigId}", database: "ecole-db" }, async (event) => {
-  const data = event.data?.data();
-  if (!data) return;
-
-  const statsRef = getFirestore("ecole-db").collection('stats').doc('petition');
-  
+export const updatePetitionStats = onDocumentWritten({ document: "signatures/{sigId}", database: "ecole-db" }, async (event) => {
   try {
-    await getFirestore("ecole-db").runTransaction(async (transaction: any) => {
-      const statsDoc = await transaction.get(statsRef);
+    const snapshot = await getFirestore("ecole-db").collection('signatures').get();
+    
+    let validSignatures: any[] = [];
+    let habitantsKergrist = 0;
+    let parentsEleves = 0;
+    let communesVoisines = 0;
+    let autres = 0;
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      validSignatures.push(data);
       
-      const prenom = data.prenom || "Anonyme";
-      const nom = data.nom || "";
-      const qualite = data.qualite ? ` (${data.qualite})` : "";
-      const initiale = nom ? nom.charAt(0).toUpperCase() + "." : "";
-      const displayName = `${prenom} ${initiale}${qualite}`.trim();
-
-      if (!statsDoc.exists) {
-        transaction.set(statsRef, {
-          count: 1,
-          recent: [displayName]
-        });
+      const q = (data.qualite || "").toLowerCase();
+      const v = (data.ville || "").toLowerCase();
+      
+      if (q.includes("habitant(e) de kergrist") || v.includes("kergrist")) {
+        habitantsKergrist++;
+      } else if (q.includes("parent")) {
+        parentsEleves++;
+      } else if (q.includes("voisine") || (v && !v.includes("kergrist"))) {
+        communesVoisines++;
       } else {
-        const currentData = statsDoc.data();
-        const currentCount = currentData?.count || 0;
-        let currentRecent = currentData?.recent || [];
-        
-        currentRecent.unshift(displayName);
-        if (currentRecent.length > 10) {
-          currentRecent = currentRecent.slice(0, 10);
-        }
-
-        transaction.update(statsRef, {
-          count: currentCount + 1,
-          recent: currentRecent
-        });
+        autres++;
       }
     });
-    logger.info(`Nouvelle signature comptabilisée : ${data.prenom}`);
+
+    validSignatures.sort((a, b) => {
+      const timeA = a.createdAt ? (typeof a.createdAt.toMillis === 'function' ? a.createdAt.toMillis() : 0) : 0;
+      const timeB = b.createdAt ? (typeof b.createdAt.toMillis === 'function' ? b.createdAt.toMillis() : 0) : 0;
+      return timeB - timeA;
+    });
+
+    const recentNames = validSignatures.slice(0, 10).map(s => {
+      const prenom = s.prenom || "Anonyme";
+      const nom = s.nom || "";
+      const qualite = s.qualite ? ` (${s.qualite})` : "";
+      const initiale = nom ? nom.charAt(0).toUpperCase() + "." : "";
+      return `${prenom} ${initiale}${qualite}`.trim();
+    });
+    
+    // On déduplique la liste des noms récents pour l'affichage propre
+    const dedupedRecent = [...new Set(recentNames)];
+
+    await getFirestore("ecole-db").collection('stats').doc('petition').set({
+      count: validSignatures.length,
+      recent: dedupedRecent.slice(0, 10),
+      breakdown: {
+        habitantsKergrist,
+        parentsEleves,
+        communesVoisines,
+        autres
+      },
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    
+    logger.info("Statistiques de la pétition recalculées avec succès.");
   } catch (error) {
-    logger.error("Erreur lors de la mise à jour des stats de la pétition :", error);
+    logger.error("Erreur lors du recalcul des stats de la pétition :", error);
   }
 });
 
