@@ -19,11 +19,15 @@ Ce document définit les standards stricts à respecter pour toute intervention 
 - Les parcours critiques doivent être couverts par des tests E2E (ex: Playwright / Cypress).
 - Les tests E2E doivent impérativement correspondre et référencer les `spec-id` testés.
 
-## 5. Workflow de validation
+## 5. Fichiers Temporaires et Scripts "One-Off"
+- **Règle absolue : Ne JAMAIS créer de fichiers temporaires (ex: `fix_*.js`, `test.json`, etc.) à la racine du projet ou dans les dossiers versionnés par Git.**
+- Toute "tambouille", script utilitaire d'exécution unique, ou fichier de log généré par l'agent doit impérativement être créé dans un répertoire non versionné (idéalement le dossier `.gemini/antigravity/brain/<id>/scratch/` dédié à l'agent, ou a minima un dossier ignoré par `.gitignore`). Il ne faut pas polluer le dépôt Git de l'utilisateur.
+
+## 6. Workflow de validation
 - **Règle absolue : Toujours tester localement avant de push.**
 - Aucun commit ne doit être effectué sans s'assurer que le code compile, que les tests passent et que le comportement attendu est validé en environnement de développement.
 
-## 6. Bonnes Pratiques Firebase & Firestore
+## 7. Bonnes Pratiques Firebase & Firestore
 - **Contraintes d'Unicité :** Firestore n'a pas de contrainte d'unicité native sur les champs. Pour forcer l'unicité (ex: un seul vote par email, un seul compte par email), il FAUT utiliser la valeur unique comme ID du document (Document ID = email), ou utiliser une transaction côté serveur (Cloud Functions) avec un document de "réservation" (lock).
 - **Synchronisation des Statistiques & Compteurs :** Le client (navigateur) NE DOIT JAMAIS calculer et écraser des données statistiques globales (risque élevé de désynchronisation et de "race conditions"). Les agrégations (ex: nombre de signatures, calcul des totaux) doivent impérativement être déportées sur des **Cloud Functions** (`onDocumentWritten`, `onDocumentCreated`) ou utiliser `FieldValue.increment()`.
 - **Transactions :** Pour toute mise à jour dépendant d'un état précédent, utiliser des transactions Firestore (`runTransaction`) côté client ou backend pour garantir l'atomicité.
