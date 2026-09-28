@@ -536,7 +536,9 @@ export default function HistoriquePage() {
                 <Info size={24} className="text-emerald-700" />
                 Conclusion Objective : Pourquoi l'Option 1 s'impose
               </h4>
-              <div className="text-stone-800 space-y-4 text-sm">
+              {!isSimplified ? (
+                <div className="text-stone-800 space-y-4 text-sm">
+
                 <p>Toute analyse budgétaire rigoureuse menée sur ce dossier aboutit à la même conclusion technique et financière : l'Option 1 (l'ajustement à l'enveloppe initiale de 550 000 € HT) est la seule voie viable pour la commune, pour trois raisons mathématiques et légales :</p>
                 <ol className="list-decimal pl-5 space-y-3 font-medium text-stone-700">
                   <li><strong>La valorisation des dépenses engagées :</strong> La commune a déjà contracté pour environ 70 000 € d'études et de diagnostics facturables au titre du service fait à ce stade du projet. Choisir l'abandon ou la refonte revient à solder ces factures avec les impôts locaux pour obtenir un résultat matériel nul. L'Option 1 est la seule qui transforme cette dépense inéluctable en investissement utile.</li>
@@ -546,7 +548,13 @@ export default function HistoriquePage() {
                 <div className="mt-6 pt-6 border-t border-emerald-200 font-bold text-emerald-800 text-base">
                   Mathématiquement, le refus de l'Option 1 revient à endetter le village pour régler des frais d'architectes et des indemnités d'abandon, tout en conservant une école qui se dégrade. À l'inverse, l'Option 1 protège les finances locales en faisant financer plus de 60 % du chantier par la Région, le Département et l'État.
                 </div>
-              </div>
+              
+                </div>
+              ) : (
+                <div className="text-emerald-900 font-bold text-base md:text-lg leading-relaxed bg-white/50 p-4 rounded-xl">
+                  Refuser l'Option 1 revient à endetter le village d'environ 70 000 € dans le vide pour des plans inutilisés, tout en gardant une école qui se dégrade et perd ses subventions. À l'inverse, l'Option 1 protège les finances de la commune en faisant financer plus de 60 % du chantier par l'État, la Région et le Département.
+                </div>
+              )}
             </div>
             <div className="mt-6">
               <CommentBadge topic="Stress Test (Risques)" count={commentCounts["Stress Test (Risques)"] || 0} onOpen={() => setActiveTopic("Stress Test (Risques)")} />
