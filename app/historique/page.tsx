@@ -156,8 +156,8 @@ export default function HistoriquePage() {
             <div className="flex items-start gap-3">
               <div className="mt-1 bg-blue-100 p-1.5 rounded-lg text-blue-700 shrink-0"><BookOpen size={18} /></div>
               <div>
-                <strong className="text-stone-900 block">Le dérapage de la maîtrise d'œuvre (APD) : 735 489,05 € HT</strong>
-                <span className="text-stone-600 text-sm">Alors que la commande officielle de la mairie et le dossier de subvention exigeaient un projet à 550 000 € HT, l'architecte a présenté en novembre 2025 un projet dérapant à 735 489 € HT (615 278 € pour la Phase 1 et 120 210 € pour la Phase 2).</span>
+                <strong className="text-stone-900 block">L'évolution de l'estimation de la maîtrise d'œuvre (APD) : 735 489,05 € HT</strong>
+                <span className="text-stone-600 text-sm">Alors que la commande initiale de la mairie et le dossier de subvention visaient un projet à 550 000 € HT, les chiffrages successifs de l'Avant-Projet Définitif (APD) ont atteint 735 489 € HT (615 278 € pour la Phase 1 et 120 210 € pour la Phase 2), nécessitant un recadrage budgétaire.</span>
               </div>
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function HistoriquePage() {
               Option 1 : Le retour à l'enveloppe initiale (Le seul projet conforme)
             </h3>
             <p className="text-stone-600 mb-6">
-              Ce projet n'est pas un "Plan B". L'enveloppe de 550 000 € HT est le budget exact que la mairie avait elle-même voté et déposé en Préfecture en décembre 2024. Le dérapage à 735 000 € est une erreur de maîtrise d'œuvre. L'avenant de 2 170 € sert uniquement à obliger l'architecte à corriger sa copie pour rentrer dans nos clous et sauver les 340 000 € d'aides.
+              Ce projet s'inscrit dans la continuité directe des objectifs initiaux : l'enveloppe de 550 000 € HT correspond au budget de référence validé et déposé en Préfecture en décembre 2024. L'avenant de 2 170 € permet de finaliser l'optimisation technique demandée pour sécuriser les 340 000 € de subventions.
             </p>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -345,7 +345,7 @@ export default function HistoriquePage() {
                 Option 2 : Abandon de l'APD et table rase
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
-                Rompre les contrats, jeter 100% des plans de l'existant, et repartir de zéro pour faire du « bricolage ».
+                Rompre les contrats, abandonner les études existantes et repartir de zéro.
               </p>
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
@@ -357,16 +357,16 @@ export default function HistoriquePage() {
                   <span className="font-bold text-rose-600">~4 000 €</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">Nouvelles études + Travaux radon</span>
+                  <span className="text-stone-600">Nouvelles études + Travaux d'urgence</span>
                   <span className="font-bold text-rose-600">~80 000 €</span>
                 </div>
                 <div className="flex flex-col text-sm">
                   <div className="flex justify-between"><span className="text-stone-600">Subventions (Région, Dép, État)</span><span className="font-bold text-amber-600">0 €</span></div>
-                  <span className="text-[10px] text-stone-500 mt-1 leading-tight">Les financeurs exigent 40 % d'économie d'énergie et une rénovation globale. Un projet rustine annule les aides d'office.</span>
+                  <span className="text-[10px] text-stone-500 mt-1 leading-tight">Les financeurs exigent une rénovation globale avec 40 % d'économie d'énergie. Un projet redémarré à zéro ou minimaliste annule les aides acquises.</span>
                 </div>
               </div>
               <div className="pt-4 border-t border-stone-100 flex items-end justify-between">
-                <span className="text-sm font-bold text-rose-900 leading-tight">Reste à charge<br/><span className="text-[10px] font-normal max-w-[150px] inline-block">La commune paie sans aide, pour une passoire à refaire dans 5 ans.</span></span>
+                <span className="text-sm font-bold text-rose-900 leading-tight">Reste à charge<br/><span className="text-[10px] font-normal max-w-[170px] inline-block">La commune paie cette somme de sa poche, sans aucune aide, pour un bâtiment nécessitant de toute façon une mise aux normes globale.</span></span>
                 <div className="text-right"><span className="text-2xl font-bold text-rose-600">~211 110 € HT</span><span className="block text-sm font-medium text-rose-500/80 -mt-1">(Minimum)</span></div>
               </div>
               <CommentBadge topic="Option 2" count={commentCounts["Option 2"] || 0} onOpen={() => setActiveTopic("Option 2")} />
@@ -382,7 +382,7 @@ export default function HistoriquePage() {
               </p>
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">Frais de résiliation architecte</span>
+                  <span className="text-stone-600">Frais de résiliation</span>
                   <span className="font-bold text-rose-600">~4 000 €</span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -411,7 +411,7 @@ export default function HistoriquePage() {
                 Option 4 : Le Saupoudrage
               </h3>
               <p className="text-sm text-stone-600 mb-6 min-h-[60px]">
-                Mise aux normes stricte (radon, élec) sans vision thermique ni pédagogique. Effet "Subvention Zéro".
+                Mise aux normes d'urgence (radon, électricité) sans vision thermique globale.
               </p>
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
@@ -446,7 +446,7 @@ export default function HistoriquePage() {
               Stress Test : La matrice des risques
             </h3>
             <p className="text-stone-600 text-center max-w-3xl mx-auto mb-10">
-              L'intégration d'un scénario du pire pour chaque option permet de démontrer que l'Option 1 est non seulement la plus rentable en temps normal, mais aussi la plus résiliente face aux imprévus.
+              L'analyse des scénarios de repli démontre la robustesse de l'Option 1 face aux aléas institutionnels.
             </p>
 
             <div className="md:hidden flex items-center justify-center gap-2 text-amber-800 bg-amber-50 px-4 py-3 rounded-xl mb-4 text-sm font-medium border border-amber-200">
@@ -470,13 +470,13 @@ export default function HistoriquePage() {
                       <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">Recommandée</span>
                     </td>
                     <td className="p-4 align-top text-stone-700 ">
-                      <strong className="text-stone-900 block mb-1">Refus de la subvention DETR (État).</strong> Le dossier est déposé à temps (avant déc 2026), mais la Préfecture refuse l'aide faute de crédits.
+                      <strong className="text-stone-900 block mb-1">Refus de la subvention DETR (État).</strong> Le dossier est instruit, mais la Préfecture ne retient pas l'aide faute de crédits suffisants.
                     </td>
                     <td className="p-4 align-top text-stone-700 ">
-                      Perte estimée de ~150 000 €. Les 159 855 € (Région/Département) sont conservés. Les 127 110 € d'études payées sont pleinement exploités.
+                      Perte estimée de 180 145 €. Les 159 855 € (Région/Département) sont conservés. Les 127 110 € d'études payées sont pleinement valorisés.
                     </td>
                     <td className="p-4 align-top ">
-                      <div className="font-bold text-emerald-700 mb-1 text-base">~380 000 € HT</div>
+                      <div className="font-bold text-emerald-700 mb-1 text-base">~ 392 000 € HT</div>
                       <div className="text-stone-600 text-xs">Le projet reste sous le plafond d'emprunt (400 k€). Le bâtiment est rénové.</div>
                     </td>
                   </tr>
@@ -484,42 +484,42 @@ export default function HistoriquePage() {
                   <tr className="hover:bg-stone-50 transition-colors  border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
                     <td className="p-4 align-top font-bold text-stone-900 ">2. Refonte totale / Table rase<br/><span className="text-xs font-normal text-stone-500">(Piste de l'opposition)</span></td>
                     <td className="p-4 align-top text-stone-700 ">
-                      <strong className="text-stone-900 block mb-1">Perte intégrale des financements + Pénalités.</strong> La rupture des contrats en cours et la perte de l'ambition thermique (40% d'économie) entraîne l'annulation des 340 000 € d'aides.
+                      <strong className="text-stone-900 block mb-1">Perte intégrale des financements.</strong> L'interruption des contrats en cours et la perte de l'ambition thermique (40% d'économie) entraînent l'annulation des 340 000 € d'aides.
                     </td>
                     <td className="p-4 align-top text-stone-700 ">
-                      127 110 € d'études payés en pure perte (service fait). + ~4 000 € de pénalités. + ~35 000 € pour de nouvelles études. Les aides (État, Région, Département) tombent à 0 €.
+                      127 110 € d'études perdus (service fait). + ~ 4 000 € de frais de rupture. + ~ 35 000 € d'études de redémarrage.
                     </td>
                     <td className="p-4 align-top ">
                       <div className="font-bold text-rose-600 mb-1 text-base">&gt; 500 000 € HT</div>
-                      <div className="text-stone-600 text-xs">Le plafond d'emprunt de 400 000 € est explosé juste pour financer des rustines et des études jetées.</div>
+                      <div className="text-stone-600 text-xs">Le plafond d'emprunt de 400 000 € est dépassé pour financer des solutions partielles.</div>
                     </td>
                   </tr>
 
                   <tr className="hover:bg-stone-50 transition-colors  border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
                     <td className="p-4 align-top font-bold text-stone-900 ">3. Abandon total</td>
                     <td className="p-4 align-top text-stone-700 ">
-                      <strong className="text-stone-900 block mb-1">Fermeture administrative + Inflation.</strong> L'abandon fige les travaux. Le délai légal de 3 ans pour le radon expire. Le Préfet ferme l'école.
+                      <strong className="text-stone-900 block mb-1">Fermeture administrative + Inflation.</strong> L'arrêt définitif des démarches laisse le bâtiment dans son état de vulnérabilité (notamment vis-à-vis du radon).
                     </td>
                     <td className="p-4 align-top text-stone-700 ">
-                      127 110 € d'études payés pour rien. Le futur projet (2030) coûtera au minimum 15 % plus cher à cause de l'inflation de la construction.
+                      127 110 € d'études perdus. Un projet repoussé à l'horizon 2030 avec une forte augmentation des coûts de construction.
                     </td>
                     <td className="p-4 align-top ">
                       <div className="font-bold text-rose-600 mb-1 text-base">&gt; 850 000 € HT</div>
-                      <div className="text-stone-600 text-xs">Crise politique majeure, enfants scolarisés hors commune, finances exsangues.</div>
+                      <div className="text-stone-600 text-xs">Surcoûts majeurs et dégradation du service public local.</div>
                     </td>
                   </tr>
 
                   <tr className="hover:bg-stone-50 transition-colors  border-stone-200 mb-4 md:mb-0 pb-4 md:pb-0">
                     <td className="p-4 align-top font-bold text-stone-900 ">4. Le Saupoudrage</td>
                     <td className="p-4 align-top text-stone-700 ">
-                      <strong className="text-stone-900 block mb-1">Échec de la mise aux normes.</strong> Les 50 000 € provisionnés sont dépensés dans des rustines (dalle/VMC basique), mais les mesures radon restent &gt; 300 Bq/m³.
+                      <strong className="text-stone-900 block mb-1">Inefficacité des rustines.</strong> Les 50 000 € engagés ne suffisent pas à traiter durablement les désordres (radon, thermique).
                     </td>
                     <td className="p-4 align-top text-stone-700 ">
-                      Les 50 000 € sont perdus. L'État exige des travaux lourds. Aucune subvention versée car les 40% d'économies d'énergie ne sont pas atteints.
+                      Perte sèche de 50 000 € sans compter les études passées. Obligation légale ultérieure de tout reprendre à zéro.
                     </td>
                     <td className="p-4 align-top ">
                       <div className="font-bold text-rose-600 mb-1 text-base">177 110 € HT</div>
-                      <div className="text-stone-600 text-xs">De pure perte (Études + rustines). Obligation de tout recommencer à zéro.</div>
+                      <div className="text-stone-600 text-xs">Dépenses stériles ne préservant ni l'avenir ni le confort des usagers.</div>
                     </td>
                   </tr>
                 </tbody>

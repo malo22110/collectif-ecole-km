@@ -76,7 +76,7 @@
   {
     "date": "Octobre 2025",
     "title": "Validation de l'APS ferme",
-    "description": "Scission stratégique du projet en 2 phases pour alléger les coûts suite au dérapage des estimations de l'architecte. Phase 1 (Classes, préau, chaufferie) : 615 278 € HT. Phase 2 optionnelle (Motricité) : 120 210 € HT.",
+    "description": "Validation par le conseil municipal de la tranche ferme d'un montant de 617 500 € HT. Cette enveloppe intègre notamment 41 000 € HT de travaux obligatoires pour le traitement du radon. Les travaux de la salle de motricité (89 000 € HT) s'y ajoutent sous forme de tranche optionnelle.",
     "simplifiedDescription": "Les élus votent et valident le budget initial du projet. Le montant inclut des travaux obligatoires pour protéger les enfants du radon. Pour réduire la facture, la rénovation de la salle de motricité est déjà repoussée à plus tard si les finances le permettent.",
     "sourceLabel": "PV du 9 Oct. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-9-10-2025.pdf",
@@ -95,7 +95,7 @@
   {
     "date": "Novembre 2025",
     "title": "Validation de l'Avant-Projet Définitif (APD)",
-    "description": "Le Trésor public confirme la capacité d'emprunt de 400 000 €. Le Sous-préfet indique qu'à 800 000 € TTC (soit environ 666 000 € HT), le projet global APD est trop onéreux pour prétendre à la DETR (à engager avant fin décembre 2026), et demande de revenir au budget initialement déposé par la mairie. Vote d'une ligne d'urgence de 50 000 € pour le radon.",
+    "description": "Scission stratégique du projet en 2 phases pour structurer l'opération. Phase 1 (Classes, préau, chaufferie) : 615 278 € HT. Phase 2 optionnelle (Motricité) : 120 210 € HT.",
     "simplifiedDescription": "Pour maîtriser le budget d'un coup, le projet est découpé en deux. On fera d'abord les urgences (classes, préau). La salle de motricité est gardée pour plus tard.",
     "sourceLabel": "PV du 27 Nov. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-27-11-2025.pdf",
@@ -108,13 +108,13 @@
     "budget": {
       "etudes": "127 110 € HT",
       "travaux": "735 488 € HT (Phase 1: 615 278 € + Phase 2: 120 210 €)",
-      "total": "À revoir à la baisse"
+      "total": "735 488 € HT"
     }
   },
   {
     "date": "Avril 2026",
     "title": "Cadrage budgétaire de la nouvelle mandature",
-    "description": "Réunion du 22 juin avec l'équipe éducative, le cabinet d'architectes et l'AMO pour simplifier techniquement l'APD et revenir à l'enveloppe d'origine : conservation des menuiseries étanches, dalle béton contre le radon sans ventilation complexe, raccordement au réseau de chaleur SCIC Koad COB.",
+    "description": "Le Trésor public confirme la capacité d'emprunt de 400 000 €. Le Sous-préfet indique qu'à 800 000 € TTC (soit environ 666 000 € HT), le projet global APD est trop onéreux pour prétendre à la DETR (à engager avant fin décembre 2026), et demande de le réajuster. Vote d'une ligne d'urgence de 50 000 € pour le radon.",
     "simplifiedDescription": "Le Trésorier valide la capacité d'emprunt. L'État indique que le projet initial est trop cher pour être subventionné et demande de le réduire, mais confirme que les aides financières (Département, Région, État) restent possibles pour un projet moins coûteux.",
     "sourceLabel": "PV du 28 avril 2026",
     "sourceUrl": "/docs/pvs/CR 28 04 2026.pdf",
@@ -126,14 +126,14 @@
     "conservable": true,
     "budget": {
       "etudes": "127 110 € HT",
-      "travaux": "En cours de réduction (Cible visée : 550 000 € HT)",
+      "travaux": "À revoir à la baisse (selon préconisation)",
       "total": "À revoir à la baisse"
     }
   },
   {
     "date": "Juin 2026",
     "title": "Concertation pour réduire les coûts",
-    "description": "Rejet du devis complémentaire de 2 170 € HT destiné à contraindre l'architecte à finaliser le retour au budget initial demandé par le Sous-préfet, bloquant net les études. Le 26 septembre, lancement du collectif citoyen pour réclamer une commission extra-municipale.",
+    "description": "Réunion du 22 juin avec l'équipe éducative, le cabinet d'architectes et l'AMO pour optimiser techniquement l'APD et s'aligner sur l'enveloppe cible initiale : conservation des menuiseries performantes, dalle béton contre le radon, raccordement au réseau de chaleur SCIC Koad COB.",
     "simplifiedDescription": "Élus, professeurs et architectes se réunissent pour trouver des solutions intelligentes afin de baisser le coût final des travaux sans dégrader la qualité pour les enfants.",
     "sourceLabel": "PV du 9 juin 2026",
     "sourceUrl": "/docs/pvs/PV 09 06 2026 (1).pdf",
@@ -144,14 +144,14 @@
     "conservable": true,
     "budget": {
       "etudes": "127 110 € HT",
-      "travaux": "En cours de réduction (Cible visée : ~500 000 € à 550 000 € HT)",
-      "total": "~627 110 € à 677 110 € HT"
+      "travaux": "En cours de réduction (Cible visée : ~550 000 € HT)",
+      "total": "~677 110 € HT"
     }
   },
   {
     "date": "Septembre 2026",
     "title": "Blocage paradoxal et mobilisation",
-    "description": "Rejet du devis complémentaire de 2 170 € HT destiné à finaliser l'allègement budgétaire demandé par le Sous-préfet, bloquant net les études. Le 26 septembre, lancement du collectif citoyen pour réclamer une commission extra-municipale.",
+    "description": "Rejet du devis complémentaire de 2 170 € HT destiné à finaliser l'ajustement budgétaire préconisé par les services de l'État, suspendant temporairement les études. Le 26 septembre, lancement du collectif citoyen pour réclamer une commission extra-municipale.",
     "simplifiedDescription": "Alors qu'on était sur le point de réduire le coût du projet, le conseil municipal refuse de voter une facture de 2 000 € et bloque tout. Face au risque de perdre l'argent, les citoyens se mobilisent et montent un collectif.",
     "sourceLabel": "Charte du Collectif",
     "sourceUrl": "#",
@@ -162,9 +162,9 @@
     ],
     "conservable": false,
     "budget": {
-      "etudes": "127 110 € HT (figés) + 2 170 € HT (avenant refusé)",
-      "travaux": "Bloqué",
-      "total": "Bloqué"
+      "etudes": "127 110 € HT (figés) + 2 170 € HT (avenant non voté)",
+      "travaux": "Suspendu",
+      "total": "Suspendu"
     }
   }
 ]
