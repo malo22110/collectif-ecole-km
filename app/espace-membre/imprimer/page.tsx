@@ -72,7 +72,7 @@ export default function PetitionPapier() {
               <tr className="bg-white font-bold">
                 <th className="border border-black p-2 w-[5%]">N°</th>
                 <th className="border border-black p-2 w-[25%]">PRÉNOM ET NOM</th>
-                <th className="border border-black p-2 w-[20%]">COMMUNE DE RÉSIDENCE</th>
+                <th className="border border-black p-2 w-[20%]">COMMUNE DE RÉSIDENCE<br/><span className="text-[10px] font-normal italic">("KM" pour Kergrist-Moëlou)</span></th>
                 <th className="border border-black p-2 w-[35%]">LIEN AVEC L'ÉCOLE (Parent, Habitant, Ancien...)</th>
                 <th className="border border-black p-2 w-[15%]">SIGNATURE</th>
               </tr>
