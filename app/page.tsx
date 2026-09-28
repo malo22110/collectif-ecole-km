@@ -26,6 +26,7 @@ import UserAvatar from "./components/UserAvatar";
 export default function LandingPage() {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [memberCount, setMemberCount] = useState<number | null>(null);
+  const [petitionCount, setPetitionCount] = useState<number | null>(null);
   const [articles, setArticles] = useState<any[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -202,27 +203,50 @@ export default function LandingPage() {
               Mobilisons-nous de manière collective, constructive et apolitique pour l'avenir de notre école.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-stone-100 text-sm font-medium text-stone-700">
-                <Users size={16} className="text-emerald-500" />
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-stone-200 text-sm font-medium text-stone-700">
+                <Users size={16} className="text-emerald-600" />
                 Déjà {memberCount !== null ? memberCount : 51} membres mobilisés
               </div>
-              <div className="flex items-center gap-2 bg-emerald-50 border-emerald-200 px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-emerald-800">
-                <FileSignature size={16} className="text-emerald-600" />
-                La pétition est en ligne !
-              </div>
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-stone-100 text-sm font-medium text-stone-700">
-                <Clock size={16} className="text-blue-500" />
-                Prochain conseil : 13 octobre
+              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-stone-200 text-sm font-medium text-stone-700">
+                <Clock size={16} className="text-blue-600" />
+                Prochain conseil municipal : 13 octobre
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="/petition" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3.5 rounded-full shadow-sm shadow-emerald-900/20 hover:shadow-lg transition-all text-lg">
-                <FileSignature size={20} />
-                Signer la pétition
-              </a>
-              <a href="#rejoindre" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-stone-50 text-stone-700 font-semibold px-8 py-3.5 rounded-full shadow-sm border border-stone-200 hover:border-stone-300 transition-all text-lg">
+            {/* Carte Verte Pétition */}
+            <div className="max-w-2xl mx-auto mb-8 bg-gradient-to-br from-emerald-800 to-emerald-950 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-emerald-700/60 relative overflow-hidden text-left">
+              <div className="absolute -right-6 -bottom-6 text-emerald-700/20 pointer-events-none">
+                <FileSignature size={200} />
+              </div>
+
+              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div>
+                  <div className="inline-flex items-center gap-2 bg-emerald-700/60 text-emerald-200 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 border border-emerald-600/50">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Pétition citoyenne en ligne
+                  </div>
+                  <div className="text-4xl md:text-5xl font-black tracking-tight text-white flex items-baseline gap-3 mb-1">
+                    <span>{petitionCount !== null ? petitionCount : "..."}</span>
+                    <span className="text-emerald-200 text-base md:text-xl font-medium">signatures citoyennes</span>
+                  </div>
+                  <p className="text-xs md:text-sm text-emerald-100/80 leading-snug">
+                    Pour exiger la réévaluation budgétaire et sauver 340 000 € de subventions.
+                  </p>
+                </div>
+
+                <a 
+                  href="/petition" 
+                  className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 bg-white hover:bg-emerald-50 text-emerald-950 font-extrabold px-6 py-4 rounded-2xl shadow-lg hover:shadow-2xl transition-all text-base hover:scale-105 active:scale-95 border border-emerald-100"
+                >
+                  <FileSignature size={20} className="text-emerald-700" />
+                  Signer la pétition
+                </a>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <a href="#rejoindre" className="inline-flex items-center justify-center gap-2 bg-white/90 hover:bg-white text-stone-700 font-semibold px-6 py-3 rounded-full shadow-sm border border-stone-200 hover:border-stone-300 transition-all text-sm">
                 Rejoindre le collectif
               </a>
             </div>
