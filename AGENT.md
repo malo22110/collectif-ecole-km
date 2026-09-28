@@ -22,3 +22,13 @@ Ce document définit les standards stricts à respecter pour toute intervention 
 ## 5. Workflow de validation
 - **Règle absolue : Toujours tester localement avant de push.**
 - Aucun commit ne doit être effectué sans s'assurer que le code compile, que les tests passent et que le comportement attendu est validé en environnement de développement.
+
+## 6. Bonnes Pratiques Firebase & Firestore
+- **Contraintes d'Unicité :** Firestore n'a pas de contrainte d'unicité native sur les champs. Pour forcer l'unicité (ex: un seul vote par email, un seul compte par email), il FAUT utiliser la valeur unique comme ID du document (Document ID = email), ou utiliser une transaction côté serveur (Cloud Functions) avec un document de "réservation" (lock).
+- **Synchronisation des Statistiques & Compteurs :** Le client (navigateur) NE DOIT JAMAIS calculer et écraser des données statistiques globales (risque élevé de désynchronisation et de "race conditions"). Les agrégations (ex: nombre de signatures, calcul des totaux) doivent impérativement être déportées sur des **Cloud Functions** (`onDocumentWritten`, `onDocumentCreated`) ou utiliser `FieldValue.increment()`.
+- **Transactions :** Pour toute mise à jour dépendant d'un état précédent, utiliser des transactions Firestore (`runTransaction`) côté client ou backend pour garantir l'atomicité.
+- **Sécurité Infaillible (`firestore.rules`) :**
+  - **Principe du moindre privilège :** Par défaut, tout doit être bloqué (`match /{document=**} { allow read, write: if false; }`).
+  - **Droits Administrateur :** Utiliser une fonction robuste `isAdmin()` basée sur la vérification stricte de l'email via le token d'authentification (`request.auth.token.email`).
+  - **Vérification d'Identité :** Un utilisateur ne peut créer/modifier un document le concernant QUE SI l'email soumis correspond à son token d'authentification (`request.resource.data.email == request.auth.token.email`).
+  - Ne jamais se fier aux données envoyées par le client sans validation rigoureuse des champs dans les règles.
