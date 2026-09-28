@@ -23,6 +23,7 @@ export default function PetitionPapier() {
 
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
+          body, html { background-color: white !important; }
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -94,7 +95,7 @@ export default function PetitionPapier() {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 18 }).map((_, i) => (
+              {Array.from({ length: 15 }).map((_, i) => (
                 <tr key={i + 11} className="h-12">
                   <td className="border border-black p-1 text-center text-gray-500">{i + 12}</td>
                   <td className="border border-black p-1"></td>
@@ -105,11 +106,11 @@ export default function PetitionPapier() {
               ))}
             </tbody>
           </table>
-        </div>
         
-        <div className="mt-4 text-xs text-center text-gray-600">
-          Pétition lancée par le Collectif citoyen pour la rénovation de l'école de Kergrist-Moëlou.<br/>
-          Les données collectées serviront uniquement à valider le soutien citoyen à cette démarche.
+          <div className="mt-4 text-xs text-center text-gray-600">
+            Pétition lancée par le Collectif citoyen pour la rénovation de l'école de Kergrist-Moëlou.<br/>
+            Les données collectées serviront uniquement à valider le soutien citoyen à cette démarche.
+          </div>
         </div>
       </div>
     </div>
