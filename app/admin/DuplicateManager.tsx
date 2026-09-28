@@ -209,6 +209,42 @@ export default function DuplicateManager() {
           <button
             onClick={async () => {
               setAnalyzing(true);
+              setLogs(["Démarrage de la sauvegarde complète..."]);
+              try {
+                const collectionsToBackup = ["membres", "signatures", "commentaires", "articles", "presse", "faqs", "stats"];
+                const backupData: any = {};
+                for (const col of collectionsToBackup) {
+                  setLogs(prev => [...prev, `Sauvegarde de ${col}...`]);
+                  const snap = await getDocs(collection(db, col));
+                  backupData[col] = {};
+                  snap.forEach(d => {
+                    backupData[col][d.id] = d.data();
+                  });
+                }
+                const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `backup_ecole_kergrist_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                setLogs(prev => [...prev, `[SUCCÈS] Sauvegarde téléchargée !`]);
+              } catch (e: any) {
+                setLogs(prev => [...prev, `[ERREUR] ${e.message}`]);
+              }
+              setAnalyzing(false);
+            }}
+            disabled={analyzing}
+            className="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-2"
+          >
+            <RefreshCw size={16} className={analyzing ? "animate-spin" : ""} /> Sauvegarder la Base
+          </button>
+          
+          <button
+            onClick={async () => {
+              setAnalyzing(true);
               setLogs(["Démarrage de la migration des ID..."]);
               try {
                 const snap = await getDocs(collection(db, "membres"));
