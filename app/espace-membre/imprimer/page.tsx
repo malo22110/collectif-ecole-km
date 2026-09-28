@@ -56,7 +56,7 @@ export default function PetitionPapier() {
 
         <table className="w-full border-collapse border border-black text-sm">
           <thead>
-            <tr className="bg-gray-200">
+            <tr className="bg-white font-bold">
               <th className="border border-black p-2 w-[5%]">N°</th>
               <th className="border border-black p-2 w-[25%]">PRÉNOM ET NOM</th>
               <th className="border border-black p-2 w-[20%]">COMMUNE DE RÉSIDENCE</th>
@@ -86,7 +86,7 @@ export default function PetitionPapier() {
           
           <table className="w-full border-collapse border border-black text-sm">
             <thead>
-              <tr className="bg-gray-200">
+              <tr className="bg-white font-bold">
                 <th className="border border-black p-2 w-[5%]">N°</th>
                 <th className="border border-black p-2 w-[25%]">PRÉNOM ET NOM</th>
                 <th className="border border-black p-2 w-[20%]">COMMUNE DE RÉSIDENCE</th>
@@ -95,7 +95,7 @@ export default function PetitionPapier() {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 15 }).map((_, i) => (
+              {Array.from({ length: 22 }).map((_, i) => (
                 <tr key={i + 11} className="h-12">
                   <td className="border border-black p-1 text-center text-gray-500">{i + 12}</td>
                   <td className="border border-black p-1"></td>
@@ -106,8 +106,38 @@ export default function PetitionPapier() {
               ))}
             </tbody>
           </table>
-        
-          <div className="mt-4 text-xs text-center text-gray-600">
+        </div>
+
+        {/* 3ème page */}
+        <div className="break-before-page pt-8">
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold uppercase">Pétition citoyenne - École de Kergrist-Moëlou (Fin)</h2>
+          </div>
+          
+          <table className="w-full border-collapse border border-black text-sm">
+            <thead>
+              <tr className="bg-white font-bold">
+                <th className="border border-black p-2 w-[5%]">N°</th>
+                <th className="border border-black p-2 w-[25%]">PRÉNOM ET NOM</th>
+                <th className="border border-black p-2 w-[20%]">COMMUNE DE RÉSIDENCE</th>
+                <th className="border border-black p-2 w-[35%]">LIEN AVEC L'ÉCOLE (Parent, Habitant, Ancien...)</th>
+                <th className="border border-black p-2 w-[15%]">SIGNATURE</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 22 }).map((_, i) => (
+                <tr key={i + 33} className="h-12">
+                  <td className="border border-black p-1 text-center text-gray-500">{i + 34}</td>
+                  <td className="border border-black p-1"></td>
+                  <td className="border border-black p-1"></td>
+                  <td className="border border-black p-1"></td>
+                  <td className="border border-black p-1"></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          <div className="mt-8 text-xs text-center text-gray-600 font-bold border-t border-gray-300 pt-4">
             Pétition lancée par le Collectif citoyen pour la rénovation de l'école de Kergrist-Moëlou.<br/>
             Les données collectées serviront uniquement à valider le soutien citoyen à cette démarche.
           </div>
