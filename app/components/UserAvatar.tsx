@@ -35,7 +35,7 @@ export default function UserAvatar() {
 
   if (!user) {
     return (
-      <Link href="/admin" className="p-2 text-stone-600 hover:text-stone-900 transition-colors" title="Connexion">
+      <Link href="/connexion" className="p-2 text-stone-600 hover:text-stone-900 transition-colors" title="Se connecter">
         <User size={20} />
       </Link>
     );
