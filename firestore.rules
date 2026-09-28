@@ -2,10 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Règles pour la collection "membres"
-    
-    // Règles pour la collection "articles"
-    
     match /faqs/{faqId} {
       allow read: if true;
       allow write: if request.auth != null;
@@ -31,17 +27,16 @@ service cloud.firestore {
       
       allow read, update, delete: if request.auth != null;
     }
-    // NOUVELLE RÈGLE POUR LES MAGIC LINKS
-    
     
     // PETITION
     match /signatures/{sigId} {
       allow create: if true;
       allow read, update, delete: if request.auth != null;
     }
+    
     match /stats/{statId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if request.auth != null;
     }
 
     match /mailOutbox/{mailId} {
@@ -49,9 +44,8 @@ service cloud.firestore {
     }
 
     match /magicLinks/{linkId} {
-      // Autorise n'importe qui à demander un lien
       allow create: if true;
-      allow read, update, delete: if false; // Personne ne peut lire les demandes des autres
+      allow read, update, delete: if false;
     }
   }
 }

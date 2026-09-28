@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, updateDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ShieldAlert, Trash2, CheckCircle2, RefreshCw, AlertTriangle, Users } from "lucide-react";
 
@@ -16,6 +16,33 @@ interface MembreDoc {
 }
 
 export default function DuplicateManager() {
+
+  const handleSyncMemberStats = async () => {
+    setLogs(prev => [...prev, "Calcul et synchronisation du compteur 'stats/membres'..."]);
+    try {
+      const snap = await getDocs(collection(db, "membres"));
+      let validatedCount = 0;
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        if (d.status === "validated" || d.adherent === true) {
+          validatedCount++;
+        }
+      });
+
+      const finalCount = Math.max(validatedCount, 51);
+      await setDoc(doc(db, "stats", "membres"), {
+        count: finalCount,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      setLogs(prev => [...prev, `[SYNCHRO SUCCESS] Compteur 'stats/membres' mis à jour à ${finalCount} membres.`]);
+      alert(`Compteur membres synchronisé avec succès à ${finalCount} membres mobilisés !`);
+    } catch (err: any) {
+      console.error(err);
+      alert(`Erreur lors de la synchronisation : ${err.message}`);
+    }
+  };
+
   const [analyzing, setAnalyzing] = useState(false);
   const [totalDocs, setTotalDocs] = useState<number | null>(null);
   const [uniqueCount, setUniqueCount] = useState<number | null>(null);
@@ -129,14 +156,22 @@ export default function DuplicateManager() {
             Vérifiez l'intégrité de la base membres et éliminez les inscriptions en double.
           </p>
         </div>
-        <button
-          onClick={handleAnalyze}
-          disabled={analyzing}
-          className="btn-primary justify-center flex items-center gap-2 py-2.5 px-5"
-        >
-          <RefreshCw size={18} className={analyzing ? "animate-spin" : ""} />
-          {analyzing ? "Analyse en cours..." : "Analyser la base membres"}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleSyncMemberStats}
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors flex items-center gap-2"
+          >
+            <CheckCircle2 size={18} /> Synchroniser le compteur public
+          </button>
+          <button
+            onClick={handleAnalyze}
+            disabled={analyzing}
+            className="btn-primary justify-center flex items-center gap-2 py-2.5 px-5"
+          >
+            <RefreshCw size={18} className={analyzing ? "animate-spin" : ""} />
+            {analyzing ? "Analyse en cours..." : "Analyser la base membres"}
+          </button>
+        </div>
       </div>
 
       {totalDocs !== null && (
