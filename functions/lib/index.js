@@ -1,15 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.envoyerSpreadMail = exports.envoyerMagicLink = exports.envoyerMailBienvenue = void 0;
+exports.updateMemberStats = exports.onSignatureCreated = exports.checkScheduledMails = exports.envoyerSpreadMail = exports.envoyerMagicLink = exports.envoyerMailBienvenue = void 0;
 const admin = require("firebase-admin");
+const firestore_1 = require("firebase-admin/firestore");
 admin.initializeApp();
 const v2_1 = require("firebase-functions/v2");
-const firestore_1 = require("firebase-functions/v2/firestore");
+const firestore_2 = require("firebase-functions/v2/firestore");
+const scheduler_1 = require("firebase-functions/v2/scheduler");
 const nodemailer = require("nodemailer");
 const logger = require("firebase-functions/logger");
 const emailTemplates_1 = require("./emailTemplates");
 (0, v2_1.setGlobalOptions)({ region: "europe-west9" });
-exports.envoyerMailBienvenue = (0, firestore_1.onDocumentUpdated)({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
+exports.envoyerMailBienvenue = (0, firestore_2.onDocumentUpdated)({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
     const membreAvant = event.data?.before.data();
     const membreApres = event.data?.after.data();
     if (!membreAvant || !membreApres)
@@ -77,7 +79,7 @@ ${(0, emailTemplates_1.getEmailFooter)(false)}`;
         }
     }
 });
-exports.envoyerMagicLink = (0, firestore_1.onDocumentCreated)({ document: "magicLinks/{linkId}", database: "ecole-db" }, async (event) => {
+exports.envoyerMagicLink = (0, firestore_2.onDocumentCreated)({ document: "magicLinks/{linkId}", database: "ecole-db" }, async (event) => {
     const data = event.data?.data();
     if (!data || !data.email || data.status !== 'pending')
         return;
@@ -138,8 +140,8 @@ Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sé
         await event.data?.ref.update({ status: 'error', error: String(error) });
     }
 });
-exports.envoyerSpreadMail = (0, firestore_1.onDocumentCreated)({ document: "mailOutbox/{mailId}", database: "ecole-db" }, async (event) => {
-    const data = event.data?.data();
+async function processSpreadMail(docSnap) {
+    const data = docSnap.data();
     if (!data || data.status !== 'pending')
         return;
     try {
@@ -158,26 +160,20 @@ exports.envoyerSpreadMail = (0, firestore_1.onDocumentCreated)({ document: "mail
             recipients = ["lecam.malo@gmail.com"];
         }
         else {
-            // Fetch all validated members
-            const snapshot = await admin.firestore().collection('membres').where('status', '==', 'validated').get();
-            snapshot.forEach(doc => {
+            const snapshot = await (0, firestore_1.getFirestore)("ecole-db").collection('membres').where('status', '==', 'validated').get();
+            snapshot.forEach((doc) => {
                 const email = doc.data().email;
                 if (email)
                     recipients.push(email);
             });
-            // Deduplicate emails just in case
             recipients = [...new Set(recipients)];
         }
         if (recipients.length === 0) {
             logger.info("Aucun destinataire trouvé pour ce mail.");
-            await event.data?.ref.update({ status: 'error', error: 'No recipients found.' });
+            await docSnap.ref.update({ status: 'error', error: 'No recipients found.' });
             return;
         }
         const htmlContent = (0, emailTemplates_1.getBaseHtmlTemplate)(bodyContent);
-        // Send emails in batches or use BCC
-        // Using BCC is safer and easier to prevent members seeing each other
-        // Note: Gmail has limits (e.g. 500 emails/day, 100 BCC/email), but for a small collective it should be fine.
-        // To be safer from spam filters, we can just map and send individually.
         let sentCount = 0;
         for (const email of recipients) {
             const mailOptions = {
@@ -195,7 +191,7 @@ exports.envoyerSpreadMail = (0, firestore_1.onDocumentCreated)({ document: "mail
             }
         }
         logger.info(`SpreadMail envoyé à ${sentCount} destinataires.`);
-        await event.data?.ref.update({
+        await docSnap.ref.update({
             status: 'sent',
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
             sentCount: sentCount
@@ -203,7 +199,91 @@ exports.envoyerSpreadMail = (0, firestore_1.onDocumentCreated)({ document: "mail
     }
     catch (error) {
         logger.error("Erreur lors de l'envoi du SpreadMail :", error);
-        await event.data?.ref.update({ status: 'error', error: String(error) });
+        await docSnap.ref.update({ status: 'error', error: String(error) });
+    }
+}
+exports.envoyerSpreadMail = (0, firestore_2.onDocumentCreated)({ document: "mailOutbox/{mailId}", database: "ecole-db" }, async (event) => {
+    const data = event.data?.data();
+    if (!data || data.status !== 'pending')
+        return;
+    // Si le mail est programmé dans le futur, on ne fait rien.
+    // C'est le Cron Job qui s'en chargera.
+    if (data.scheduledAt && data.scheduledAt.toDate() > new Date()) {
+        logger.info(`Mail ${event.params.mailId} programmé pour plus tard. On ignore.`);
+        return;
+    }
+    // Sinon, on envoie immédiatement.
+    if (event.data) {
+        await processSpreadMail(event.data);
+    }
+});
+exports.checkScheduledMails = (0, scheduler_1.onSchedule)("every 5 minutes", async (event) => {
+    const now = new Date();
+    // Cherche les mails en attente dont la date de programmation est passée
+    const snapshot = await (0, firestore_1.getFirestore)("ecole-db").collection("mailOutbox")
+        .where("status", "==", "pending")
+        .where("scheduledAt", "<=", admin.firestore.Timestamp.fromDate(now))
+        .get();
+    if (snapshot.empty) {
+        logger.info("Aucun mail programmé en attente.");
+        return;
+    }
+    logger.info(`Trouvé ${snapshot.size} mail(s) programmé(s) à envoyer.`);
+    for (const doc of snapshot.docs) {
+        await processSpreadMail(doc);
+    }
+});
+// --- PÉTITION ---
+exports.onSignatureCreated = (0, firestore_2.onDocumentCreated)({ document: "signatures/{sigId}", database: "ecole-db" }, async (event) => {
+    const data = event.data?.data();
+    if (!data)
+        return;
+    const statsRef = (0, firestore_1.getFirestore)("ecole-db").collection('stats').doc('petition');
+    try {
+        await (0, firestore_1.getFirestore)("ecole-db").runTransaction(async (transaction) => {
+            const statsDoc = await transaction.get(statsRef);
+            const prenom = data.prenom || "Anonyme";
+            const nom = data.nom || "";
+            const qualite = data.qualite ? ` (${data.qualite})` : "";
+            const initiale = nom ? nom.charAt(0).toUpperCase() + "." : "";
+            const displayName = `${prenom} ${initiale}${qualite}`.trim();
+            if (!statsDoc.exists) {
+                transaction.set(statsRef, {
+                    count: 1,
+                    recent: [displayName]
+                });
+            }
+            else {
+                const currentData = statsDoc.data();
+                const currentCount = currentData?.count || 0;
+                let currentRecent = currentData?.recent || [];
+                currentRecent.unshift(displayName);
+                if (currentRecent.length > 10) {
+                    currentRecent = currentRecent.slice(0, 10);
+                }
+                transaction.update(statsRef, {
+                    count: currentCount + 1,
+                    recent: currentRecent
+                });
+            }
+        });
+        logger.info(`Nouvelle signature comptabilisée : ${data.prenom}`);
+    }
+    catch (error) {
+        logger.error("Erreur lors de la mise à jour des stats de la pétition :", error);
+    }
+});
+exports.updateMemberStats = (0, firestore_2.onDocumentWritten)({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
+    try {
+        const snapshot = await (0, firestore_1.getFirestore)("ecole-db").collection('membres').where('status', '==', 'validated').get();
+        const count = snapshot.size;
+        await (0, firestore_1.getFirestore)("ecole-db").collection('stats').doc('membres').set({
+            count: Math.max(count, 51),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    }
+    catch (err) {
+        logger.error("Erreur lors de la mise à jour des stats membres:", err);
     }
 });
 //# sourceMappingURL=index.js.map

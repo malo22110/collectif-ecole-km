@@ -11,10 +11,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/historique/page": [
+    "/petition/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/historique/page.js"
+      "static/chunks/app/petition/layout.js"
+    ],
+    "/petition/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/petition/page.js"
     ]
   }
 }
