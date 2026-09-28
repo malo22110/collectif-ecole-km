@@ -2,29 +2,26 @@
   {
     "date": "Juillet 2023 – Décembre 2023",
     "title": "Lancement des études et cadrage",
-    "description": "Validation de l'ADAC en tant qu'Assistant à Maîtrise d'Ouvrage (AMO) pour la réhabilitation. Concertation avec les enseignantes, l'APE et le CAUE pour définir les besoins (3 classes, sanitaires, BCD). Premières demandes de subvention.",
-    "simplifiedDescription": "La mairie décide de lancer un vrai projet pour l'école avec l'aide de professionnels. On consulte les professeurs et les parents pour lister ce dont les enfants ont besoin.",
+    "description": "Validation de l'ADAC en tant qu'Assistant à Maîtrise d'Ouvrage (AMO). Concertation avec les enseignantes, l'APE et le CAUE. Premières demandes de subvention.",
+    "simplifiedDescription": "La mairie décide de se faire accompagner par des experts (ADAC, CAUE) et discute des besoins de l'école avec les professeurs et les parents.",
     "sourceLabel": "PV du 4 Juil. et 14 Déc. 2023",
-    "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2023/10/PV-DU-04072023.pdf",
+    "sourceUrl": "#",
     "color": "bg-emerald-500",
-    "produits": [
-      "Mission AMO ADAC actée",
-      "Programme fonctionnel initial"
-    ],
+    "produits": [],
     "conservable": true,
     "budget": {
-      "etudes": "Non chiffré globalement à ce stade (AMO en cours)",
-      "travaux": "Non chiffré à ce stade",
+      "etudes": "Non chiffré globalement (AMO en cours)",
+      "travaux": "Non chiffré",
       "total": "Non chiffré"
     }
   },
   {
     "date": "Mai 2024",
     "title": "Déblocage des contraintes patrimoniales",
-    "description": "Après échange avec l'Architecte des Bâtiments de France (ABF), la mairie obtient l'accord écrit pour créer une extension sur la façade arrière sans dénaturer le patrimoine.",
+    "description": "Accord écrit de l'Architecte des Bâtiments de France (ABF) pour créer une extension sur la façade arrière.",
     "simplifiedDescription": "L'expert du patrimoine historique (Bâtiments de France) donne son feu vert pour agrandir l'école par l'arrière sans abîmer le charme du bâtiment.",
     "sourceLabel": "PV de Mai 2024",
-    "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2025/04/pv-kergrist-moelou-05-2024.pdf",
+    "sourceUrl": "#",
     "color": "bg-emerald-500",
     "produits": [
       "Accord écrit de l'Architecte des Bâtiments de France (ABF)"
@@ -32,109 +29,105 @@
     "conservable": false,
     "budget": {
       "etudes": "En cours d'évaluation",
-      "travaux": "Non chiffré à ce stade",
+      "travaux": "Non chiffré",
       "total": "Non chiffré"
     }
   },
   {
     "date": "Avril 2025 – Juin 2025",
     "title": "Structuration de la maîtrise d'œuvre",
-    "description": "Lancement de l'AMO Kerlotec. Choix définitif du cabinet d'architecte Blandine Houssais (en partenariat avec Patine Office) pour 68 750 € HT d'honoraires. Chiffrage prévisionnel des travaux à 576 500 € HT.",
-    "simplifiedDescription": "La mairie recrute une équipe d'architectes pour dessiner les plans exacts. Le projet total est alors estimé à environ 576 000 €.",
+    "description": "Lancement de l'AMO Kerlotec. Choix du cabinet d'architecte Blandine Houssais pour 60 500 € HT d'honoraires de base.",
+    "simplifiedDescription": "La mairie recrute une équipe d'architectes pour dessiner les plans exacts.",
     "sourceLabel": "PV du 19 Juin 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-19-06-2025.pdf",
     "color": "bg-emerald-500",
     "produits": [
-      "Contrat de Maîtrise d'œuvre (68 750 € HT)",
-      "Diagnostics techniques complets"
+      "Contrat de Maîtrise d'œuvre"
     ],
     "conservable": true,
     "budget": {
-      "etudes": "~68 750 € HT (Honoraires architectes)",
-      "travaux": "576 500 € HT (Prévisionnel)",
-      "total": "~645 250 € HT (Prévisionnel)"
+      "etudes": "~ 60 500 € HT (Honoraires architectes)",
+      "travaux": "550 000 € HT (Prévisionnel)",
+      "total": "~ 610 500 € HT"
     }
   },
   {
     "date": "Septembre 2025",
-    "title": "Présentation de l'Avant-Projet Sommaire",
-    "description": "Bilan comptable acté : 127 110 € HT d'études sont déjà engagés par contrats. Notification officielle des financements accordés par le Département et la Région, sécurisant fermement 159 855 € de subventions. Le conseil demande un recentrage du coût évalué.",
-    "simplifiedDescription": "Excellente nouvelle : 160 000 € de subventions sont décrochés ! Le Conseil constate que 127 000 € d'études sont déjà engagés.",
+    "title": "Présentation de l'Avant-Projet Sommaire (APS)",
+    "description": "Notification officielle des financements accordés par le Département et la Région.",
+    "simplifiedDescription": "Excellente nouvelle : des subventions sont décrochées !",
     "sourceLabel": "PV du 11 Sept. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-du-11-09-2025.pdf",
     "color": "bg-emerald-500",
     "produits": [
-      "Arrêtés de subventions Département et Région (159 855 €)"
+      "Arrêtés de subventions Département et Région"
     ],
     "conservable": false,
     "budget": {
-      "etudes": "127 110 € HT (Bilan acté et engagé)",
+      "etudes": "127 110 € HT* (Enveloppe provisionnée actée)",
       "travaux": "En cours de réévaluation",
-      "total": "127 110 € HT + (Travaux en réévaluation)"
+      "total": "En cours"
     }
   },
   {
     "date": "Octobre 2025",
     "title": "Validation de l'APS ferme",
-    "description": "Validation par le conseil municipal de la tranche ferme d'un montant de 617 500 € HT. Cette enveloppe intègre notamment 41 000 € HT de travaux obligatoires pour le traitement du radon. Les travaux de la salle de motricité (89 000 € HT) s'y ajoutent sous forme de tranche optionnelle.",
-    "simplifiedDescription": "Les élus votent et valident le budget initial du projet. Le montant inclut des travaux obligatoires pour protéger les enfants du radon. Pour réduire la facture, la rénovation de la salle de motricité est déjà repoussée à plus tard si les finances le permettent.",
+    "description": "Validation par le conseil municipal de la tranche ferme (617 500 € HT), intégrant 41 000 € HT de travaux obligatoires pour le radon.",
+    "simplifiedDescription": "Les élus valident le budget initial du projet, incluant des travaux obligatoires contre le radon.",
     "sourceLabel": "PV du 9 Oct. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-9-10-2025.pdf",
     "color": "bg-emerald-500",
     "produits": [
-      "Avant-Projet Sommaire (APS) validé",
-      "Études thermiques (ALECOB)"
+      "Avant-Projet Sommaire (APS) validé"
     ],
     "conservable": false,
     "budget": {
-      "etudes": "127 110 € HT",
-      "travaux": "706 500 € HT (Tranche ferme 617 500 € + optionnelle 89 000 €)",
+      "etudes": "127 110 € HT*",
+      "travaux": "706 500 € HT (Ferme 617 500 € + Optionnelle 89 000 €)",
       "total": "833 610 € HT"
     }
   },
   {
     "date": "Novembre 2025",
     "title": "Validation de l'Avant-Projet Définitif (APD)",
-    "description": "Scission stratégique du projet en 2 phases pour structurer l'opération. Phase 1 (Classes, préau, chaufferie) : 615 278 € HT. Phase 2 optionnelle (Motricité) : 120 210 € HT.",
-    "simplifiedDescription": "Pour maîtriser le budget d'un coup, le projet est découpé en deux. On fera d'abord les urgences (classes, préau). La salle de motricité est gardée pour plus tard.",
+    "description": "Scission du projet en 2 phases. Phase 1 : 615 278 € HT. Phase 2 : 120 210 € HT.",
+    "simplifiedDescription": "Pour maîtriser le budget, le projet est découpé en deux. La salle de motricité est gardée pour plus tard.",
     "sourceLabel": "PV du 27 Nov. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-27-11-2025.pdf",
     "color": "bg-emerald-500",
     "produits": [
-      "Avant-Projet Définitif (APD) validé",
-      "Chiffrage des 2 phases"
+      "Avant-Projet Définitif (APD) validé"
     ],
     "conservable": false,
     "budget": {
-      "etudes": "127 110 € HT",
+      "etudes": "127 110 € HT*",
       "travaux": "735 488 € HT (Phase 1: 615 278 € + Phase 2: 120 210 €)",
-      "total": "735 488 € HT"
+      "total": "862 598 € HT"
     }
   },
   {
     "date": "Avril 2026",
     "title": "Cadrage budgétaire de la nouvelle mandature",
-    "description": "Le Trésor public confirme la capacité d'emprunt de 400 000 €. Le Sous-préfet indique qu'à 800 000 € TTC (soit environ 666 000 € HT), le projet global APD est trop onéreux pour prétendre à la DETR (à engager avant fin décembre 2026), et demande de le réajuster. Vote d'une ligne d'urgence de 50 000 € pour le radon.",
-    "simplifiedDescription": "Le Trésorier valide la capacité d'emprunt. L'État indique que le projet initial est trop cher pour être subventionné et demande de le réduire, mais confirme que les aides financières (Département, Région, État) restent possibles pour un projet moins coûteux.",
+    "description": "Le Trésor public confirme la capacité d'emprunt de 400 000 €. Le Sous-préfet indique que le projet global APD est trop onéreux pour la DETR, et demande de le réajuster. Vote d'une ligne d'urgence de 50 000 € pour le radon.",
+    "simplifiedDescription": "L'État demande de réduire le projet pour pouvoir le subventionner. En parallèle, la commune vote 50 000 € d'urgence pour le radon.",
     "sourceLabel": "PV du 28 avril 2026",
     "sourceUrl": "/docs/pvs/CR 28 04 2026.pdf",
     "color": "bg-emerald-500",
     "produits": [
-      "Confirmation capacité d'emprunt (400 000 €)",
-      "Échéance DETR fixée à fin 2026"
+      "Confirmation capacité d'emprunt (400 000 €)"
     ],
     "conservable": true,
     "budget": {
-      "etudes": "127 110 € HT",
-      "travaux": "À revoir à la baisse (selon préconisation)",
+      "etudes": "127 110 € HT*",
+      "travaux": "À revoir à la baisse",
       "total": "À revoir à la baisse"
     }
   },
   {
     "date": "Juin 2026",
     "title": "Concertation pour réduire les coûts",
-    "description": "Réunion du 22 juin avec l'équipe éducative, le cabinet d'architectes et l'AMO pour optimiser techniquement l'APD et s'aligner sur l'enveloppe cible initiale : conservation des menuiseries performantes, dalle béton contre le radon, raccordement au réseau de chaleur SCIC Koad COB.",
-    "simplifiedDescription": "Élus, professeurs et architectes se réunissent pour trouver des solutions intelligentes afin de baisser le coût final des travaux sans dégrader la qualité pour les enfants.",
+    "description": "Réunion avec l'équipe éducative, les architectes et l'AMO pour optimiser techniquement l'APD et s'aligner sur l'enveloppe cible initiale de 550 000 € HT.",
+    "simplifiedDescription": "Élus, professeurs et architectes se réunissent pour trouver des solutions intelligentes afin de baisser le coût final des travaux.",
     "sourceLabel": "PV du 9 juin 2026",
     "sourceUrl": "/docs/pvs/PV 09 06 2026 (1).pdf",
     "color": "bg-emerald-500",
@@ -143,26 +136,26 @@
     ],
     "conservable": true,
     "budget": {
-      "etudes": "127 110 € HT",
-      "travaux": "En cours de réduction (Cible visée : ~550 000 € HT)",
-      "total": "~677 110 € HT"
+      "etudes": "127 110 € HT*",
+      "travaux": "Cible visée ~ 550 000 € HT",
+      "total": "~ 677 110 € HT"
     }
   },
   {
     "date": "Septembre 2026",
-    "title": "Blocage paradoxal et mobilisation",
-    "description": "Rejet du devis complémentaire de 2 170 € HT destiné à finaliser l'ajustement budgétaire préconisé par les services de l'État, suspendant temporairement les études. Le 26 septembre, lancement du collectif citoyen pour réclamer une commission extra-municipale.",
-    "simplifiedDescription": "Alors qu'on était sur le point de réduire le coût du projet, le conseil municipal refuse de voter une facture de 2 000 € et bloque tout. Face au risque de perdre l'argent, les citoyens se mobilisent et montent un collectif.",
+    "title": "Suspension des études et mobilisation",
+    "description": "Rejet du devis complémentaire de 2 170 € HT destiné à finaliser l'ajustement budgétaire. Suspension des études. Lancement du collectif citoyen.",
+    "simplifiedDescription": "Le conseil municipal refuse de voter une facture d'architecte de 2 170 € indispensable pour réduire le budget global, ce qui bloque totalement le projet.",
     "sourceLabel": "Charte du Collectif",
     "sourceUrl": "#",
     "color": "bg-amber-500",
     "produits": [
       "Blocage de l'optimisation budgétaire",
-      "Risque d'annulation des subventions"
+      "Lancement du collectif"
     ],
     "conservable": false,
     "budget": {
-      "etudes": "127 110 € HT (figés) + 2 170 € HT (avenant non voté)",
+      "etudes": "127 110 € HT* (provision figée) + 2 170 € HT (avenant non voté)",
       "travaux": "Suspendu",
       "total": "Suspendu"
     }
