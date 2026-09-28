@@ -29,6 +29,7 @@ export default function LandingPage() {
   const [memberCount, setMemberCount] = useState<number | null>(null);
   const [petitionCount, setPetitionCount] = useState<number | null>(null);
   const [articles, setArticles] = useState<any[]>([]);
+  const [presseArticles, setPresseArticles] = useState<any[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,25 @@ export default function LandingPage() {
       }
     }
     fetchArticles();
+  }, []);
+
+  useEffect(() => {
+    async function fetchPresse() {
+      try {
+        const q = query(collection(db, 'presse'));
+        const snapshot = await getDocs(q);
+        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+        fetched.sort((a, b) => {
+          const dateA = new Date(a.date || 0).getTime();
+          const dateB = new Date(b.date || 0).getTime();
+          return dateB - dateA;
+        });
+        setPresseArticles(fetched);
+      } catch (error) {
+        console.error('Erreur presse:', error);
+      }
+    }
+    fetchPresse();
   }, []);
 
 
@@ -286,6 +306,72 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Ils parlent de nous */}
+        {presseArticles.length > 0 && (
+          <section className="py-20 bg-stone-50 px-4 border-b border-stone-200" id="presse">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-stone-900 mb-4">Ils parlent de nous</h2>
+                <p className="text-stone-600 max-w-2xl mx-auto text-lg">
+                  Revue de presse et articles relayant notre mobilisation pour l'école de Kergrist-Moëlou.
+                </p>
+              </div>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                {presseArticles.map((article) => (
+                  <a 
+                    key={article.id}
+                    href={article.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="group bg-white rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.1)] transition-all duration-300 border border-stone-100 flex flex-col h-full text-left"
+                  >
+                    {article.imageUrl && (
+                      <div className="relative w-full h-[200px] overflow-hidden shrink-0">
+                        <span className="absolute top-3 left-3 bg-stone-900 text-white text-xs font-semibold px-2 py-1 rounded uppercase tracking-wider z-10 shadow-sm">
+                          Actualité
+                        </span>
+                        <img 
+                          src={article.imageUrl} 
+                          alt={article.title} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="p-5 flex flex-col flex-1">
+                      <div className="flex items-center text-xs text-stone-500 mb-2.5">
+                        <time dateTime={article.date}>
+                          {article.date ? new Date(article.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "Récemment"}
+                        </time>
+                      </div>
+                      
+                      <h3 className="text-[1.15rem] font-bold text-stone-900 leading-[1.4] mb-3 group-hover:text-emerald-700 transition-colors line-clamp-3">
+                        {article.title}
+                      </h3>
+                      
+                      {article.description && (
+                        <p className="text-sm text-stone-600 leading-relaxed mb-5 line-clamp-3">
+                          {article.description}
+                        </p>
+                      )}
+                      
+                      <div className="mt-auto pt-3 border-t border-stone-100 flex justify-between items-center text-sm">
+                        <span className="text-stone-500 font-medium">
+                          Par {article.source || "Presse Locale"}
+                        </span>
+                        <span className="text-emerald-600 font-bold transition-transform duration-200 group-hover:translate-x-1 flex items-center gap-1">
+                          Lire <span aria-hidden="true">&rarr;</span>
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Charte Section */}
         <section className="py-20 bg-stone-50 px-4 border-b border-stone-200" id="charte">

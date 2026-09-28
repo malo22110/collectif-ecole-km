@@ -6,8 +6,9 @@ import FaqManager from "./FaqManager";
 import ImportMembers from "./ImportMembers";
 import DuplicateManager from "./DuplicateManager";
 import MailManager from "./MailManager";
+import PresseManager from "./PresseManager";
 import { Mail } from "lucide-react";
-import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot } from "lucide-react";
+import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot, Newspaper } from "lucide-react";
 import Link from "next/link";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, onSnapshot, updateDoc, doc } from "firebase/firestore";
@@ -25,7 +26,7 @@ interface Membre {
 export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"membres" | "articles" | "faq" | "emails">("membres");
+  const [activeTab, setActiveTab] = useState<"membres" | "articles" | "faq" | "emails" | "presse">("membres");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
   
@@ -129,6 +130,12 @@ export default function AdminDashboard() {
             <HelpCircle size={20} /> FAQ
           </button>
           <button 
+            onClick={() => setActiveTab("presse")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "presse" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+          >
+            <Newspaper size={20} /> Presse
+          </button>
+          <button 
             onClick={() => setActiveTab("emails")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "emails" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
@@ -143,6 +150,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex-1 p-8">
+        {activeTab === "presse" && <PresseManager />}
         {activeTab === "membres" && (
           <div>
             <h2 className="text-2xl font-bold text-stone-900 mb-6">Gestion des candidatures</h2>
