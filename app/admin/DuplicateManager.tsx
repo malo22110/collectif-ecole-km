@@ -17,6 +17,35 @@ interface MembreDoc {
 
 export default function DuplicateManager() {
 
+  const handleSyncPetitionStats = async () => {
+    setLogs(prev => [...prev, "Calcul et synchronisation du compteur 'stats/petition'..."]);
+    try {
+      const snap = await getDocs(collection(db, "signatures"));
+      const count = snap.size;
+      const recent: string[] = [];
+      snap.docs.slice(-10).reverse().forEach(docSnap => {
+        const d = docSnap.data();
+        if (d.prenom && d.nom) {
+          const qual = d.qualite ? ` (${d.qualite})` : '';
+          recent.push(`${d.prenom} ${d.nom.charAt(0)}.${qual}`);
+        }
+      });
+
+      await setDoc(doc(db, "stats", "petition"), {
+        count: count,
+        recent: recent,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      setLogs(prev => [...prev, `[SYNCHRO SUCCESS] Compteur 'stats/petition' mis à jour à ${count} signatures.`]);
+      alert(`Compteur pétition synchronisé avec succès à ${count} signatures !`);
+    } catch (err: any) {
+      console.error(err);
+      alert(`Erreur de synchro pétition : ${err.message}`);
+    }
+  };
+
+
   const handleSyncMemberStats = async () => {
     setLogs(prev => [...prev, "Calcul et synchronisation du compteur 'stats/membres'..."]);
     try {
@@ -159,9 +188,15 @@ export default function DuplicateManager() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={handleSyncMemberStats}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors flex items-center gap-2"
+            className="px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-2"
           >
-            <CheckCircle2 size={18} /> Synchroniser le compteur public
+            <CheckCircle2 size={16} /> Synchro Membres
+          </button>
+          <button
+            onClick={handleSyncPetitionStats}
+            className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-2"
+          >
+            <CheckCircle2 size={16} /> Synchro Pétition
           </button>
           <button
             onClick={handleAnalyze}
