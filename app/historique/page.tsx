@@ -21,6 +21,8 @@ export default function HistoriquePage() {
   const [isSimplified, setIsSimplified] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [isEditorDirty, setIsEditorDirty] = useState(false);
+
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
@@ -138,7 +140,14 @@ export default function HistoriquePage() {
       {canEdit && (
         <div className="fixed bottom-6 right-6 z-50">
           <button
-            onClick={() => setEditMode(!editMode)}
+            onClick={() => {
+              if (editMode && isEditorDirty) {
+                const ok = window.confirm("⚠️ Vous avez des modifications non sauvegardées.\n\nSi vous quittez le mode édition, vos modifications seront perdues. Continuer quand même ?");
+                if (!ok) return;
+              }
+              setEditMode(!editMode);
+              setIsEditorDirty(false);
+            }}
             className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold shadow-xl transition-all ${editMode ? 'bg-emerald-600 text-white' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
           >
             {editMode ? <><Eye size={16}/> Quitter l'édition</> : <><Pencil size={16}/> Modifier la page</>}
@@ -149,10 +158,11 @@ export default function HistoriquePage() {
       <div className="w-full">
         {editMode ? (
           <div className="max-w-5xl mx-auto px-4 py-8">
-            <HistoriqueAdmin />
+            <HistoriqueAdmin onDirtyChange={setIsEditorDirty} />
           </div>
         ) : (
           <>
+
             {pageData.blocks && pageData.blocks.map((block: any, idx: number) => (
               <BlockRenderer key={idx} block={block} context={{ setActiveTopic, commentCounts, isSimplified }} />
             ))}

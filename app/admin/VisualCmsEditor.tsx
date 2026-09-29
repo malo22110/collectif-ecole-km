@@ -1,33 +1,91 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Save, Plus, Trash2, ArrowUp, ArrowDown, Settings2, GripVertical, AlertCircle } from "lucide-react";
+import { Save, ArrowUp, ArrowDown, GripVertical, CheckCircle2 } from "lucide-react";
 
-export default function VisualCmsEditor({ pageId = "historique" }) {
+const BLOCK_DEFAULTS: Record<string, any> = {
+  financial_overview: {
+    zoomTitle: "🔎 Zoom Financier : Comprendre les 127 110 € d'études et le risque de perte réelle (plus de 70 000 €)",
+    zoomIntro: "Il est crucial de clarifier les chiffres liés aux études d'ingénierie pour sortir des approximations. Trois montants différents existent, ils sont tous justes mais ne correspondent pas à la même chose :",
+    point1: "127 110 € HT (Le montant provisionné dans les PV)* : C'est la somme historique annoncée et figée dans les conseils municipaux à partir de septembre 2025. Elle représente l'enveloppe globale que la mairie a budgétée à ce moment-là. (C'est ce chiffre avec un astérisque qui figure dans la frise chronologique ci-dessous par souci de fidélité aux PV).",
+    point2: "133 533 € HT (Le détail réel jusqu'à la fin du chantier) : C'est le coût total exhaustif de toutes les études si le projet va à son terme. L'analyse des devis montre que cette somme, bien qu'impressionnante (24 % des travaux), est incontournable.",
+    point3: "plus de 70 000 € HT (Le risque de perte sèche immédiate) : C'est le montant des prestations effectivement réalisées à ce jour (stade APD). Si la mairie annule le projet demain, elle ne paiera pas 133 000 €, mais elle devra obligatoirement payer ces 70 000 € au titre du \"service fait\". C'est cet argent qui sera jeté par les fenêtres en cas d'abandon.",
+    subventionsTitle: "Subventions actées ou déposées : 340 000 €",
+    subventionsIntro: "Le plan de financement repose sur trois leviers exigeant une rénovation globale (baisse de 40 % de la consommation d'énergie) :",
+    sub1: "Département des Côtes-d'Armor (Sécurisé) : 99 405 €",
+    sub2: "Région Bretagne (Sécurisé sous condition) : 60 450 € (Conditionné à la démarche BDB abordée plus haut).",
+    sub3: "État - DETR / DSIL (Dossier déposé) : 180 145 € (Dossier n° 21386559 basé sur le projet ciblé à 550 000 € HT).",
+    evolutionTitle: "L'évolution de l'estimation de la maîtrise d'œuvre (APD) : 735 489,05 € HT",
+    evolutionText: "Alors que la commande initiale visait un projet à 550 000 € HT, les chiffrages successifs de l'Avant-Projet Définitif (APD) ont atteint 735 489 € HT (615 278 € pour la Phase 1 et 120 210 € pour la Phase 2), nécessitant le recadrage budgétaire actuel.",
+    simplifiedRisk: "C'est le coût des études (diagnostics, architectes) déjà réalisées à ce jour. Si on abandonne l'école, la mairie devra quand même payer cette somme (règle légale du \"service fait\"). Au moins 70 000 € d'argent public seront perdus dans le vide.",
+    simplifiedSolution: "Continuer le projet d'ajustement permet de rentabiliser ces plus de 70 000 € d'études et de sécuriser 340 000 € de subventions, ramenant le reste à charge des travaux à environ 212 000 €, ce qui est largement dans la capacité de la commune.",
+  },
+  options_comparison: {
+    opt1Title: "Option 1 : L'ajustement (550 000 €)", opt1Desc: "L'avenant de 2 170 € permet d'intégrer les modifications techniques visant à ramener le coût des travaux au budget de 550 000 € HT déposé en Préfecture.", opt1Total: "212 170 € HT",
+    opt2Title: "Option 2 : Refonte totale", opt2Desc: "Résiliation des contrats en cours et relance d'un nouveau projet réduit.", opt2Total: "~ 154 000 € HT min.",
+    opt3Title: "Option 3 : Abandon de l'opération", opt3Desc: "Gel total des travaux et report à une date indéterminée.", opt3Total: "~ 74 000 € HT",
+    opt4Title: "Option 4 : Le Saupoudrage", opt4Desc: "Travaux d'urgence (radon, électricité) sans traitement de l'enveloppe thermique.", opt4Total: "~ 120 000 € HT",
+  },
+  stress_test: {
+    simplifiedSummary: "Quel que soit le scénario, abandonner ou refaire le projet à zéro coûte plus cher à la commune que de continuer, en raison des 70 000 € d'études déjà réalisées qu'il faudra payer en pure perte, et des 340 000 € de subventions qui seront annulées. L'Option 1 (Ajustement) est la seule viable financièrement.",
+  },
+  conclusion: {
+    title: "Conclusion Objective : Pourquoi l'Option 1 s'impose",
+    intro: "Toute analyse budgétaire rigoureuse menée sur ce dossier aboutit à la même conclusion technique et financière : l'Option 1 (l'ajustement à l'enveloppe initiale de 550 000 € HT) est la seule voie viable pour la commune, pour trois raisons mathématiques et légales :",
+    reason1Title: "La valorisation des dépenses engagées :", reason1: "La commune a déjà contracté pour au minimum 70 000 € d'études et de diagnostics facturables au titre du service fait à ce stade du projet. Choisir l'abandon ou la refonte revient à solder ces factures avec les impôts locaux pour obtenir un résultat matériel nul. L'Option 1 est la seule qui transforme cette dépense inéluctable en investissement utile.",
+    reason2Title: "L'effet levier des subventions :", reason2: "Les 340 000 € d'aides extérieures sont strictement conditionnés à une rénovation globale générant 40 % d'économie d'énergie. Abandonner l'Avant-Projet Définitif annule mécaniquement ces aides. Faire \"moins cher\" en rafistolant ou \"repartir de zéro\" obligerait la commune à payer la totalité des futurs travaux sur ses fonds propres, ce qui saturerait instantanément sa capacité d'emprunt de 400 000 €.",
+    reason3Title: "L'incompressibilité des normes :", reason3: "Le bâtiment souffre de vulnérabilités légales et sanitaires avérées (radon, accessibilité, amiante/plomb, isolation). Le saupoudrage n'est qu'un expédient temporaire. L'État finira par exiger une mise aux normes complète, obligeant la commune à relancer un projet global dans quelques années, avec des coûts d'ingénierie à repayer de zéro et des coûts de construction gonflés par l'inflation.",
+    summary: "Mathématiquement, le refus de l'Option 1 revient à endetter le village pour régler des frais d'architectes et des indemnités d'abandon, tout en conservant une école qui se dégrade. À l'inverse, l'Option 1 protège les finances locales en faisant financer plus de 60 % du chantier par la Région, le Département et l'État.",
+    simplifiedText: "Refuser l'Option 1 revient à endetter le village d'au minimum 70 000 € dans le vide pour des plans inutilisés, tout en gardant une école qui se dégrade et perd ses subventions. À l'inverse, l'Option 1 protège les finances de la commune en faisant financer plus de 60 % du chantier par l'État, la Région et le Département.",
+  },
+};
+
+function mergeBlocksWithDefaults(blocks: any[]): any[] {
+  return blocks.map((block: any) => {
+    const def = BLOCK_DEFAULTS[block.type];
+    if (!def) return block;
+    return { ...block, data: { ...def, ...(block.data || {}) } };
+  });
+}
+
+export default function VisualCmsEditor({ pageId = "historique", onDirtyChange }: { pageId?: string; onDirtyChange?: (dirty: boolean) => void }) {
   const [pageData, setPageData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const originalRef = useRef<string>("");
 
+  useEffect(() => { fetchPage(); }, [pageId]);
+
+  // Alerte navigateur si on quitte avec des modifications non sauvegardées
   useEffect(() => {
-    fetchPage();
-  }, [pageId]);
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) { e.preventDefault(); e.returnValue = ""; }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  useEffect(() => { onDirtyChange?.(isDirty); }, [isDirty, onDirtyChange]);
 
   const fetchPage = async () => {
     setLoading(true);
     try {
-      const docRef = doc(db, "pages", pageId);
-      const snap = await getDoc(docRef);
+      const snap = await getDoc(doc(db, "pages", pageId));
       if (snap.exists()) {
-        setPageData(snap.data());
+        const raw = snap.data();
+        const merged = { ...raw, blocks: mergeBlocksWithDefaults(raw.blocks || []) };
+        setPageData(merged);
+        originalRef.current = JSON.stringify(merged);
+        setIsDirty(false);
       } else {
         setError("Page introuvable.");
       }
-    } catch (err: any) {
-      setError(err.message);
-    }
+    } catch (err: any) { setError(err.message); }
     setLoading(false);
   };
 
@@ -36,17 +94,20 @@ export default function VisualCmsEditor({ pageId = "historique" }) {
     setError(null);
     try {
       await updateDoc(doc(db, "pages", pageId), pageData);
-      alert("Modifications enregistrées avec succès !");
-    } catch (err: any) {
-      setError(err.message);
-    }
+      setSaved(true);
+      setIsDirty(false);
+      originalRef.current = JSON.stringify(pageData);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) { setError(err.message); }
     setSaving(false);
   };
 
   const updateBlock = (index: number, newBlock: any) => {
     const newBlocks = [...pageData.blocks];
     newBlocks[index] = newBlock;
-    setPageData({ ...pageData, blocks: newBlocks });
+    const next = { ...pageData, blocks: newBlocks };
+    setPageData(next);
+    setIsDirty(JSON.stringify(next) !== originalRef.current);
   };
 
   const moveBlock = (index: number, direction: 'up' | 'down') => {
@@ -55,23 +116,40 @@ export default function VisualCmsEditor({ pageId = "historique" }) {
     const newBlocks = [...pageData.blocks];
     const target = direction === 'up' ? index - 1 : index + 1;
     [newBlocks[index], newBlocks[target]] = [newBlocks[target], newBlocks[index]];
-    setPageData({ ...pageData, blocks: newBlocks });
+    const next = { ...pageData, blocks: newBlocks };
+    setPageData(next);
+    setIsDirty(JSON.stringify(next) !== originalRef.current);
   };
 
-  if (loading) return <div>Chargement de l'éditeur...</div>;
-  if (!pageData) return <div>{error}</div>;
+  if (loading) return <div className="p-6 text-stone-500">Chargement de l'éditeur...</div>;
+  if (!pageData) return <div className="p-6 text-rose-500">{error}</div>;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-stone-200 mt-8">
-      <div className="p-6 border-b border-stone-200 flex justify-between items-center bg-stone-50">
-        <div>
+      {/* Sticky save bar */}
+      <div className="sticky top-0 z-30 bg-white border-b border-stone-200 px-6 py-3 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-3">
           <h3 className="font-bold text-stone-900">Éditeur Visuel : Page Historique</h3>
-          <p className="text-sm text-stone-500">Modifiez simplement les textes de la page.</p>
+          {isDirty && (
+            <span className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full animate-pulse">
+              Modifications non sauvegardées
+            </span>
+          )}
+          {saved && (
+            <span className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <CheckCircle2 size={12} /> Sauvegardé !
+            </span>
+          )}
         </div>
-        <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
-          <Save size={16} /> {saving ? "Enregistrement..." : "Enregistrer les modifications"}
+        <button
+          onClick={handleSave}
+          disabled={saving || !isDirty}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isDirty ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm' : 'bg-stone-100 text-stone-400 cursor-not-allowed'}`}
+        >
+          <Save size={16} /> {saving ? "Enregistrement..." : "Enregistrer"}
         </button>
       </div>
+
 
       <div className="p-6 space-y-8">
         {pageData.blocks.map((block: any, index: number) => (
