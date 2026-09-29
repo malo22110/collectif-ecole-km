@@ -157,7 +157,7 @@ export default function HistoriquePage() {
 
       <div className="w-full">
         {editMode ? (
-          <div className="max-w-5xl mx-auto px-4 py-8">
+          <div className="px-4 py-4">
             <HistoriqueAdmin onDirtyChange={setIsEditorDirty} />
           </div>
         ) : (

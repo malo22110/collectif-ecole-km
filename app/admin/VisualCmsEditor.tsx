@@ -50,7 +50,7 @@ function mergeBlocksWithDefaults(blocks: any[]): any[] {
   });
 }
 
-export default function VisualCmsEditor({ pageId = "historique", onDirtyChange }: { pageId?: string; onDirtyChange?: (dirty: boolean) => void }) {
+export default function VisualCmsEditor({ pageId = "historique", onDirtyChange, onPageDataChange }: { pageId?: string; onDirtyChange?: (dirty: boolean) => void; onPageDataChange?: (data: any) => void }) {
   const [pageData, setPageData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -82,6 +82,7 @@ export default function VisualCmsEditor({ pageId = "historique", onDirtyChange }
         setPageData(merged);
         originalRef.current = JSON.stringify(merged);
         setIsDirty(false);
+        onPageDataChange?.(merged);
       } else {
         setError("Page introuvable.");
       }
@@ -108,6 +109,7 @@ export default function VisualCmsEditor({ pageId = "historique", onDirtyChange }
     const next = { ...pageData, blocks: newBlocks };
     setPageData(next);
     setIsDirty(JSON.stringify(next) !== originalRef.current);
+    onPageDataChange?.(next);
   };
 
   const moveBlock = (index: number, direction: 'up' | 'down') => {
@@ -119,7 +121,9 @@ export default function VisualCmsEditor({ pageId = "historique", onDirtyChange }
     const next = { ...pageData, blocks: newBlocks };
     setPageData(next);
     setIsDirty(JSON.stringify(next) !== originalRef.current);
+    onPageDataChange?.(next);
   };
+
 
   if (loading) return <div className="p-6 text-stone-500">Chargement de l'éditeur...</div>;
   if (!pageData) return <div className="p-6 text-rose-500">{error}</div>;
