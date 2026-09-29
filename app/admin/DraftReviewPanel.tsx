@@ -17,6 +17,7 @@ import {
   where,
   onSnapshot,
   Timestamp,
+  increment,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { CheckCircle2, XCircle, Clock, User, ChevronDown, ChevronUp, Eye, FileText } from "lucide-react";
@@ -65,9 +66,9 @@ export default function DraftReviewPanel() {
   const approve = async (draft: Draft) => {
     setProcessingId(draft.id);
     try {
-      // 1. Publier le contenu du brouillon dans pages/historique
-      await updateDoc(doc(db, "pages", draft.pageId), draft.data);
-      // 2. Marquer le draft comme approuvé (pour historique) puis supprimer
+      // [SPEC-CMS-DRAFT-01] Publie le brouillon + incrémente la version atomiquement
+      await updateDoc(doc(db, "pages", draft.pageId), { ...draft.data, version: increment(1) });
+      // Supprime le draft après publication
       await deleteDoc(doc(db, "cms_drafts", draft.id));
       setFeedback({ id: draft.id, msg: "✅ Modification publiée avec succès !", ok: true });
       setExpandedDraft(null);

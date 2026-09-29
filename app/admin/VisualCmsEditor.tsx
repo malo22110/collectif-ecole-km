@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, increment } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Save, ArrowUp, ArrowDown, GripVertical, CheckCircle2, Eye, Send } from "lucide-react";
 import BlockRenderer from "../components/cms/BlockRenderer";
@@ -96,7 +96,8 @@ export default function VisualCmsEditor({ pageId = "historique", onDirtyChange, 
     setSaving(true);
     setError(null);
     try {
-      await updateDoc(doc(db, "pages", pageId), pageData);
+      // [SPEC-CMS-DRAFT-01] version incrémentée atomiquement à chaque publication
+      await updateDoc(doc(db, "pages", pageId), { ...pageData, version: increment(1) });
       setSaved(true);
       setIsDirty(false);
       originalRef.current = JSON.stringify(pageData);

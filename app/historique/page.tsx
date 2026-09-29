@@ -180,9 +180,32 @@ export default function HistoriquePage() {
         ) : (
           <>
 
-            {pageData.blocks && pageData.blocks.map((block: any, idx: number) => (
-              <BlockRenderer key={idx} block={block} context={{ setActiveTopic, commentCounts, isSimplified }} />
-            ))}
+            {(() => {
+              // [SPEC-CMS-DRAFT-01] Injecter le numéro de version dans le titre
+              // de la première Alert au moment du rendu (sans modifier Firestore)
+              const version = pageData.version ?? null;
+              let firstAlertFound = false;
+              return pageData.blocks?.map((block: any, idx: number) => {
+                let displayBlock = block;
+                if (!firstAlertFound && block.type === 'alert' && version !== null) {
+                  firstAlertFound = true;
+                  displayBlock = {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      title: `v${version} — ${block.data.title || ''}`.trimEnd(),
+                    },
+                  };
+                }
+                return (
+                  <BlockRenderer
+                    key={idx}
+                    block={displayBlock}
+                    context={{ setActiveTopic, commentCounts, isSimplified }}
+                  />
+                );
+              });
+            })()}
           </>
         )}
       </div>
