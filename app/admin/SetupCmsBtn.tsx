@@ -42,6 +42,10 @@ export default function SetupCmsBtn() {
             data: { items: timelineData }
           },
           {
+            type: "options_comparison",
+            data: {}
+          },
+          {
             type: "stress_test",
             data: {}
           },

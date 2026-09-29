@@ -1,5 +1,5 @@
 import React from "react";
-import { TrendingDown, AlertCircle, ShieldCheck } from "lucide-react";
+import { TrendingDown, AlertCircle, CheckCircle, BookOpen } from "lucide-react";
 import CommentBadge from "./CommentBadge";
 
 export default function FinancialOverviewBlock({ data, context }: any) {
@@ -44,7 +44,7 @@ export default function FinancialOverviewBlock({ data, context }: any) {
                   <li className="flex gap-2">
                     <span className="text-emerald-600 font-bold">3.</span>
                     <div>
-                      <strong>Plus de 70 000 € (La perte sèche minimale en cas d'annulation totale aujourd'hui) :</strong> C'est la somme due pour le travail DÉJÀ réalisé, commandé et achevé. Si le projet s'arrêtait demain, la commune devrait régler ces factures et n'aurait plus d'argent pour refaire d'autres études ou des travaux. (Calcul arrêté à mars 2026, hors indemnités de rupture anticipée).
+                      <strong>plus de 70 000 € HT (Le risque de perte sèche immédiate) :</strong> C'est le montant des prestations effectivement réalisées à ce jour (stade APD). Si la mairie annule le projet demain, elle ne paiera pas 133 000 €, mais elle devra obligatoirement payer ces 70 000 € au titre du "service fait" (diagnostics achevés, AMO, honoraires d'architectes dus à l'étape APD s'élevant à environ 19 438 €). C'est cet argent qui sera jeté par les fenêtres en cas d'abandon.
                     </div>
                   </li>
                 </ul>
@@ -52,44 +52,40 @@ export default function FinancialOverviewBlock({ data, context }: any) {
             </div>
 
             <div className="flex items-start gap-3 border-t border-stone-100 pt-6">
-              <div className="mt-1 bg-emerald-100 p-1.5 rounded-lg text-emerald-700 shrink-0"><ShieldCheck size={18} /></div>
+              <div className="mt-1 bg-emerald-100 p-1.5 rounded-lg text-emerald-700 shrink-0"><CheckCircle size={18} /></div>
               <div>
-                <strong className="text-stone-900 block text-lg mb-2">💰 Comment est financé le projet (Phase 1) ?</strong>
-                <p className="text-stone-600 text-sm mb-4">
-                  Sur l'estimation APS de la Phase 1 (765 778 € HT), la commune a réussi à lever un niveau de subvention exceptionnel (plus de 60%).
-                </p>
-                <div className="bg-stone-50 p-4 rounded-xl border border-stone-200">
-                  <ul className="space-y-2 text-sm text-stone-600">
-                    <li className="flex justify-between border-b border-stone-200 pb-2"><span>Budget total Phase 1 (Travaux + Études) :</span> <strong className="text-stone-900">765 778 € HT</strong></li>
-                    <li className="flex justify-between border-b border-stone-200 pb-2 text-emerald-700"><span>Aides de l'État (DETR/Fonds Vert) :</span> <strong>- 206 726 €</strong></li>
-                    <li className="flex justify-between border-b border-stone-200 pb-2 text-emerald-700"><span>Aide de la Région (BDB) :</span> <strong>- 60 450 €</strong></li>
-                    <li className="flex justify-between border-b border-stone-200 pb-2 text-emerald-700"><span>Aide du Département :</span> <strong>- 74 504 €</strong></li>
-                    <li className="flex justify-between border-b border-stone-200 pb-2 text-emerald-700"><span>Fonds de Concours CCKB :</span> <strong>- 35 000 €</strong></li>
-                    <li className="flex justify-between border-b border-stone-200 pb-2 text-stone-500"><span>TVA Récupérée (FCTVA) :</span> <strong>~ - 125 000 €</strong></li>
-                    <li className="flex justify-between pt-2 text-base">
-                      <span className="font-bold text-stone-900">Reste à charge réel pour la commune :</span> 
-                      <strong className="text-emerald-700">~ 264 000 €</strong>
-                    </li>
-                  </ul>
-                  <div className="mt-4 pt-4 border-t border-stone-200 flex items-center justify-between">
-                    <span className="text-xs font-bold text-stone-500 uppercase">Capacité d'emprunt (Trésor Public)</span>
-                    <strong className="text-stone-900 bg-white px-3 py-1 rounded-lg border border-stone-200">400 000 €</strong>
-                  </div>
-                </div>
+                <strong className="text-stone-900 block text-lg mb-2">Subventions actées ou déposées : 340 000 €</strong>
+                <p className="text-stone-600 text-sm mb-2">Le plan de financement repose sur trois leviers exigeant une rénovation globale (baisse de 40 % de la consommation d'énergie) :</p>
+                <ul className="space-y-2 text-sm text-stone-600 list-disc pl-5">
+                  <li><strong>Département des Côtes-d'Armor (Sécurisé) : 99 405 €</strong></li>
+                  <li><strong>Région Bretagne (Sécurisé sous condition) : 60 450 €</strong> (Conditionné à la démarche BDB abordée plus haut).</li>
+                  <li><strong>État - DETR / DSIL (Dossier déposé) : 180 145 €</strong> (Dossier n° 21386559 basé sur le projet ciblé à 550 000 € HT).</li>
+                </ul>
               </div>
             </div>
-            <div className="mt-4">
-              <CommentBadge topic="Enjeux financiers" count={commentCounts["Enjeux financiers"] || 0} onOpen={() => setActiveTopic("Enjeux financiers")} />
+
+            <div className="flex items-start gap-3 border-t border-stone-100 pt-6">
+              <div className="mt-1 bg-blue-100 p-1.5 rounded-lg text-blue-700 shrink-0"><BookOpen size={18} /></div>
+              <div>
+                <strong className="text-stone-900 block text-lg mb-2">L'évolution de l'estimation de la maîtrise d'œuvre (APD) : 735 489,05 € HT</strong>
+                <p className="text-stone-600 text-sm">Alors que la commande initiale visait un projet à 550 000 € HT, les chiffrages successifs de l'Avant-Projet Définitif (APD) ont atteint 735 489 € HT (615 278 € pour la Phase 1 et 120 210 € pour la Phase 2), nécessitant le recadrage budgétaire actuel.</p>
+              </div>
             </div>
           </>
         ) : (
-          <div className="bg-emerald-50 text-emerald-900 p-5 rounded-xl text-sm leading-relaxed border border-emerald-100">
-            <strong>L'essentiel :</strong> Le projet est largement financé par des subventions de l'État, de la Région et du Département (plus de 340 000 €). La commune a la capacité d'emprunter 400 000 €, ce qui couvre largement le reste à charge d'environ 264 000 €. 
-            <br/><br/>
-            <strong>Le danger :</strong> Annuler le projet maintenant coûterait au moins 70 000 € à la commune (études déjà réalisées), pour aucun résultat, et ferait perdre toutes les subventions.
+          <div className="space-y-4">
+            <div className="bg-rose-50 text-rose-800 p-4 md:p-6 rounded-xl border border-rose-200">
+              <strong className="block mb-2 flex items-center gap-2 text-rose-900"><AlertCircle size={20} /> Le risque immédiat : plus de 70 000 €</strong>
+              <p className="text-sm">C'est le coût des études (diagnostics, architectes) <strong>déjà réalisées</strong> à ce jour. Si on abandonne l'école, la mairie devra quand même payer cette somme (règle légale du "service fait"). Au moins 70 000 € d'argent public seront perdus dans le vide.</p>
+            </div>
+            <div className="bg-emerald-50 text-emerald-800 p-4 md:p-6 rounded-xl border border-emerald-200">
+              <strong className="block mb-2 flex items-center gap-2 text-emerald-900"><CheckCircle size={20} /> La solution (Option 1)</strong>
+              <p className="text-sm">Continuer le projet d'ajustement permet de rentabiliser ces plus de 70 000 € d'études et de sécuriser <strong>340 000 € de subventions</strong>, ramenant le reste à charge des travaux à environ 212 000 €, ce qui est largement dans la capacité de la commune.</p>
+            </div>
           </div>
         )}
       </div>
+      <CommentBadge topic="Enjeux financiers" count={commentCounts["Enjeux financiers"] || 0} onOpen={() => setActiveTopic("Enjeux financiers")} />
     </div>
   );
 }
