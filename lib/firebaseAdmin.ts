@@ -31,10 +31,9 @@ function getAdminApp(): App {
     const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, "utf-8"));
     app = initializeApp({ credential: cert(serviceAccount) });
   } else {
-    throw new Error(
-      "Firebase Admin SDK : aucune clé de service configurée.\n" +
-      "Définissez FIREBASE_SERVICE_ACCOUNT_JSON ou FIREBASE_SERVICE_ACCOUNT_PATH dans .env.local"
-    );
+    // Option C : Fallback sur les credentials par défaut (ADC)
+    // C'est ce qui sera utilisé en production sur Firebase App Hosting / Cloud Run
+    app = initializeApp();
   }
 
   return app;
