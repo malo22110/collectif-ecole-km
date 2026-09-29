@@ -1,119 +1,24 @@
-"use client";
-import React, { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+/**
+ * [SPEC-OG-01] Redirection de l'ancienne URL /actualites?id=xxx
+ * vers la nouvelle URL canonique /actualites/[id].
+ *
+ * Assure la compatibilité avec les liens déjà partagés.
+ */
 
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import Link from "next/link";
-import { ArrowLeft, Calendar, User, Clock } from "lucide-react";
+import { redirect } from "next/navigation";
 
-
-
-function ArticleContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const id = searchParams.get("id");
-  const [article, setArticle] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchArticle() {
-      if (!id) return;
-      try {
-        const docRef = doc(db, "articles", id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setArticle({ id: docSnap.id, ...docSnap.data() });
-        } else {
-          router.push('/');
-        }
-      } catch (err) {
-        console.error("Erreur de chargement:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchArticle();
-  }, [id, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (!article) return null;
-
-  return (
-    <main className="min-h-screen bg-stone-50 pb-20 overflow-x-hidden">
-      <header className="bg-white border-b border-stone-200 sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center">
-          <Link href="/" className="flex items-center gap-2 text-stone-600 hover:text-stone-900 font-medium transition-colors">
-            <ArrowLeft size={20} />
-            Retour à l'accueil
-          </Link>
-        </div>
-      </header>
-
-      <article className="max-w-3xl mx-auto px-4 pt-12">
-        <div className="mb-8">
-          {article.imageUrl && (
-            <div className="w-full h-64 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-sm">
-              <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover" />
-            </div>
-          )}
-          <h1 className="text-3xl md:text-5xl font-bold text-stone-900 mb-6 leading-tight">
-            {article.title}
-          </h1>
-          <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-stone-500 font-medium pb-8 border-b border-stone-200">
-            <div className="flex items-center gap-2">
-              <Calendar size={16} />
-              {new Date(article.publishedAt || Date.now()).toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </div>
-            <div className="flex items-center gap-2">
-              <User size={16} />
-              Collectif École Kergrist
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock size={16} />
-              {Math.max(1, Math.ceil((article.content?.length || 0) / 1000))} min de lecture
-            </div>
-          </div>
-        </div>
-
-        <div dangerouslySetInnerHTML={{ __html: article.content || "" }} className="prose prose-stone prose-lg md:prose-xl max-w-none prose-a:text-emerald-600 hover:prose-a:text-emerald-700 prose-headings:font-bold prose-img:rounded-xl">
-          
-        </div>
-      </article>
-      
-      <div className="max-w-3xl mx-auto px-4 mt-20">
-        <div className="bg-emerald-50 rounded-3xl p-8 md:p-12 text-center border border-emerald-100">
-          <h3 className="text-2xl font-bold text-emerald-900 mb-4">Envie de soutenir le projet ?</h3>
-          <p className="text-emerald-800 mb-8 max-w-lg mx-auto">
-            Rejoignez le collectif et participez activement à la construction de l'avenir de l'école de Kergrist-Moëlou.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/#rejoindre" className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all">
-              Rejoindre le collectif
-            </Link>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
+interface Props {
+  searchParams: Promise<{ id?: string }>;
 }
 
+export default async function ActualitesRedirectPage({ searchParams }: Props) {
+  const { id } = await searchParams;
 
-export default function ArticlePage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center"><div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div></div>}>
-      <ArticleContent />
-    </Suspense>
-  );
+  if (id) {
+    // Redirection permanente (301) vers la nouvelle URL canonique
+    redirect(`/actualites/${id}`);
+  }
+
+  // Si pas d'id, retour à l'accueil
+  redirect("/");
 }

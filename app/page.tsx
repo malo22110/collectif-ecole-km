@@ -473,7 +473,7 @@ export default function LandingPage() {
               
               <div className="grid md:grid-cols-3 gap-8">
                 {articles.map(article => (
-                  <a key={article.id} href={`/actualites?id=${article.id}`} className="group flex flex-col bg-stone-50 rounded-2xl overflow-hidden border border-stone-100 hover:border-emerald-200 hover:shadow-lg transition-all">
+                  <a key={article.id} href={`/actualites/${article.id}`} className="group flex flex-col bg-stone-50 rounded-2xl overflow-hidden border border-stone-100 hover:border-emerald-200 hover:shadow-lg transition-all">
                     {article.imageUrl ? (
                       <div className="h-48 overflow-hidden">
                         <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />

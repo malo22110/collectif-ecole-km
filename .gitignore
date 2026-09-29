@@ -1,6 +1,8 @@
 node_modules/
 .next/
 out/
+secrets/
+*.service-account.json
 .env
 .env.local
 firebase-debug.log
