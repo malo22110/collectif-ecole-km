@@ -7,6 +7,8 @@
 
 import { initializeApp, getApps, cert, App } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import fs from "fs";
+import path from "path";
 
 let app: App;
 
@@ -24,8 +26,9 @@ function getAdminApp(): App {
     app = initializeApp({ credential: cert(serviceAccount) });
   } else if (serviceAccountPath) {
     // Option B : chemin vers le fichier JSON local (développement)
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const serviceAccount = require(serviceAccountPath);
+    // Utilisation de fs pour éviter le "require() dynamique" qui fait crasher Webpack
+    const absolutePath = path.resolve(process.cwd(), serviceAccountPath);
+    const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, "utf-8"));
     app = initializeApp({ credential: cert(serviceAccount) });
   } else {
     throw new Error(
