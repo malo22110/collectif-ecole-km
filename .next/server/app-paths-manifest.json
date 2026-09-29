@@ -1,14 +1,14 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/icon.png/route": "app/icon.png/route.js",
-  "/admin/page": "app/admin/page.js",
   "/admin/assistant/page": "app/admin/assistant/page.js",
-  "/espace-membre/page": "app/espace-membre/page.js",
-  "/actualites/page": "app/actualites/page.js",
-  "/historique/page": "app/historique/page.js",
-  "/faq/page": "app/faq/page.js",
-  "/espace-membre/imprimer/page": "app/espace-membre/imprimer/page.js",
-  "/page": "app/page.js",
   "/connexion/page": "app/connexion/page.js",
+  "/actualites/page": "app/actualites/page.js",
+  "/faq/page": "app/faq/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/espace-membre/imprimer/page": "app/espace-membre/imprimer/page.js",
+  "/espace-membre/page": "app/espace-membre/page.js",
+  "/page": "app/page.js",
+  "/historique/page": "app/historique/page.js",
   "/petition/page": "app/petition/page.js"
 }

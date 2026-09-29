@@ -13,6 +13,7 @@ export default function HistoriquePage() {
   const [loading, setLoading] = useState(true);
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+  const [isSimplified, setIsSimplified] = useState(false);
 
   // 1. Charger les données du CMS depuis Firestore
   useEffect(() => {
@@ -71,6 +72,26 @@ export default function HistoriquePage() {
             <UserAvatar />
           </div>
         </div>
+
+        {/* Toggle intégré au header pour garantir qu'il soit sticky */}
+        <div className="bg-stone-50/95 backdrop-blur-md border-t border-stone-200 py-2">
+          <div className="max-w-5xl mx-auto px-4 flex justify-center">
+            <div className="inline-flex bg-stone-200/50 p-1 rounded-full items-center border border-stone-200 shadow-inner">
+              <button
+                onClick={() => setIsSimplified(true)}
+                className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              >
+                Version Courte (Résumé)
+              </button>
+              <button
+                onClick={() => setIsSimplified(false)}
+                className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${!isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              >
+                Détails Complets
+              </button>
+            </div>
+          </div>
+        </div>
       </header>
       <div className="h-8"></div>
 
@@ -91,7 +112,7 @@ export default function HistoriquePage() {
       <div className="w-full">
         {/* RENDU DES BLOCS (CMS) */}
         {pageData.blocks && pageData.blocks.map((block: any, idx: number) => (
-          <BlockRenderer key={idx} block={block} context={{ setActiveTopic, commentCounts }} />
+          <BlockRenderer key={idx} block={block} context={{ setActiveTopic, commentCounts, isSimplified }} />
         ))}
         
       </div>

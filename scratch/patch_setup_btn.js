@@ -1,28 +1,12 @@
-"use client";
+const fs = require('fs');
+let code = fs.readFileSync('app/admin/SetupCmsBtn.tsx', 'utf8');
 
-import React, { useState } from "react";
-import { Database, Loader2 } from "lucide-react";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import timelineData from "@/data/timeline.json";
-
-export default function SetupCmsBtn() {
-  const [loading, setLoading] = useState(false);
-
-  const handleSetup = async () => {
-    setLoading(true);
-    try {
-      const pageData = {
-        header: {
-          title: "Historique & Analyse du Projet",
-          subtitle: "Chronologie des décisions et analyse financière complète basée exclusivement sur les actes officiels de la mairie (procès-verbaux du conseil municipal, arrêtés de subventions, et dossiers de demande à l'État)."
-        },
-        blocks: [
+const newBlocks = `
           {
             type: "alert",
             data: {
               style: "warning",
-              text: "Ce document de synthèse est **en cours de validation par la communauté**. Les membres du collectif peuvent apporter leurs corrections et débattre en utilisant les boutons \"Commenter\" disponibles à chaque section, ou dans l'espace général en bas de page."
+              text: "Ce document de synthèse est **en cours de validation par la communauté**. Les membres du collectif peuvent apporter leurs corrections et débattre en utilisant les boutons \\"Commenter\\" disponibles à chaque section, ou dans l'espace général en bas de page."
             }
           },
           {
@@ -62,35 +46,7 @@ export default function SetupCmsBtn() {
               ]
             }
           }
-]
-      };
+`;
 
-      await setDoc(doc(db, "pages", "historique"), pageData);
-      alert("✅ Migration CMS réussie ! La base de données est initialisée.");
-    } catch (err) {
-      console.error(err);
-      alert("Erreur lors de la migration CMS.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="mt-8 bg-amber-50 rounded-2xl shadow-sm border border-amber-200 overflow-hidden p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-      <div>
-        <h3 className="font-bold text-amber-900 text-lg">Setup CMS (Mode Développeur)</h3>
-        <p className="text-amber-700 text-sm mt-1">
-          Génère le document `pages/historique` dans Firestore avec les données en dur actuelles. À n'utiliser qu'une seule fois.
-        </p>
-      </div>
-      <button 
-        onClick={handleSetup}
-        disabled={loading}
-        className="flex items-center gap-2 px-6 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors disabled:opacity-50 shrink-0"
-      >
-        {loading ? <Loader2 size={18} className="animate-spin" /> : <Database size={18} />}
-        Lancer la migration CMS
-      </button>
-    </div>
-  );
-}
+code = code.replace(/blocks: \[\s*{[\s\S]*?\]\n      };\n\n      await/m, 'blocks: [' + newBlocks + ']\n      };\n\n      await');
+fs.writeFileSync('app/admin/SetupCmsBtn.tsx', code);
