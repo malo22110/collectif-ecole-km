@@ -5,6 +5,7 @@ export interface TimelineBlockProps {
   data: {
     items: any[];
   };
+  context?: any;
 }
 
 // Composant interne pour remplacer HighlightTerms (à simplifier ou réutiliser)
