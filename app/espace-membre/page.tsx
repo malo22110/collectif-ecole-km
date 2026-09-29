@@ -232,6 +232,11 @@ export default function EspaceMembre() {
                   </div>
 
                   <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300">
+                    <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"127 000 € d'études, c'est beaucoup trop !"</span></div>
+                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>Ce ne sont pas juste des "dessins".</strong> Ça inclut tous les diagnostics imposés par la loi (amiante, plomb, radon, sols) et les calculs des ingénieurs (environ 20% du budget, la norme pour sécuriser un très vieux bâtiment public). Surtout, une partie de ces frais (19 000 €) est exigée par la Région pour pouvoir débloquer 60 000 € d'aides. C'est donc un passage obligatoire et hyper rentable pour la commune.</span></div>
+                  </div>
+
+                  <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300">
                     <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"Au début, vous parliez de 127 000 € jetés, vos chiffres changent !"</span></div>
                     <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>On est 100 % transparents :</strong> 127 000 €, c'est ce que la mairie a provisionné au total. Au moins 70 000 €*, c'est ce qu'on devra sortir <em>immédiatement</em> de notre poche pour payer le travail déjà fait si le projet s'arrête net. Le gaspillage est colossal.</span></div>
                   </div>
