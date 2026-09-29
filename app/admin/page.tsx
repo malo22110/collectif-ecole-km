@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import ArticleManager from "./ArticleManager";
 import FaqManager from "./FaqManager";
 import ImportMembers from "./ImportMembers";
+import ExportMembers from "./ExportMembers";
 import DuplicateManager from "./DuplicateManager";
 import MailManager from "./MailManager";
 import PresseManager from "./PresseManager";
@@ -187,6 +188,7 @@ export default function AdminDashboard() {
             </div>
             <DuplicateManager />
             <ImportMembers />
+            <ExportMembers />
           </div>
         )}
 
