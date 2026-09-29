@@ -63,5 +63,20 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if false;
     }
+
+    // [SPEC-CMS-DRAFT-01] Brouillons CMS : workflow de révision avant publication
+    // Les éditeurs peuvent créer un brouillon avec leur propre email.
+    // Les admins peuvent tout lire/modifier/supprimer (pour approuver ou rejeter).
+    match /cms_drafts/{draftId} {
+      // Lecture : admins uniquement
+      allow read: if isAdmin();
+      // Création : utilisateur authentifié, avec son email en submittedBy
+      allow create: if request.auth != null
+        && request.resource.data.submittedBy == request.auth.token.email
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasAll(['pageId', 'status', 'submittedBy', 'submittedAt', 'data']);
+      // Mise à jour (rejet) et suppression (approbation) : admins uniquement
+      allow update, delete: if isAdmin();
+    }
   }
 }

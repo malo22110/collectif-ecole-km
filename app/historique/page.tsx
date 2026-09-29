@@ -20,24 +20,37 @@ export default function HistoriquePage() {
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [isSimplified, setIsSimplified] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [isEditorDirty, setIsEditorDirty] = useState(false);
 
-
+  // [SPEC-CMS-DRAFT-01] Vérifie si l'utilisateur est admin ou éditeur
   useEffect(() => {
+    const ADMIN_EMAILS = ["contact@collectif-ecole-km.fr", "lecam.malo@gmail.com", "collectif.ecole.km@gmail.com"];
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
       if (user && user.email) {
-        // Vérifier si c'est l'admin principal ou un membre avec droits
-        if (user.email === "contact@collectif-ecole-km.fr") {
+        setCurrentUserEmail(user.email);
+        if (ADMIN_EMAILS.includes(user.email)) {
           setCanEdit(true);
+          setIsAdminUser(true);
         } else {
           const docSnap = await getDoc(doc(db, "membres", user.email));
-          if (docSnap.exists() && (docSnap.data().role === "admin" || docSnap.data().role === "editor")) {
-            setCanEdit(true);
+          if (docSnap.exists()) {
+            const role = docSnap.data().role;
+            if (role === "admin") {
+              setCanEdit(true);
+              setIsAdminUser(true);
+            } else if (role === "editor") {
+              setCanEdit(true);
+              setIsAdminUser(false);
+            }
           }
         }
       } else {
         setCanEdit(false);
+        setIsAdminUser(false);
+        setCurrentUserEmail("");
       }
     });
     return () => unsubAuth();
@@ -158,7 +171,11 @@ export default function HistoriquePage() {
       <div className="w-full">
         {editMode ? (
           <div className="px-4 py-4">
-            <HistoriqueAdmin onDirtyChange={setIsEditorDirty} />
+            <HistoriqueAdmin
+              onDirtyChange={setIsEditorDirty}
+              isAdmin={isAdminUser}
+              userEmail={currentUserEmail}
+            />
           </div>
         ) : (
           <>

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Save, ArrowUp, ArrowDown, GripVertical, CheckCircle2, Eye } from "lucide-react";
+import { Save, ArrowUp, ArrowDown, GripVertical, CheckCircle2, Eye, Send } from "lucide-react";
 import BlockRenderer from "../components/cms/BlockRenderer";
 
 const BLOCK_DEFAULTS: Record<string, any> = {
@@ -51,11 +51,12 @@ function mergeBlocksWithDefaults(blocks: any[]): any[] {
   });
 }
 
-export default function VisualCmsEditor({ pageId = "historique", onDirtyChange, onPageDataChange, showPreview = false, isSimplified = false }: { pageId?: string; onDirtyChange?: (dirty: boolean) => void; onPageDataChange?: (data: any) => void; showPreview?: boolean; isSimplified?: boolean }) {
+export default function VisualCmsEditor({ pageId = "historique", onDirtyChange, onPageDataChange, showPreview = false, isSimplified = false, isAdmin = true, userEmail = "" }: { pageId?: string; onDirtyChange?: (dirty: boolean) => void; onPageDataChange?: (data: any) => void; showPreview?: boolean; isSimplified?: boolean; isAdmin?: boolean; userEmail?: string }) {
   const [pageData, setPageData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const originalRef = useRef<string>("");
@@ -104,6 +105,26 @@ export default function VisualCmsEditor({ pageId = "historique", onDirtyChange, 
     setSaving(false);
   };
 
+  // [SPEC-CMS-DRAFT-01] Soumission en brouillon (éditeurs) → attend approbation admin
+  const handleSubmitDraft = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      await addDoc(collection(db, "cms_drafts"), {
+        pageId,
+        status: "pending",
+        submittedBy: userEmail,
+        submittedAt: serverTimestamp(),
+        data: pageData,
+      });
+      setSubmitted(true);
+      setIsDirty(false);
+      originalRef.current = JSON.stringify(pageData);
+      setTimeout(() => setSubmitted(false), 6000);
+    } catch (err: any) { setError(err.message); }
+    setSaving(false);
+  };
+
   const updateBlock = (index: number, newBlock: any) => {
     const newBlocks = [...pageData.blocks];
     newBlocks[index] = newBlock;
@@ -145,14 +166,38 @@ export default function VisualCmsEditor({ pageId = "historique", onDirtyChange, 
               <CheckCircle2 size={12} /> Sauvegardé !
             </span>
           )}
+          {submitted && (
+            <span className="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <Send size={12} /> Révision soumise — en attente d'approbation
+            </span>
+          )}
+          {error && (
+            <span className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+              Erreur : {error}
+            </span>
+          )}
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving || !isDirty}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isDirty ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm' : 'bg-stone-100 text-stone-400 cursor-not-allowed'}`}
-        >
-          <Save size={16} /> {saving ? "Enregistrement..." : "Enregistrer"}
-        </button>
+
+        {/* Bouton selon le rôle : admin = publication directe, éditeur = soumission pour révision */}
+        {isAdmin ? (
+          <button
+            onClick={handleSave}
+            disabled={saving || !isDirty}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isDirty ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm' : 'bg-stone-100 text-stone-400 cursor-not-allowed'}`}
+            aria-label="Enregistrer et publier immédiatement"
+          >
+            <Save size={16} /> {saving ? "Enregistrement..." : "Enregistrer"}
+          </button>
+        ) : (
+          <button
+            onClick={handleSubmitDraft}
+            disabled={saving || !isDirty}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isDirty ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm' : 'bg-stone-100 text-stone-400 cursor-not-allowed'}`}
+            aria-label="Soumettre les modifications pour révision par un administrateur"
+          >
+            <Send size={16} /> {saving ? "Envoi en cours..." : "Soumettre pour révision"}
+          </button>
+        )}
       </div>
 
 
