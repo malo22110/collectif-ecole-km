@@ -6,6 +6,7 @@ import FaqManager from "./FaqManager";
 import ImportMembers from "./ImportMembers";
 import ExportMembers from "./ExportMembers";
 import SetupCmsBtn from "./SetupCmsBtn";
+import CmsPageEditor from "./CmsPageEditor";
 import DuplicateManager from "./DuplicateManager";
 import MailManager from "./MailManager";
 import PresseManager from "./PresseManager";
@@ -198,6 +199,7 @@ export default function AdminDashboard() {
             <h2 className="text-2xl font-bold text-stone-900 mb-6">Articles & Documents</h2>
             <ArticleManager />
             <SetupCmsBtn />
+            <CmsPageEditor pageId="historique" />
           </div>
         )}
 
