@@ -86,20 +86,20 @@ export default function HistoriquePage() {
           </>
         )}
 
+      </div>
+
+      <div className="w-full">
         {/* RENDU DES BLOCS (CMS) */}
         {pageData.blocks && pageData.blocks.map((block: any, idx: number) => (
-          <BlockRenderer key={idx} block={block} />
+          <BlockRenderer key={idx} block={block} context={{ setActiveTopic, commentCounts }} />
         ))}
         
-        {/* BOUTON COMMENTAIRE GLOBAL */}
-        <div className="mt-12 text-center">
-          <button 
-            onClick={() => setActiveTopic("Général")}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold transition-all shadow-sm hover:shadow-md"
-          >
-            <MessageCircle size={20} />
-            {commentCounts["Général"] > 0 ? `Voir les ${commentCounts["Général"]} commentaires` : "Participer au débat"}
-          </button>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 pb-16 text-center">
+        {/* ESPACE COMMENTAIRES */}
+        <div className="max-w-7xl mx-auto px-4 pb-16 text-left">
+          <Comments topic="Général" />
         </div>
       </div>
 
