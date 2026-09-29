@@ -8,7 +8,7 @@ export default function FinancialOverviewBlock({ data, context }: any) {
   const commentCounts = context?.commentCounts || {};
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-200 text-left max-w-3xl mx-auto p-6 md:p-8 mb-8">
+    <div className="bg-white rounded-2xl shadow-sm border border-stone-200 text-left mx-4 md:mx-auto max-w-3xl p-6 md:p-8 mb-8">
       <h2 className="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2 flex-wrap">
         <TrendingDown className="text-emerald-600" />
         Aperçu des enjeux financiers

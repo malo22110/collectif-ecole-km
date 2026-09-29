@@ -19,7 +19,7 @@ export default function OptionsComparisonBlock({ data, context }: any) {
           <div className="absolute top-0 right-0 bg-emerald-500 text-white font-bold px-4 py-1.5 md:px-6 md:py-2 rounded-bl-2xl text-sm shadow-sm">
             Recommandée
           </div>
-          <h3 className="text-xl font-bold text-stone-900 mb-3 flex items-center gap-3">
+          <h3 className="text-xl font-bold text-stone-900 mt-6 mb-3 flex items-center gap-3">
             <CheckCircle size={24} className="text-emerald-500" />
             Option 1 : L'ajustement (550 000 €)
           </h3>

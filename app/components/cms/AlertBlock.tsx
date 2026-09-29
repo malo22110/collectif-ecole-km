@@ -16,7 +16,7 @@ export default function AlertBlock({ data }: AlertBlockProps) {
   const iconColor = isWarning ? "text-amber-600" : "text-sky-700";
 
   return (
-    <div className={`${bgClass} border px-5 py-4 rounded-xl mb-6 flex flex-col md:flex-row items-center gap-3 text-sm font-medium shadow-sm max-w-2xl mx-auto text-left`}>
+    <div className={`${bgClass} border px-5 py-4 rounded-xl mb-6 flex flex-col md:flex-row items-center gap-3 text-sm font-medium shadow-sm max-w-2xl mx-4 md:mx-auto text-left`}>
       <Icon size={20} className={`${iconColor} shrink-0`} />
       <div>
         {data.title && <strong className={`block mb-1 text-${isWarning ? 'amber' : 'sky'}-950`}>{data.title}</strong>}

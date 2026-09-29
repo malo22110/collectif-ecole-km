@@ -8,7 +8,7 @@ export default function ConclusionBlock({ data, context }: any) {
   const commentCounts = context?.commentCounts || {};
 
   return (
-    <div className="bg-emerald-50 border border-emerald-200 p-6 md:p-8 rounded-2xl max-w-3xl mx-auto mb-8 text-left">
+    <div className="bg-emerald-50 border border-emerald-200 p-6 md:p-8 rounded-2xl mx-4 md:mx-auto max-w-3xl mb-8 text-left">
       <h4 className="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2">
         <Info size={24} className="text-emerald-700" />
         Conclusion Objective : Pourquoi l'Option 1 s'impose
