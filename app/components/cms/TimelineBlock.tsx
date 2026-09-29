@@ -85,6 +85,7 @@ export default function TimelineBlock({ data, context }: TimelineBlockProps) {
                       <CommentBadge topic={`Chronologie : ${event.date}`} count={commentCounts[`Chronologie : ${event.date}`] || 0} onOpen={() => setActiveTopic(`Chronologie : ${event.date}`)} />
                     </div>
                   </div>
+                  {isEven && <div className="hidden md:block md:w-1/2"></div>}
                 </div>
               );
             })}
