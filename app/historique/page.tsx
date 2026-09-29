@@ -6,6 +6,11 @@ import { ArrowLeft, Loader2, MessageCircle, X } from "lucide-react";
 import { doc, onSnapshot, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import BlockRenderer from "../components/cms/BlockRenderer";
+import HistoriqueAdmin from "../admin/HistoriqueAdmin";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { getDoc } from "firebase/firestore";
+import { Pencil, Eye } from "lucide-react";
 import Comments from "../components/Comments";
 
 export default function HistoriquePage() {
@@ -14,6 +19,27 @@ export default function HistoriquePage() {
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [isSimplified, setIsSimplified] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
+      if (user && user.email) {
+        // Vérifier si c'est l'admin principal ou un membre avec droits
+        if (user.email === "contact@collectif-ecole-km.fr") {
+          setCanEdit(true);
+        } else {
+          const docSnap = await getDoc(doc(db, "membres", user.email));
+          if (docSnap.exists() && (docSnap.data().role === "admin" || docSnap.data().role === "editor")) {
+            setCanEdit(true);
+          }
+        }
+      } else {
+        setCanEdit(false);
+      }
+    });
+    return () => unsubAuth();
+  }, []);
 
   // 1. Charger les données du CMS depuis Firestore
   useEffect(() => {
@@ -109,12 +135,29 @@ export default function HistoriquePage() {
 
       </div>
 
+      {canEdit && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <button
+            onClick={() => setEditMode(!editMode)}
+            className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold shadow-xl transition-all ${editMode ? 'bg-emerald-600 text-white' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
+          >
+            {editMode ? <><Eye size={16}/> Quitter l'édition</> : <><Pencil size={16}/> Modifier la page</>}
+          </button>
+        </div>
+      )}
+
       <div className="w-full">
-        {/* RENDU DES BLOCS (CMS) */}
-        {pageData.blocks && pageData.blocks.map((block: any, idx: number) => (
-          <BlockRenderer key={idx} block={block} context={{ setActiveTopic, commentCounts, isSimplified }} />
-        ))}
-        
+        {editMode ? (
+          <div className="max-w-5xl mx-auto px-4 py-8">
+            <HistoriqueAdmin />
+          </div>
+        ) : (
+          <>
+            {pageData.blocks && pageData.blocks.map((block: any, idx: number) => (
+              <BlockRenderer key={idx} block={block} context={{ setActiveTopic, commentCounts, isSimplified }} />
+            ))}
+          </>
+        )}
       </div>
 
       <div className="max-w-4xl mx-auto px-4 pb-16 text-center">
