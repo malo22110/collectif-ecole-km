@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Clock, CheckCircle, XCircle, BookOpen, Info, ExternalLink, X, ChevronRight } from "lucide-react";
+import CommentBadge from "./CommentBadge";
 
 export interface TimelineBlockProps {
   data: {
@@ -8,58 +9,92 @@ export interface TimelineBlockProps {
   context?: any;
 }
 
-// Composant interne pour remplacer HighlightTerms (à simplifier ou réutiliser)
 const HighlightTerms = ({ text }: { text: string }) => {
-  return <span dangerouslySetInnerHTML={{ __html: text }} />; // Simplification pour le CMS pour l'instant
+  return <span dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />;
 };
 
-export default function TimelineBlock({ data }: TimelineBlockProps) {
+export default function TimelineBlock({ data, context }: TimelineBlockProps) {
   const [activeStep, setActiveStep] = useState<any>(null);
+  const isSimplified = context?.isSimplified || false;
+  const setActiveTopic = context?.setActiveTopic || (() => {});
+  const commentCounts = context?.commentCounts || {};
 
   return (
     <>
-      <div className="max-w-3xl mx-auto px-4 mb-20 relative">
-        <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-stone-200 transform md:-translate-x-1/2"></div>
-        <div className="space-y-12">
-          {data.items.map((event, idx) => {
-            const isLeft = idx % 2 === 0;
-            return (
-              <div key={idx} className={`relative flex items-center justify-between md:justify-normal w-full ${isLeft ? 'md:flex-row-reverse' : ''}`}>
-                <div className="hidden md:block w-5/12"></div>
-                <div className="z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white border-4 border-stone-200 shadow-sm shrink-0 md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
-                  <div className={`w-2.5 h-2.5 rounded-full ${event.color || 'bg-emerald-500'}`}></div>
-                </div>
-                <div 
-                  className={`w-full md:w-5/12 pl-6 md:pl-0 ${isLeft ? 'md:pr-12 text-left md:text-right' : 'md:pl-12 text-left'}`}
-                >
-                  <div 
-                    onClick={() => setActiveStep(event)}
-                    className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group text-left"
-                  >
-                    <span className="text-emerald-600 font-bold text-sm tracking-wide uppercase mb-1 block flex items-center gap-1.5 md:justify-start">
-                      <Clock size={14} /> {event.date}
-                    </span>
-                    <h3 className="text-lg font-bold text-stone-900 mb-2 group-hover:text-emerald-700 transition-colors">
-                      {event.title}
-                    </h3>
-                    <p className="text-stone-600 text-sm mb-4 line-clamp-2">
-                      {event.simplifiedDescription || event.description}
-                    </p>
-                    <div className="flex items-center justify-between text-xs font-medium text-stone-400 group-hover:text-emerald-600 transition-colors pt-3 border-t border-stone-100">
-                      <span>Cliquez pour les détails</span>
-                      <ChevronRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
+      <div className="mb-20 max-w-4xl mx-auto px-4">
+        <h2 className="text-2xl font-bold text-stone-900 mb-10 text-center">La Frise Chronologique</h2>
+        <div className="relative py-8">
+          <div className="absolute left-[19px] md:left-1/2 md:-ml-[1px] top-0 bottom-0 w-[2px] bg-stone-200"></div>
+          <div className="space-y-12">
+            {data.items.map((event, index) => {
+              const isEven = index % 2 === 0;
+              const textToShow = isSimplified && event.simplifiedDescription ? event.simplifiedDescription : event.description;
+              
+              return (
+                <div key={index} className="relative flex flex-col md:flex-row md:items-start md:justify-center group">
+                  <div className={`absolute left-[12px] md:left-1/2 md:-ml-2 top-1 w-4 h-4 rounded-full ${event.color || 'bg-emerald-500'} ring-4 ring-stone-50 z-10`}></div>
+                  {!isEven && <div className="hidden md:block md:w-1/2"></div>}
+                  <div className={`w-full md:w-1/2 pl-12 ${isEven ? 'md:pl-0 md:pr-12 md:text-right' : 'md:pl-12 md:pr-0'}`}>
+                    
+                    <div 
+                      onClick={() => setActiveStep(event)}
+                      className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative text-left"
+                    >
+                      <div className="text-sm font-bold text-emerald-600 mb-1 flex items-center gap-1.5 md:inline-flex"><Clock size={14} className="md:hidden" /> {event.date}</div>
+                      <h3 className="text-xl font-bold text-stone-900 mb-2 flex items-center flex-wrap gap-2">{event.title}</h3>
+                      <p className="text-stone-600 mb-3 leading-relaxed md:text-left">
+                        <HighlightTerms text={textToShow} />
+                      </p>
+                      
+                      {/* Financial Box */}
+                      {event.budget && (
+                        <div className="mt-4 bg-stone-50 border border-stone-200 rounded-xl p-4 text-sm md:text-left text-left">
+                          <div className="grid grid-cols-1 gap-2">
+                            <div className="flex justify-between items-start gap-4">
+                              <span className="text-stone-500 shrink-0">Études :</span>
+                              <span className="font-medium text-stone-800 text-right">{event.budget.etudes}</span>
+                            </div>
+                            <div className="flex justify-between items-start gap-4">
+                              <span className="text-stone-500 shrink-0">Travaux :</span>
+                              <span className="font-medium text-stone-800 text-right">{event.budget.travaux}</span>
+                            </div>
+                            <div className="pt-2 mt-1 border-t border-stone-200 flex justify-between items-start gap-4">
+                              <span className="font-bold text-stone-900 shrink-0">Total estimé :</span>
+                              <span className="font-bold text-emerald-700 text-right">{event.budget.total}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-stone-100">
+                        {event.sourceUrl && (
+                          <span 
+                            onClick={(e) => { e.stopPropagation(); window.open(encodeURI(event.sourceUrl), '_blank'); }}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 hover:underline"
+                          >
+                            <span>PV {event.sourceLabel}</span>
+                            <ExternalLink size={14} />
+                          </span>
+                        )}
+                        <span className="text-xs font-bold text-stone-400 group-hover:text-emerald-600 transition-colors flex items-center gap-1 ml-auto">
+                          Détails <ChevronRight size={14} />
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 md:mt-2 w-full flex justify-end">
+                      <CommentBadge topic={`Chronologie : ${event.date}`} count={commentCounts[`Chronologie : ${event.date}`] || 0} onOpen={() => setActiveTopic(`Chronologie : ${event.date}`)} />
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Drawer */}
       {activeStep && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-stone-900/40 backdrop-blur-sm transition-opacity duration-300" onClick={() => setActiveStep(null)}>
+        <div className="fixed inset-0 z-50 flex justify-end bg-stone-900/40 backdrop-blur-sm transition-opacity duration-300 text-left" onClick={() => setActiveStep(null)}>
           <div 
             className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-0 overflow-hidden" 
             onClick={(e) => e.stopPropagation()}

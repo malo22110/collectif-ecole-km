@@ -9,7 +9,7 @@ export default function StressTestBlock({ data, context }: any) {
 
   return (
     <div className="max-w-5xl mx-auto px-4">
-      <div className="mt-16 bg-white border border-stone-200 rounded-3xl p-6 md:p-10 shadow-sm overflow-hidden relative text-left mb-8">
+      <div className="mt-16 text-left mb-8">
         <h3 className="text-2xl font-bold text-stone-900 mb-8 flex items-center gap-3">
           <ShieldCheck size={28} className="text-emerald-600" />
           Stress Test : La matrice des risques
@@ -23,12 +23,12 @@ export default function StressTestBlock({ data, context }: any) {
             </div>
             
             <div className="overflow-x-auto shadow-sm border border-stone-200 rounded-2xl mb-12">
-              <table className="w-full text-left bg-white border-collapse min-w-[1020px]">
+              <table className="w-full text-left bg-white border-collapse min-w-[800px]">
                 <thead className="bg-stone-100 text-stone-700 text-sm">
                   <tr>
-                    <th className="p-4 font-bold border-b border-stone-200 min-w-[200px]">Option</th>
-                    <th className="p-4 font-bold border-b border-stone-200 min-w-[300px]">Scénario Défavorable</th>
-                    <th className="p-4 font-bold border-b border-stone-200 min-w-[300px]">Impact Financier</th>
+                    <th className="p-4 font-bold border-b border-stone-200 w-1/4">Option</th>
+                    <th className="p-4 font-bold border-b border-stone-200 w-1/3">Scénario Défavorable</th>
+                    <th className="p-4 font-bold border-b border-stone-200 min-w-[250px]">Impact Financier</th>
                     <th className="p-4 font-bold border-b border-stone-200 min-w-[220px]">Résultat Final (Reste à charge)</th>
                   </tr>
                 </thead>
