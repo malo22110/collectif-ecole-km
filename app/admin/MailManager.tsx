@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs, query, where, deleteDoc, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Send, AlertCircle, CheckCircle2, Bold, Italic, List, ListOrdered, Users, FileSignature } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -62,6 +62,8 @@ export default function MailManager() {
   const [signatures, setSignatures] = useState<any[]>([]);
   const [journalistes, setJournalistes] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [bounceEmail, setBounceEmail] = useState("");
+  const [bounceLoading, setBounceLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -88,6 +90,7 @@ export default function MailManager() {
     if (target === "membres_non_signataires") {
       const signatureEmails = new Set(signatures.map(s => s.email?.toLowerCase().trim()).filter(Boolean));
       membres.forEach(m => {
+        if (m.emailBounced) return;
         const email = m.email?.toLowerCase().trim();
         if (email && !signatureEmails.has(email)) {
           emails.add(email);
@@ -97,7 +100,7 @@ export default function MailManager() {
     }
     
     if (target === "all" || target === "membres") {
-      membres.forEach(m => { if (m.email) emails.add(m.email.toLowerCase().trim()); });
+      membres.forEach(m => { if (m.email && !m.emailBounced) emails.add(m.email.toLowerCase().trim()); });
     }
     if (target === "all" || target === "signataires") {
       signatures.forEach(s => { if (s.email) emails.add(s.email.toLowerCase().trim()); });
@@ -136,6 +139,59 @@ export default function MailManager() {
       setHtmlContent(editor.getHTML());
     }
   }, [editor]);
+
+  const handleCleanBounce = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailToClean = bounceEmail.trim().toLowerCase();
+    if (!emailToClean) return;
+    
+    if (!confirm(`Voulez-vous vraiment nettoyer l'adresse ${emailToClean} de toutes les listes ?`)) return;
+    
+    setBounceLoading(true);
+    try {
+      let found = false;
+      
+      // 1. Check signatures
+      const sigQ = query(collection(db, "signatures"), where("email", "==", emailToClean));
+      const sigSnap = await getDocs(sigQ);
+      sigSnap.docs.forEach(async (d) => {
+        await deleteDoc(doc(db, "signatures", d.id));
+        found = true;
+      });
+
+      // 2. Check membres
+      const memQ = query(collection(db, "membres"));
+      const memSnap = await getDocs(memQ);
+      memSnap.docs.forEach(async (d) => {
+        if (d.data().email?.toLowerCase().trim() === emailToClean) {
+          await updateDoc(doc(db, "membres", d.id), { emailBounced: true });
+          found = true;
+        }
+      });
+
+      // 3. Check journalistes
+      const jourQ = query(collection(db, "journalistes"), where("email", "==", emailToClean));
+      const jourSnap = await getDocs(jourQ);
+      jourSnap.docs.forEach(async (d) => {
+        await deleteDoc(doc(db, "journalistes", d.id));
+        found = true;
+      });
+
+      if (found) {
+        alert(`L'adresse ${emailToClean} a été nettoyée avec succès.`);
+        setBounceEmail("");
+        // Reload data
+        const newSigSnap = await getDocs(collection(db, "signatures"));
+        setSignatures(newSigSnap.docs.map(d => d.data()));
+      } else {
+        alert(`L'adresse ${emailToClean} n'a été trouvée dans aucune liste.`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors du nettoyage.");
+    }
+    setBounceLoading(false);
+  };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
