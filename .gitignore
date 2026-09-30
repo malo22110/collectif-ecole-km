@@ -4,6 +4,7 @@ out/
 .firebase/
 scratch/
 .DS_Store
+*.tsbuildinfo
 doc/Sources/test-petition.jpg
 secrets/
 *.service-account.json
