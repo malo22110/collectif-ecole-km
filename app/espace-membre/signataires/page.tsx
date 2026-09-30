@@ -12,6 +12,9 @@ type Signature = {
   ville: string;
   qualite: string;
   createdAt: string;
+  source?: string;
+  potentialDuplicate?: boolean;
+  potentialDuplicateCount?: number;
 };
 
 export default function SignatairesPage() {
@@ -152,7 +155,17 @@ export default function SignatairesPage() {
                 {currentItems.length > 0 ? (
                   currentItems.map((sig, idx) => (
                     <tr key={sig.id || idx} className="hover:bg-emerald-50/50 transition-colors group">
-                      <td className="p-4 md:px-8 font-medium text-stone-900">{sig.prenom} {sig.nom}</td>
+                      <td className="p-4 md:px-8 font-medium text-stone-900">
+                        {sig.prenom} {sig.nom}
+                        {sig.source === "papier" && (
+                          <span className="ml-2 inline-flex items-center rounded border border-stone-300 bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-700">Papier</span>
+                        )}
+                        {sig.potentialDuplicate && (
+                          <span className="ml-2 inline-flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900" title={`${sig.potentialDuplicateCount || 0} correspondance(s) à vérifier`}>
+                            Potentiel doublon
+                          </span>
+                        )}
+                      </td>
                       <td className="p-4 md:px-8 text-stone-600 text-sm">{sig.qualite}</td>
                       <td className="p-4 md:px-8 text-stone-600 text-sm">{sig.ville}</td>
                       <td className="p-4 md:px-8 text-stone-500 text-sm text-right whitespace-nowrap">

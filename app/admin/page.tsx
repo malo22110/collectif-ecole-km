@@ -5,6 +5,7 @@ import ArticleManager from "./ArticleManager";
 import FaqManager from "./FaqManager";
 import ImportMembers from "./ImportMembers";
 import ExportMembers from "./ExportMembers";
+import PetitionSignaturesExport from "./PetitionSignaturesExport";
 import SetupCmsBtn from "./SetupCmsBtn";
 import HistoriqueAdmin from "./HistoriqueAdmin";
 import MembreManager from "./MembreManager";
@@ -228,6 +229,7 @@ function AdminDashboardContent() {
             <DuplicateManager />
             <ImportMembers />
             <ExportMembers />
+            <PetitionSignaturesExport />
           </div>
         )}
 

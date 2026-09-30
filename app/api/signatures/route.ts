@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/lib/firebaseAdmin";
 
@@ -40,8 +41,8 @@ export async function GET(request: Request) {
     // Récupérer les signatures
     const signaturesSnap = await adminDb.collection("signatures").orderBy("createdAt", "desc").get();
     
-    const signatures = signaturesSnap.docs.map(doc => {
-      const data = doc.data();
+    const signatures = signaturesSnap.docs.map(signatureDoc => {
+      const data = signatureDoc.data();
       let isoDate = null;
       try {
         if (data.createdAt) {
@@ -52,22 +53,25 @@ export async function GET(request: Request) {
           }
         }
       } catch (e) {
-        console.error("Date parsing error for doc:", doc.id);
+        console.error("Date parsing error in petition signature data");
       }
 
       return {
-        id: doc.id,
+        id: randomUUID(),
         prenom: data.prenom,
         nom: data.nom,
         ville: data.ville,
         qualite: data.qualite,
+        source: data.source === "papier" ? "papier" : "en ligne",
+        potentialDuplicate: data.potentialDuplicate === true,
+        potentialDuplicateCount: Array.isArray(data.potentialDuplicateCandidates) ? data.potentialDuplicateCandidates.length : 0,
         createdAt: isoDate,
-        // On NE RENVOIE PAS l'email au client si ce n'est pas un admin (ou jamais)
-        // Comme demandé : "voir tout sauf les adresses emails"
       };
     });
 
-    return NextResponse.json({ signatures });
+    return NextResponse.json({ signatures }, {
+      headers: { "Cache-Control": "private, no-store, max-age=0" }
+    });
   } catch (error) {
     console.error("Erreur API signatures:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
