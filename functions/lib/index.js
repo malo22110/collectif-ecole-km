@@ -10,6 +10,7 @@ const scheduler_1 = require("firebase-functions/v2/scheduler");
 const nodemailer = require("nodemailer");
 const logger = require("firebase-functions/logger");
 const emailTemplates_1 = require("./emailTemplates");
+const petitionPublicNames_1 = require("./petitionPublicNames");
 (0, v2_1.setGlobalOptions)({ region: "europe-west9" });
 exports.envoyerMailBienvenue = (0, firestore_2.onDocumentUpdated)({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
     const membreAvant = event.data?.before.data();
@@ -265,13 +266,7 @@ exports.updatePetitionStats = (0, firestore_2.onDocumentWritten)({ document: "si
             const timeB = b.createdAt ? (typeof b.createdAt.toMillis === 'function' ? b.createdAt.toMillis() : 0) : 0;
             return timeB - timeA;
         });
-        const recentNames = validSignatures.slice(0, 10).map(s => {
-            const prenom = s.prenom || "Anonyme";
-            const nom = s.nom || "";
-            const qualite = s.qualite ? ` (${s.qualite})` : "";
-            const initiale = nom ? nom.charAt(0).toUpperCase() + "." : "";
-            return `${prenom} ${initiale}${qualite}`.trim();
-        });
+        const recentNames = validSignatures.slice(0, 10).map(petitionPublicNames_1.formatPublicRecentSigner);
         // On déduplique la liste des noms récents pour l'affichage propre
         const dedupedRecent = [...new Set(recentNames)];
         await (0, firestore_1.getFirestore)("ecole-db").collection('stats').doc('petition').set({

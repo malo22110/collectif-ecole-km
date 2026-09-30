@@ -1,6 +1,7 @@
 {
-  "/api/signatures/paper-import/route": "app/api/signatures/paper-import/route.js",
-  "/admin/assistant/page": "app/admin/assistant/page.js",
   "/page": "app/page.js",
-  "/espace-membre/numeriser-petition/page": "app/espace-membre/numeriser-petition/page.js"
+  "/admin/assistant/page": "app/admin/assistant/page.js",
+  "/espace-membre/non-signataires/page": "app/espace-membre/non-signataires/page.js",
+  "/espace-membre/numeriser-petition/page": "app/espace-membre/numeriser-petition/page.js",
+  "/petition/page": "app/petition/page.js"
 }

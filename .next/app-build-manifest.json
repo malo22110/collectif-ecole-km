@@ -30,6 +30,26 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/signatures/paper-import/route.js"
+    ],
+    "/api/signatures/non-signataires/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/signatures/non-signataires/route.js"
+    ],
+    "/espace-membre/non-signataires/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/espace-membre/non-signataires/page.js"
+    ],
+    "/petition/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/petition/layout.js"
+    ],
+    "/petition/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/petition/page.js"
     ]
   }
 }
