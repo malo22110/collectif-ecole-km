@@ -109,7 +109,7 @@ export default function SignatairesPage() {
                 placeholder="Rechercher par nom..." 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition-all"
+                className="input-base pl-10 py-2 text-sm"
               />
             </div>
             
@@ -117,7 +117,7 @@ export default function SignatairesPage() {
               <select 
                 value={filterVille} 
                 onChange={e => setFilterVille(e.target.value)}
-                className="flex-1 md:flex-none px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm"
+                className="input-base flex-1 md:flex-none py-2 text-sm cursor-pointer"
               >
                 <option value="">Toutes les communes</option>
                 {villesUniques.map(v => <option key={v} value={v}>{v}</option>)}
@@ -126,7 +126,7 @@ export default function SignatairesPage() {
               <select 
                 value={filterQualite} 
                 onChange={e => setFilterQualite(e.target.value)}
-                className="flex-1 md:flex-none px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm"
+                className="input-base flex-1 md:flex-none py-2 text-sm cursor-pointer"
               >
                 <option value="">Tous les liens</option>
                 {qualitesUniques.map(q => <option key={q} value={q}>{q}</option>)}
