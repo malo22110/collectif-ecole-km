@@ -1,11 +1,45 @@
 "use client";
 
-import React from "react";
-import { Printer, CheckCircle2, XCircle, FileText } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Printer, CheckCircle2, XCircle, FileText, UserCog } from "lucide-react";
 import Link from "next/link";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export default function EspaceMembreDashboard() {
+  const [membre, setMembre] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(async (u) => {
+      if (u && u.email) {
+        const docRef = doc(db, "membres", u.email);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setMembre(docSnap.data());
+        }
+      }
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleRoleRequest = async (role: string) => {
+    if (!auth.currentUser?.email) return;
+    try {
+      await updateDoc(doc(db, "membres", auth.currentUser.email), {
+        roleRequest: role
+      });
+      setMembre({ ...membre, roleRequest: role });
+      alert("Votre demande a bien été envoyée aux administrateurs.");
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la demande de rôle.");
+    }
+  };
+
   return (
+
     <div className="p-4 md:p-8 md:pt-10 max-w-5xl mx-auto w-full">
       <div className="mb-8 print:hidden">
         <h1 className="text-3xl md:text-5xl font-black text-stone-900 mb-3 tracking-tight">Tableau de bord</h1>
@@ -14,6 +48,40 @@ export default function EspaceMembreDashboard() {
 
       <div className="space-y-6 md:space-y-10">
         
+
+        {/* Role Request */}
+        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-stone-200 flex flex-col md:flex-row items-center gap-6 print:hidden">
+          <div className="w-16 h-16 md:w-20 md:h-20 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
+            <UserCog size={32} />
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-2xl font-black text-stone-900 mb-1">Rôles dans le collectif</h2>
+            <p className="text-stone-600 text-base mb-3">
+              Votre rôle actuel : <strong className="uppercase text-stone-800">{membre?.role || 'Membre standard'}</strong>
+            </p>
+            {membre?.roleRequest ? (
+              <p className="text-amber-600 font-medium text-sm">
+                ⏳ Demande en attente pour le rôle "{membre.roleRequest}".
+              </p>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => handleRoleRequest('redacteur')}
+                  className="text-sm border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Demander l'accès Rédacteur (Articles)
+                </button>
+                <button 
+                  onClick={() => handleRoleRequest('admin')}
+                  className="text-sm border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Demander l'accès Administrateur
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Action : Print Petition (Top) */}
         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-stone-200 flex flex-col md:flex-row items-center gap-6 print:hidden">
           <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">

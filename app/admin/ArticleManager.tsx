@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, orderBy } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+import { db, storage, auth } from "@/lib/firebase";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -18,6 +18,7 @@ interface Article {
   publishedAt: string;
   imageUrl?: string;
   status: 'draft' | 'published';
+  authorEmail?: string;
 }
 
 const MenuBar = ({ editor }: { editor: any }) => {
@@ -136,6 +137,7 @@ export default function ArticleManager() {
         content: currentArticle.content || "",
         publishedAt: currentArticle.publishedAt || new Date().toISOString().split('T')[0],
         status: currentArticle.status || 'draft',
+        authorEmail: currentArticle.authorEmail || auth.currentUser?.email,
         ...(finalImageUrl && { imageUrl: finalImageUrl }),
       };
 

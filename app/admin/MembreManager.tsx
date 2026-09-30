@@ -14,6 +14,7 @@ interface Membre {
   status: "pending" | "validated" | "rejected";
   dateInscription: string;
   role?: string;
+  roleRequest?: string;
 }
 
 export default function MembreManager() {
@@ -100,6 +101,7 @@ export default function MembreManager() {
               <th className="p-4 font-medium">Membre</th>
               <th className="p-4 font-medium">Contact</th>
               <th className="p-4 font-medium">Inscription</th>
+              <th className="p-4 font-medium">Rôle</th>
               <th className="p-4 font-medium">Statut</th>
               <th className="p-4 font-medium text-right">Actions</th>
             </tr>
@@ -129,9 +131,30 @@ export default function MembreManager() {
                       <div className="text-xs text-stone-400">{membre.telephone || '—'}</div>
                     </>
                   )}
-                </td>
-                <td className="p-4 text-stone-500">
+                </td>                <td className="p-4 text-stone-500">
                   {new Date(membre.dateInscription).toLocaleDateString("fr-FR")}
+                </td>
+                <td className="p-4">
+                  {editingId === membre.id ? (
+                    <select 
+                      className="input-base py-1 px-2 text-xs" 
+                      value={editForm.role || 'membre'} 
+                      onChange={e => setEditForm({...editForm, role: e.target.value})}
+                    >
+                      <option value="membre">Membre</option>
+                      <option value="redacteur">Rédacteur</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      <span className="font-semibold text-xs uppercase bg-stone-100 px-2 py-0.5 rounded w-fit">{membre.role || 'membre'}</span>
+                      {membre.roleRequest && (
+                        <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                          Demande: {membre.roleRequest}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="p-4">
                   {editingId === membre.id ? (
