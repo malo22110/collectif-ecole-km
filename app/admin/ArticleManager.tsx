@@ -12,6 +12,7 @@ import { Bold, Italic, List, ListOrdered, Image as ImageIcon, Save, X, Plus, Edi
 interface Article {
   id: string;
   title: string;
+  slug?: string;
   content: string;
   publishedAt: string;
   imageUrl?: string;
