@@ -77,47 +77,47 @@ export default function SignatairesPage() {
   }, [search, filterVille, filterQualite]);
 
   return (
-    <div className="p-4 md:p-8 md:pt-10 max-w-5xl mx-auto w-full">
-      <div className="mb-8 md:mb-12">
-        <h1 className="text-3xl md:text-4xl font-black text-stone-900 mb-3 flex items-center gap-3">
-          <Users className="text-emerald-600" size={36} />
+    <div className="flex flex-col h-full w-full bg-stone-50">
+      <div className="p-4 md:p-8 border-b border-stone-200 bg-white">
+        <h1 className="text-2xl md:text-3xl font-black text-stone-900 mb-2 flex items-center gap-3">
+          <Users className="text-emerald-600" size={28} />
           Liste des Signataires
         </h1>
-        <p className="text-lg text-stone-600">
-          Consultation de la liste des signatures. Par mesure de confidentialité, les adresses e-mail sont masquées.
+        <p className="text-stone-500 text-sm md:text-base">
+          Consultation de la liste complète. Les adresses e-mail sont masquées par mesure de confidentialité.
         </p>
       </div>
 
       {loading ? (
-        <div className="bg-white p-12 rounded-3xl shadow-sm border border-stone-200 flex flex-col items-center justify-center text-stone-500">
+        <div className="flex-1 flex flex-col items-center justify-center text-stone-500 min-h-[50vh]">
           <Loader2 className="animate-spin w-10 h-10 mb-4 text-emerald-500" />
           Chargement des signataires...
         </div>
       ) : error ? (
-        <div className="bg-red-50 text-red-700 p-6 rounded-2xl border border-red-200">
+        <div className="m-8 bg-red-50 text-red-700 p-6 rounded-2xl border border-red-200">
           {error}
         </div>
       ) : (
-        <div className="bg-white rounded-3xl shadow-sm border border-stone-200 overflow-hidden">
+        <div className="flex flex-col flex-1 overflow-hidden">
           
           {/* Filters Bar */}
-          <div className="p-6 border-b border-stone-200 bg-stone-50 space-y-4 md:space-y-0 md:flex items-center gap-4">
-            <div className="flex-1 relative">
+          <div className="p-4 md:px-8 py-4 bg-white border-b border-stone-200 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
+            <div className="relative w-full md:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
               <input 
                 type="text" 
-                placeholder="Rechercher un nom..." 
+                placeholder="Rechercher par nom..." 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition-all"
               />
             </div>
             
-            <div className="flex gap-4">
+            <div className="flex gap-3 w-full md:w-auto">
               <select 
                 value={filterVille} 
                 onChange={e => setFilterVille(e.target.value)}
-                className="px-4 py-2 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm"
+                className="flex-1 md:flex-none px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm"
               >
                 <option value="">Toutes les communes</option>
                 {villesUniques.map(v => <option key={v} value={v}>{v}</option>)}
@@ -126,7 +126,7 @@ export default function SignatairesPage() {
               <select 
                 value={filterQualite} 
                 onChange={e => setFilterQualite(e.target.value)}
-                className="px-4 py-2 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm"
+                className="flex-1 md:flex-none px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm"
               >
                 <option value="">Tous les liens</option>
                 {qualitesUniques.map(q => <option key={q} value={q}>{q}</option>)}
@@ -134,35 +134,35 @@ export default function SignatairesPage() {
             </div>
           </div>
           
-          <div className="p-4 border-b border-stone-100 bg-white flex justify-between items-center text-sm text-stone-500">
-            <span className="font-bold text-stone-900">{filteredSignatures.length} résultat(s)</span>
+          <div className="px-4 md:px-8 py-3 bg-stone-50 border-b border-stone-200 flex justify-between items-center text-xs font-semibold text-stone-500 uppercase tracking-wider shrink-0">
+            <span>{filteredSignatures.length} résultat(s) trouvés</span>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="flex-1 overflow-auto bg-white">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-stone-50 text-stone-500 text-sm border-b border-stone-100">
-                  <th className="p-4 font-medium">Prénom Nom</th>
-                  <th className="p-4 font-medium">Lien avec l'école</th>
-                  <th className="p-4 font-medium">Commune</th>
-                  <th className="p-4 font-medium text-right">Date</th>
+              <thead className="sticky top-0 bg-stone-100/90 backdrop-blur-sm shadow-sm z-10">
+                <tr className="text-stone-500 text-xs uppercase tracking-wider">
+                  <th className="p-4 md:px-8 font-semibold">Prénom Nom</th>
+                  <th className="p-4 md:px-8 font-semibold">Lien avec l'école</th>
+                  <th className="p-4 md:px-8 font-semibold">Commune</th>
+                  <th className="p-4 md:px-8 font-semibold text-right">Date de signature</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
                 {currentItems.length > 0 ? (
                   currentItems.map((sig, idx) => (
-                    <tr key={sig.id || idx} className="hover:bg-stone-50 transition-colors">
-                      <td className="p-4 font-semibold text-stone-900">{sig.prenom} {sig.nom}</td>
-                      <td className="p-4 text-stone-600 text-sm max-w-xs truncate" title={sig.qualite}>{sig.qualite}</td>
-                      <td className="p-4 text-stone-600 text-sm">{sig.ville}</td>
-                      <td className="p-4 text-stone-500 text-sm text-right whitespace-nowrap">
-                        {sig.createdAt ? new Date(sig.createdAt).toLocaleDateString("fr-FR") : "-"}
+                    <tr key={sig.id || idx} className="hover:bg-emerald-50/50 transition-colors group">
+                      <td className="p-4 md:px-8 font-medium text-stone-900">{sig.prenom} {sig.nom}</td>
+                      <td className="p-4 md:px-8 text-stone-600 text-sm">{sig.qualite}</td>
+                      <td className="p-4 md:px-8 text-stone-600 text-sm">{sig.ville}</td>
+                      <td className="p-4 md:px-8 text-stone-500 text-sm text-right whitespace-nowrap">
+                        {sig.createdAt ? new Date(sig.createdAt).toLocaleDateString("fr-FR", {day: 'numeric', month: 'long', year: 'numeric'}) : "-"}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="p-8 text-center text-stone-500">
+                    <td colSpan={4} className="p-12 text-center text-stone-500">
                       Aucun signataire ne correspond à votre recherche.
                     </td>
                   </tr>
@@ -173,21 +173,21 @@ export default function SignatairesPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
+            <div className="p-4 md:px-8 border-t border-stone-200 bg-white flex items-center justify-between shrink-0">
               <button 
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 bg-white border border-stone-300 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-stone-50"
+                className="px-4 py-2 border border-stone-300 rounded-lg text-sm font-medium text-stone-700 disabled:opacity-50 disabled:bg-stone-50 hover:bg-stone-100 transition-colors"
               >
                 Précédent
               </button>
-              <span className="text-sm text-stone-600">
+              <span className="text-sm font-medium text-stone-600 bg-stone-100 px-4 py-1.5 rounded-full">
                 Page {currentPage} sur {totalPages}
               </span>
               <button 
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-white border border-stone-300 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-stone-50"
+                className="px-4 py-2 border border-stone-300 rounded-lg text-sm font-medium text-stone-700 disabled:opacity-50 disabled:bg-stone-50 hover:bg-stone-100 transition-colors"
               >
                 Suivant
               </button>
