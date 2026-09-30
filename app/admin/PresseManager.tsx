@@ -7,6 +7,9 @@ import { Plus, Edit2, Trash2, Save, RefreshCw } from "lucide-react";
 
 export default function PresseManager() {
   const [articles, setArticles] = useState<any[]>([]);
+  const [journalistes, setJournalistes] = useState<{id: string, email: string}[]>([]);
+  const [newJournaliste, setNewJournaliste] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [fetchingMeta, setFetchingMeta] = useState(false);
   
@@ -15,6 +18,7 @@ export default function PresseManager() {
 
   useEffect(() => {
     fetchPresse();
+    fetchJournalistes();
   }, []);
 
   const fetchPresse = async () => {
@@ -28,6 +32,14 @@ export default function PresseManager() {
       console.error(err);
     }
     setLoading(false);
+  };
+
+  const fetchJournalistes = async () => {
+    try {
+      const q = query(collection(db, "journalistes"));
+      const snapshot = await getDocs(q);
+      setJournalistes(snapshot.docs.map(d => ({ id: d.id, email: d.data().email })));
+    } catch (err) {}
   };
 
   const handleFetchMetadata = async () => {
@@ -74,9 +86,34 @@ export default function PresseManager() {
       }
       setEditingId(null);
       fetchPresse();
+    fetchJournalistes();
     } catch (err) {
       console.error(err);
       alert("Erreur de sauvegarde");
+    }
+  };
+
+  const handleAddJournaliste = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newJournaliste.trim()) return;
+    try {
+      await addDoc(collection(db, "journalistes"), { email: newJournaliste.trim().toLowerCase() });
+      setNewJournaliste("");
+      const q = query(collection(db, "journalistes"));
+      const snapshot = await getDocs(q);
+      setJournalistes(snapshot.docs.map(d => ({ id: d.id, email: d.data().email })));
+    } catch (e) {
+      console.error(e);
+      alert("Erreur lors de l'ajout du journaliste");
+    }
+  };
+  
+  const handleDeleteJournaliste = async (id: string) => {
+    if (confirm("Supprimer ce journaliste ?")) {
+      await deleteDoc(doc(db, "journalistes", id));
+      const q = query(collection(db, "journalistes"));
+      const snapshot = await getDocs(q);
+      setJournalistes(snapshot.docs.map(d => ({ id: d.id, email: d.data().email })));
     }
   };
 
@@ -84,6 +121,7 @@ export default function PresseManager() {
     if (confirm("Supprimer cet article de presse ?")) {
       await deleteDoc(doc(db, "presse", id));
       fetchPresse();
+    fetchJournalistes();
     }
   };
 
@@ -251,6 +289,32 @@ export default function PresseManager() {
             )}
           </div>
         ))}
+      </div>
+
+      <div className="mt-12 bg-stone-50 p-6 rounded-2xl border border-stone-200">
+        <h2 className="text-xl font-bold text-stone-900 mb-4">Liste des journalistes (pour envois de presse)</h2>
+        <form onSubmit={handleAddJournaliste} className="flex gap-2 mb-4">
+          <input 
+            type="email" 
+            placeholder="Email du journaliste..."
+            required
+            className="input-base flex-1"
+            value={newJournaliste}
+            onChange={e => setNewJournaliste(e.target.value)}
+          />
+          <button type="submit" className="btn-primary">
+            Ajouter
+          </button>
+        </form>
+        <div className="flex flex-wrap gap-2">
+          {journalistes.map(j => (
+            <div key={j.id} className="bg-white border border-stone-200 rounded-full px-4 py-1.5 flex items-center gap-2 text-sm text-stone-700">
+              {j.email}
+              <button onClick={() => handleDeleteJournaliste(j.id)} className="text-rose-500 hover:text-rose-700 font-bold ml-2">×</button>
+            </div>
+          ))}
+          {journalistes.length === 0 && <span className="text-stone-500 text-sm italic">Aucun journaliste enregistré.</span>}
+        </div>
       </div>
     </div>
   );

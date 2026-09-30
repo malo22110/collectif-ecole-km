@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings, HelpCircle } from "lucide-react";
+import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings, HelpCircle, Newspaper } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserAvatar from "../components/UserAvatar";
@@ -144,6 +144,15 @@ export default function EspaceMembreLayout({ children }: { children: React.React
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
             >
               <HelpCircle size={20} /> <span>Gérer la FAQ</span>
+            </Link>
+          )}
+
+          {(userRoles.includes('admin') || userRoles.includes('presse')) && (
+            <Link 
+              href="/espace-membre/presse"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
+            >
+              <Newspaper size={20} /> <span>Gérer la Presse</span>
             </Link>
           )}
 

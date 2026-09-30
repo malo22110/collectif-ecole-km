@@ -57,9 +57,10 @@ export default function MailManager() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   
-  const [target, setTarget] = useState<"all" | "membres" | "signataires" | "membres_non_signataires">("all");
+  const [target, setTarget] = useState<"all" | "membres" | "signataires" | "membres_non_signataires" | "journalistes">("all");
   const [membres, setMembres] = useState<any[]>([]);
   const [signatures, setSignatures] = useState<any[]>([]);
+  const [journalistes, setJournalistes] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -100,6 +101,9 @@ export default function MailManager() {
     }
     if (target === "all" || target === "signataires") {
       signatures.forEach(s => { if (s.email) emails.add(s.email.toLowerCase().trim()); });
+    }
+    if (target === "journalistes") {
+      journalistes.forEach(j => { if (j.email) emails.add(j.email.toLowerCase().trim()); });
     }
     return Array.from(emails);
   };
@@ -230,6 +234,10 @@ export default function MailManager() {
             <label className="flex items-center gap-2 cursor-pointer bg-amber-100/50 px-2 py-1 rounded-lg border border-amber-200">
               <input type="radio" name="target" checked={target === "membres_non_signataires"} onChange={() => setTarget("membres_non_signataires")} className="text-amber-600 focus:ring-amber-500" />
               <span className="text-sm font-medium text-amber-900">Membres n'ayant pas signé</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer bg-blue-100/50 px-2 py-1 rounded-lg border border-blue-200">
+              <input type="radio" name="target" checked={target === "journalistes"} onChange={() => setTarget("journalistes")} className="text-blue-600 focus:ring-blue-500" />
+              <span className="text-sm font-medium text-blue-900">Journalistes (Presse)</span>
             </label>
           </div>
           <p className="text-xs text-stone-500 mt-2">
