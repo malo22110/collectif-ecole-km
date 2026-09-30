@@ -1,14 +1,6 @@
 {
-  "hosting": {
-    "public": "out",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "cleanUrls": true
-  },
   "apphosting": {
+
     "backendId": "ecole-km-backend",
     "rootDir": "/",
     "ignore": [
@@ -17,7 +9,8 @@
       "firebase-debug.log",
       "firebase-debug.*.log",
       "functions"
-    ]
+    ],
+    "alwaysDeployFromSource": true
   },
   "functions": {
     "source": "functions",
