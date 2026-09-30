@@ -1,8 +1,0 @@
-{
-  "/api/signatures/export/route": "app/api/signatures/export/route.js",
-  "/admin/page": "app/admin/page.js",
-  "/page": "app/page.js",
-  "/espace-membre/page": "app/espace-membre/page.js",
-  "/espace-membre/correcteur/page": "app/espace-membre/correcteur/page.js",
-  "/petition/page": "app/petition/page.js"
-}
