@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, collection, onSnapshot, updateDoc } from "firebase/firestore";
-import { ShieldAlert, Search, PenLine, Save, X, Check } from "lucide-react";
+import { ShieldAlert, Search, PenLine, Save, X, Check, Download, Loader2 } from "lucide-react";
 
 // [SPEC-CORRECTEUR-01] Seuls les membres avec le rôle 'correcteur' ou 'admin' peuvent accéder à cette page
 // et modifier les entrées de la pétition (prenom, nom, ville, qualite, email).
@@ -25,6 +25,8 @@ export default function CorrecteurPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Signature>>({});
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
   const [savedId, setSavedId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
@@ -124,6 +126,41 @@ export default function CorrecteurPage() {
     setSaving(false);
   };
 
+  const handleExport = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      setExportError("Votre session a expiré. Reconnectez-vous.");
+      return;
+    }
+
+    setExporting(true);
+    setExportError("");
+    try {
+      const response = await fetch("/api/signatures/export", {
+        headers: { Authorization: `Bearer ${await user.getIdToken()}` },
+        cache: "no-store"
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || "L'export a échoué.");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = `signataires-petition-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : "L'export a échoué.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // --- Guards ---
   if (hasAccess === null)
     return (
@@ -160,25 +197,39 @@ export default function CorrecteurPage() {
 
       {/* Search */}
       <div className="p-4 md:px-8 bg-white border-b border-stone-200">
-        <div className="relative max-w-sm">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="input-base pl-10 py-2 text-sm"
-          />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full max-w-sm">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+              size={18}
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              placeholder="Rechercher..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="input-base py-2 pl-10 text-sm"
+              aria-label="Rechercher parmi les signataires"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting}
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-emerald-800 px-4 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60"
+          >
+            {exporting ? <Loader2 className="animate-spin" size={17} /> : <Download size={17} />}
+            {exporting ? "Préparation…" : "Exporter tous les signataires (CSV)"}
+          </button>
         </div>
         <p className="text-xs text-stone-400 mt-2">
           {filtered.length} entrée(s)
         </p>
+        {exportError && <p role="alert" className="mt-2 text-sm font-medium text-red-700">{exportError}</p>}
       </div>
 
       {/* Table */}

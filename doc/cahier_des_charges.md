@@ -36,6 +36,7 @@ Accessible via la route `/admin`, cet espace est protégé par mot de passe et r
 * **[SPEC-PET-SCAN-04] Provenance des signatures papier :** Lors de l'import, le champ `email` contient le marqueur `Signature papier - Prénom Nom` construit à partir du profil du membre authentifié qui a numérisé la page; cette mention ne constitue pas une adresse e-mail du signataire.
 * **[SPEC-PET-SCAN-05] Résumé public des signataires :** Le bloc « Derniers signataires » n'affiche jamais le nom complet d'une signature papier; il présente le libellé générique « Signataire papier ».
 * **[SPEC-MEMBERS-NONSIGN-01] Membres n'ayant pas signé :** Tout membre validé peut consulter dans l'espace membre la liste des membres validés sans signature correspondante, selon le même rapprochement d'adresses normalisées que la campagne e-mail. La comparaison est effectuée côté serveur; seuls les prénoms et noms sont retournés, jamais les adresses e-mail.
+* **[SPEC-CORRECTEUR-EXPORT-01] Export du registre :** Les membres avec le rôle `correcteur` et les administrateurs peuvent télécharger tous les signataires en CSV UTF-8 compatible Excel/Google Sheets. L'export inclut les coordonnées et les marqueurs de provenance/doublon; il est autorisé côté serveur et neutralise les cellules susceptibles d'être interprétées comme formules.
 
 ### Phase 2 : Gestion de Contenu (À venir)
 * **Actualités / News :** Interface pour publier des petites brèves ou des articles sur l'avancée des négociations.
