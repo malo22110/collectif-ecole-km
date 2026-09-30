@@ -88,7 +88,7 @@ export default function MembreManager() {
             placeholder="Rechercher (nom, email...)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="input-base pl-10 py-2 text-sm"
           />
         </div>
       </div>
@@ -110,8 +110,8 @@ export default function MembreManager() {
                 <td className="p-4">
                   {editingId === membre.id ? (
                     <div className="space-y-2">
-                      <input type="text" className="border p-1 text-xs w-full" value={editForm.prenom} onChange={e => setEditForm({...editForm, prenom: e.target.value})} />
-                      <input type="text" className="border p-1 text-xs w-full" value={editForm.nom} onChange={e => setEditForm({...editForm, nom: e.target.value})} />
+                      <input type="text" className="input-base py-1 px-2 text-xs" value={editForm.prenom} onChange={e => setEditForm({...editForm, prenom: e.target.value})} />
+                      <input type="text" className="input-base py-1 px-2 text-xs" value={editForm.nom} onChange={e => setEditForm({...editForm, nom: e.target.value})} />
                     </div>
                   ) : (
                     <div className="font-bold text-stone-900">{membre.prenom} {membre.nom}</div>
@@ -120,12 +120,12 @@ export default function MembreManager() {
                 <td className="p-4 text-stone-600">
                   {editingId === membre.id ? (
                     <div className="space-y-2">
-                      <input type="email" className="border p-1 text-xs w-full" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} />
-                      <input type="text" className="border p-1 text-xs w-full" value={editForm.telephone || ""} onChange={e => setEditForm({...editForm, telephone: e.target.value})} placeholder="Téléphone" />
+                      <input type="email" className="input-base py-1 px-2 text-xs" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} />
+                      <input type="text" className="input-base py-1 px-2 text-xs" value={editForm.telephone || ""} onChange={e => setEditForm({...editForm, telephone: e.target.value})} placeholder="Téléphone" />
                     </div>
                   ) : (
                     <>
-                      <div>{membre.email}</div>
+                      <div className="text-stone-900">{membre.email}</div>
                       <div className="text-xs text-stone-400">{membre.telephone || '—'}</div>
                     </>
                   )}
@@ -136,7 +136,7 @@ export default function MembreManager() {
                 <td className="p-4">
                   {editingId === membre.id ? (
                     <select 
-                      className="border p-1 text-xs w-full" 
+                      className="input-base py-1 px-2 text-xs" 
                       value={editForm.status} 
                       onChange={e => setEditForm({...editForm, status: e.target.value as any})}
                     >
