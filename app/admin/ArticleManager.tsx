@@ -105,8 +105,17 @@ export default function ArticleManager() {
         finalImageUrl = await getDownloadURL(fileRef);
       }
 
+      // Generate URL-friendly slug from title
+      const slug = (currentArticle.title || "Nouvel article")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remove accents
+        .replace(/[^a-z0-9]+/g, "-")      // Replace non-alphanumeric with hyphen
+        .replace(/(^-|-$)+/g, "");        // Remove leading/trailing hyphens
+
       const articleData = {
         title: currentArticle.title || "Nouvel article",
+        slug: currentArticle.slug || slug, // Keep existing slug if present, otherwise use generated
         content: currentArticle.content || "",
         publishedAt: currentArticle.publishedAt || new Date().toISOString().split('T')[0],
         status: currentArticle.status || 'draft',

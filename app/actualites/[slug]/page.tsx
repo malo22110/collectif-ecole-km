@@ -15,20 +15,37 @@ import ArticlePageClient from "./ArticlePageClient";
 export const revalidate = 60;
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
+}
+
+/**
+ * Fonction utilitaire pour trouver un article par slug, avec fallback sur l'ID.
+ */
+async function getArticleBySlugOrId(slugOrId: string) {
+  let docSnap = null;
+  
+  // 1. Chercher par slug (nouveau format)
+  const querySnap = await adminDb.collection("articles").where("slug", "==", slugOrId).limit(1).get();
+  if (!querySnap.empty) {
+    docSnap = querySnap.docs[0];
+  } else {
+    // 2. Fallback par ID (anciens articles)
+    docSnap = await adminDb.collection("articles").doc(slugOrId).get();
+  }
+  
+  return docSnap;
 }
 
 /**
  * [SPEC-OG-01] Génère les meta OpenGraph dynamiquement pour chaque article.
- * Appelé côté serveur avant le rendu — garantit les bonnes meta pour les crawlers.
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
 
   try {
-    const docSnap = await adminDb.collection("articles").doc(id).get();
+    const docSnap = await getArticleBySlugOrId(slug);
 
-    if (!docSnap.exists) {
+    if (!docSnap || !docSnap.exists) {
       return {
         title: "Article introuvable | École de Kergrist-Moëlou",
       };
@@ -36,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const article = docSnap.data()!;
     const siteUrl = "https://collectif-ecole-km.fr";
-    const articleUrl = `${siteUrl}/actualites/${id}`;
+    const articleUrl = `${siteUrl}/actualites/${slug}`;
 
     // Extrait un texte brut depuis le HTML du contenu (pour la description OG)
     const rawText = (article.content || "")
@@ -92,23 +109,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  * Server Component shell — passe l'id au Client Component qui fetch les données.
  */
 export default async function ArticlePage({ params }: Props) {
-  const { id } = await params;
+  const { slug } = await params;
 
-  // Vérifier que l'article existe côté serveur (pour le 404 propre)
+  let articleId = slug;
+
   try {
-    const docSnap = await adminDb.collection("articles").doc(id).get();
-    if (!docSnap.exists) {
+    const docSnap = await getArticleBySlugOrId(slug);
+    
+    if (!docSnap || !docSnap.exists) {
       notFound();
     }
     
-    // Si status est absent, on considère que c'est un vieil article publié
     const status = docSnap.data()?.status || "published";
     if (status !== "published") {
       notFound();
     }
+
+    // On passe toujours le VRAI ID Firestore au composant client pour qu'il le charge sans changer sa logique
+    articleId = docSnap.id;
   } catch {
     notFound();
   }
 
-  return <ArticlePageClient id={id} />;
+  return <ArticlePageClient id={articleId} />;
 }
