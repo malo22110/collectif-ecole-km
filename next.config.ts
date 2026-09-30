@@ -1,11 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // output: "export" supprimé → active le SSR (Server Components, generateMetadata)
-  // Nécessaire pour les meta OpenGraph dynamiques par article
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        pathname: '/**',
+      },
+    ],
   },
 };
+
+export default nextConfig;
 
 export default nextConfig;

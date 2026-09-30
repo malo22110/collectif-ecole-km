@@ -8,6 +8,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { Bold, Italic, List, ListOrdered, Image as ImageIcon, Save, X, Plus, Edit, Trash2 } from "lucide-react";
+import imageCompression from 'browser-image-compression';
 
 interface Article {
   id: string;
@@ -101,9 +102,25 @@ export default function ArticleManager() {
 
       // Upload image if selected
       if (imageFile) {
-        const fileRef = ref(storage, `articles/${Date.now()}_${imageFile.name}`);
-        await uploadBytes(fileRef, imageFile);
-        finalImageUrl = await getDownloadURL(fileRef);
+        setSaving(true); // Ensure saving state is active during compression
+        try {
+          const options = {
+            maxSizeMB: 0.3, // 300 Ko max pour les previews Signal/WhatsApp
+            maxWidthOrHeight: 1200,
+            useWebWorker: true,
+            initialQuality: 0.8
+          };
+          const compressedFile = await imageCompression(imageFile, options);
+          const fileRef = ref(storage, `articles/${Date.now()}_${compressedFile.name}`);
+          await uploadBytes(fileRef, compressedFile);
+          finalImageUrl = await getDownloadURL(fileRef);
+        } catch (error) {
+          console.error("Erreur lors de la compression de l'image:", error);
+          // Fallback on original if compression fails
+          const fileRef = ref(storage, `articles/${Date.now()}_${imageFile.name}`);
+          await uploadBytes(fileRef, imageFile);
+          finalImageUrl = await getDownloadURL(fileRef);
+        }
       }
 
       // Generate URL-friendly slug from title
