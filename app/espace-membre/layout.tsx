@@ -67,7 +67,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col md:flex-row">
+    <div className="h-screen bg-stone-50 flex flex-col md:flex-row overflow-hidden">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between bg-stone-900 text-white p-4 print:hidden sticky top-0 z-40">
         <div className="flex items-center gap-2 font-bold text-lg">
@@ -90,7 +90,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
       )}
 
       {/* Sidebar / Drawer */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-stone-900 text-stone-300 flex flex-col h-full transform transition-transform duration-300 ease-in-out md:relative md:w-64 md:transform-none md:min-h-screen shrink-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-stone-900 text-stone-300 flex flex-col h-full transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:h-screen md:w-64 md:transform-none shrink-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6 border-b border-stone-800 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -202,7 +202,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 max-w-full overflow-x-hidden md:overflow-visible">
+      <div className="flex-1 overflow-y-auto max-w-full">
         {children}
       </div>
     </div>
