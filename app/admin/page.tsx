@@ -7,6 +7,7 @@ import ImportMembers from "./ImportMembers";
 import ExportMembers from "./ExportMembers";
 import SetupCmsBtn from "./SetupCmsBtn";
 import HistoriqueAdmin from "./HistoriqueAdmin";
+import MembreManager from "./MembreManager";
 import DuplicateManager from "./DuplicateManager";
 import MailManager from "./MailManager";
 import PresseManager from "./PresseManager";
@@ -188,6 +189,7 @@ export default function AdminDashboard() {
                 )}
               </div>
             </div>
+            <MembreManager />
             <DuplicateManager />
             <ImportMembers />
             <ExportMembers />
