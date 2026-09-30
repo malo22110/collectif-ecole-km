@@ -42,13 +42,26 @@ export async function GET(request: Request) {
     
     const signatures = signaturesSnap.docs.map(doc => {
       const data = doc.data();
+      let isoDate = null;
+      try {
+        if (data.createdAt) {
+          if (typeof data.createdAt.toDate === 'function') {
+            isoDate = data.createdAt.toDate().toISOString();
+          } else {
+            isoDate = new Date(data.createdAt).toISOString();
+          }
+        }
+      } catch (e) {
+        console.error("Date parsing error for doc:", doc.id);
+      }
+
       return {
         id: doc.id,
         prenom: data.prenom,
         nom: data.nom,
         ville: data.ville,
         qualite: data.qualite,
-        createdAt: data.createdAt ? data.createdAt.toDate().toISOString() : null,
+        createdAt: isoDate,
         // On NE RENVOIE PAS l'email au client si ce n'est pas un admin (ou jamais)
         // Comme demandé : "voir tout sauf les adresses emails"
       };

@@ -7,6 +7,7 @@
 
 import { initializeApp, getApps, cert, App } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
 import fs from "fs";
 import path from "path";
 
@@ -41,5 +42,5 @@ function getAdminApp(): App {
 
 export const adminApp = getAdminApp();
 export const adminDb = getFirestore(adminApp);
-export const adminAuth = require("firebase-admin/auth").getAuth(adminApp);
+export const adminAuth = getAuth(adminApp);
 
