@@ -1,4 +1,14 @@
 {
+  "hosting": {
+    "public": "public",
+    "redirects": [
+      {
+        "source": "/:path*",
+        "destination": "https://ecole-km-backend--collectif-ecole-km.europe-west4.hosted.app/:path",
+        "type": 301
+      }
+    ]
+  },
   "apphosting": {
 
     "backendId": "ecole-km-backend",
