@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X } from "lucide-react";
+import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserAvatar from "../components/UserAvatar";
@@ -11,6 +11,7 @@ import UserAvatar from "../components/UserAvatar";
 export default function EspaceMembreLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [isMember, setIsMember] = useState<boolean | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>(['membre']);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -25,6 +26,10 @@ export default function EspaceMembreLayout({ children }: { children: React.React
           const docRef = doc(db, "membres", u.email!);
           const docSnap = await getDoc(docRef);
           setIsMember(docSnap.exists() && docSnap.data().status === "validated");
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserRoles(Array.isArray(data.roles) ? data.roles : (data.role ? [data.role] : ['membre']));
+          }
         } catch (err) {
           console.error(err);
           setIsMember(false);
@@ -114,6 +119,33 @@ export default function EspaceMembreLayout({ children }: { children: React.React
           >
             <Users size={20} /> <span>Signataires</span>
           </Link>
+          
+          {(userRoles.includes('admin') || userRoles.includes('redacteur')) && (
+            <Link 
+              href="/admin?tab=articles"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
+            >
+              <FileText size={20} /> <span>Rédiger des articles</span>
+            </Link>
+          )}
+
+          {(userRoles.includes('admin') || userRoles.includes('mail')) && (
+            <Link 
+              href="/admin?tab=emails"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
+            >
+              <Mail size={20} /> <span>Campagne d'e-mailing</span>
+            </Link>
+          )}
+          
+          {userRoles.includes('admin') && (
+            <Link 
+              href="/admin?tab=membres"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400 mt-4 border-t border-stone-800 pt-4"
+            >
+              <Settings size={20} /> <span>Administration totale</span>
+            </Link>
+          )}
         </nav>
 
         <div className="p-4 border-t border-stone-800 space-y-2 mt-auto">

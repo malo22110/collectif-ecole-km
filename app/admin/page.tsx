@@ -14,9 +14,9 @@ import PresseManager from "./PresseManager";
 import { Mail } from "lucide-react";
 import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot, Newspaper, Send } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, onSnapshot, updateDoc, doc, getDoc } from "firebase/firestore";
-import MailingManager from "./MailingManager";
 import { auth, db } from "@/lib/firebase";
 
 interface Membre {
@@ -28,10 +28,12 @@ interface Membre {
   dateInscription: string;
 }
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"membres" | "articles" | "faq" | "emails" | "presse">("membres");
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") as any) || "membres";
+  const [activeTab, setActiveTab] = useState<"membres" | "articles" | "faq" | "emails" | "presse">(initialTab);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
   
@@ -129,37 +131,47 @@ export default function AdminDashboard() {
           <p className="text-xs text-stone-500 mt-1">{user.email}</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <button 
-            onClick={() => setActiveTab("membres")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${activeTab === "membres" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
-          >
-            <div className="flex items-center gap-3"><Users size={20} /> Candidatures</div>
-            {pendingMembers.length > 0 && <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{pendingMembers.length}</span>}
-          </button>
-          <button 
-            onClick={() => setActiveTab("articles")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "articles" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
-          >
-            <FileText size={20} /> Articles & Docs
-          </button>
-          <button 
-            onClick={() => setActiveTab("faq")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "faq" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
-          >
-            <HelpCircle size={20} /> FAQ
-          </button>
-          <button 
-            onClick={() => setActiveTab("presse")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "presse" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
-          >
-            <Newspaper size={20} /> Presse
-          </button>
-          <button 
-            onClick={() => setActiveTab("emails")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "emails" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
-          >
-            <Mail size={20} /> E-mails
-          </button>
+          {userRoles.includes('admin') && (
+            <button 
+              onClick={() => setActiveTab("membres")}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${activeTab === "membres" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+            >
+              <div className="flex items-center gap-3"><Users size={20} /> Candidatures</div>
+              {pendingMembers.length > 0 && <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{pendingMembers.length}</span>}
+            </button>
+          )}
+          {(userRoles.includes('admin') || userRoles.includes('redacteur')) && (
+            <button 
+              onClick={() => setActiveTab("articles")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "articles" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+            >
+              <FileText size={20} /> Articles & Docs
+            </button>
+          )}
+          {userRoles.includes('admin') && (
+            <button 
+              onClick={() => setActiveTab("faq")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "faq" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+            >
+              <HelpCircle size={20} /> FAQ
+            </button>
+          )}
+          {userRoles.includes('admin') && (
+            <button 
+              onClick={() => setActiveTab("presse")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "presse" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+            >
+              <Newspaper size={20} /> Presse
+            </button>
+          )}
+          {(userRoles.includes('admin') || userRoles.includes('mail')) && (
+            <button 
+              onClick={() => setActiveTab("emails")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === "emails" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+            >
+              <Mail size={20} /> E-mails
+            </button>
+          )}
         </nav>
         <div className="p-4 border-t border-stone-800">
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-stone-800 transition-colors text-red-400">
@@ -169,8 +181,8 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex-1 p-8">
-        {activeTab === "presse" && <PresseManager />}
-        {activeTab === "membres" && (
+        {activeTab === "presse" && userRoles.includes('admin') && <PresseManager />}
+        {activeTab === "membres" && userRoles.includes('admin') && (
           <div>
             <h2 className="text-2xl font-bold text-stone-900 mb-6">Gestion des candidatures</h2>
             <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
@@ -220,14 +232,22 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === "faq" && (
+        {activeTab === "faq" && userRoles.includes('admin') && (
           <FaqManager />
         )}
 
-        {activeTab === "emails" && (
+        {activeTab === "emails" && (userRoles.includes('admin') || userRoles.includes('mail')) && (
           <MailManager />
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Chargement...</div>}>
+      <AdminDashboardContent />
+    </React.Suspense>
   );
 }
