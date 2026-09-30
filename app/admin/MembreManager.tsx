@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, deleteField } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Search, CheckCircle2, XCircle, Clock, Edit2, Trash2 } from "lucide-react";
 
@@ -57,7 +57,12 @@ export default function MembreManager() {
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
-    await updateDoc(doc(db, "membres", editingId), editForm);
+    const updates: any = { ...editForm };
+    // Toujours nettoyer les demandes en attente lorsqu'un admin sauvegarde l'édition
+    updates.roleRequest = deleteField();
+    updates.roleRequests = deleteField();
+    
+    await updateDoc(doc(db, "membres", editingId), updates);
     setEditingId(null);
   };
 
