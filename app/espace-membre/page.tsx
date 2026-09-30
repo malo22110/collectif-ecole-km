@@ -67,13 +67,13 @@ export default function EspaceMembreDashboard() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button 
                   onClick={() => handleRoleRequest('redacteur')}
-                  className="text-sm border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 px-4 py-2 rounded-lg font-medium transition-colors"
+                  className="text-sm text-stone-700 bg-white border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                   Demander l'accès Rédacteur (Articles)
                 </button>
                 <button 
                   onClick={() => handleRoleRequest('admin')}
-                  className="text-sm border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 px-4 py-2 rounded-lg font-medium transition-colors"
+                  className="text-sm text-stone-700 bg-white border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                   Demander l'accès Administrateur
                 </button>
