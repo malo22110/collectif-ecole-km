@@ -122,7 +122,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
           
           {(userRoles.includes('admin') || userRoles.includes('redacteur')) && (
             <Link 
-              href="/admin?tab=articles"
+              href="/espace-membre/articles"
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
             >
               <FileText size={20} /> <span>Rédiger des articles</span>
@@ -131,7 +131,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
 
           {(userRoles.includes('admin') || userRoles.includes('mail')) && (
             <Link 
-              href="/admin?tab=emails"
+              href="/espace-membre/mailing"
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
             >
               <Mail size={20} /> <span>Campagne d'e-mailing</span>
@@ -140,7 +140,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
           
           {userRoles.includes('admin') && (
             <Link 
-              href="/admin?tab=membres"
+              href="/admin"
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400 mt-4 border-t border-stone-800 pt-4"
             >
               <Settings size={20} /> <span>Administration totale</span>

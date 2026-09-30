@@ -57,9 +57,17 @@ function AdminDashboardContent() {
         const docSnap = await getDoc(doc(db, "membres", user.email!));
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setUserRoles(Array.isArray(data.roles) ? data.roles : (data.role ? [data.role] : ['membre']));
+          const roles = Array.isArray(data.roles) ? data.roles : (data.role ? [data.role] : ['membre']);
+          setUserRoles(roles);
+          if (!roles.includes('admin')) {
+             window.location.href = '/espace-membre';
+          }
+        } else {
+          window.location.href = '/espace-membre';
         }
-      } catch (err) {}
+      } catch (err) {
+        window.location.href = '/espace-membre';
+      }
     };
     fetchRole();
 
