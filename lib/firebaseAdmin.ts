@@ -52,6 +52,7 @@ function getAdminApp(): App {
 }
 
 export const adminApp = getAdminApp();
-export const adminDb = getFirestore(adminApp);
+// IMPORTANT: Le projet utilise une base de données nommée "ecole-db", pas la "(default)"
+export const adminDb = getFirestore(adminApp, 'ecole-db');
 export const adminAuth = getAuth(adminApp);
 
