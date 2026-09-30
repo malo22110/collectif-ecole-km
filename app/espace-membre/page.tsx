@@ -1,290 +1,114 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { ArrowLeft, Printer, ShieldAlert, CheckCircle2, XCircle, AlertTriangle, FileText, Target, Lightbulb, Handshake, Info, ShieldQuestion } from "lucide-react";
+import React from "react";
+import { Printer, CheckCircle2, XCircle, FileText } from "lucide-react";
 import Link from "next/link";
-import UserAvatar from "../components/UserAvatar";
 
-export default function EspaceMembre() {
-  const [user, setUser] = useState<any>(null);
-  const [isMember, setIsMember] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        setUser(u);
-        try {
-          const { doc, getDoc } = await import("firebase/firestore");
-          const { db } = await import("@/lib/firebase");
-          const docRef = doc(db, "membres", u.email!);
-          const docSnap = await getDoc(docRef);
-          setIsMember(docSnap.exists() && docSnap.data().status === "validated");
-        } catch (err) {
-          console.error(err);
-          setIsMember(false);
-        }
-      } else {
-        setUser(null);
-        setIsMember(false);
-      }
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
-
-  if (loading) return <div className="min-h-screen bg-stone-50 flex items-center justify-center">Chargement...</div>;
-
-  if (!user || isMember === false) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full">
-          <ShieldAlert className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-stone-900 mb-2">Accès restreint</h1>
-          <p className="text-stone-600 mb-6">
-            {!user 
-              ? "Vous devez être connecté pour accéder à cette page." 
-              : "Votre compte est en attente de validation ou l'adresse email utilisée n'est pas inscrite au collectif."}
-          </p>
-          <Link href="/" className="btn-primary w-full justify-center">Retour à l'accueil</Link>
-        </div>
-      </div>
-    );
-  }
-
+export default function EspaceMembreDashboard() {
   return (
-    <div className="min-h-screen bg-stone-100 pb-20">
-      <header className="bg-stone-900 border-b border-stone-800 sticky top-0 z-50 shadow-md print:hidden">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between text-stone-100">
-          <Link href="/" className="flex items-center gap-2 hover:text-white font-medium transition-colors">
-            <ArrowLeft size={20} />
-            <span className="hidden sm:inline">Retour à l'accueil</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <UserAvatar />
+    <div className="p-4 md:p-8 md:pt-10 max-w-5xl mx-auto w-full">
+      <div className="mb-8 print:hidden">
+        <h1 className="text-3xl md:text-5xl font-black text-stone-900 mb-3 tracking-tight">Tableau de bord</h1>
+        <p className="text-lg md:text-xl text-stone-600">Votre quartier général pour la mobilisation sur le terrain.</p>
+      </div>
+
+      <div className="space-y-6 md:space-y-10">
+        
+        {/* Action : Print Petition (Top) */}
+        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-stone-200 flex flex-col md:flex-row items-center gap-6 print:hidden">
+          <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
+            <Printer size={32} />
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-2xl font-black text-stone-900 mb-1">Pétition Papier</h2>
+            <p className="text-stone-600 text-base">
+              Imprimez la version papier pour récolter des signatures lors de votre porte-à-porte.
+            </p>
+          </div>
+          <div className="w-full md:w-auto shrink-0">
+            <Link 
+              href="/espace-membre/imprimer" 
+              target="_blank"
+              className="btn-primary justify-center flex items-center gap-2 py-3 px-6 text-base w-full md:w-auto shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-500 ring-offset-2 ring-offset-white"
+            >
+              <Printer size={20} /> Imprimer le document
+            </Link>
           </div>
         </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 pt-8 md:pt-12">
-        <div className="mb-8 md:mb-12 print:hidden">
-          <h1 className="text-3xl md:text-5xl font-black text-stone-900 mb-3 tracking-tight">Espace Membre</h1>
-          <p className="text-lg md:text-xl text-stone-600">Votre quartier général pour la mobilisation sur le terrain.</p>
+        
+        {/* Consignes */}
+        <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-200 flex flex-col md:flex-row gap-4 items-start md:items-center print:hidden">
+          <div className="font-black text-emerald-900 flex items-center gap-2 shrink-0 text-lg">
+            <span className="bg-emerald-200 w-8 h-8 rounded-full flex items-center justify-center text-emerald-800">i</span>
+            Consignes :
+          </div>
+          <ul className="text-emerald-800 space-y-2 md:space-y-0 md:flex md:gap-6 flex-wrap text-sm md:text-base font-medium">
+            <li className="flex items-center gap-2"><CheckCircle2 size={18} className="text-emerald-600"/> Demandez si la personne a déjà signé en ligne</li>
+            <li className="flex items-center gap-2"><CheckCircle2 size={18} className="text-emerald-600"/> L'adresse complète ou le numéro de téléphone ne sont PAS obligatoires</li>
+            <li className="flex items-center gap-2"><CheckCircle2 size={18} className="text-emerald-600"/> La signature est indispensable</li>
+          </ul>
         </div>
 
-        <div className="space-y-6 md:space-y-12">
-          
-          {/* Action : Print Petition (Top) */}
-          <div className="bg-white p-6 md:p-10 rounded-3xl shadow-md border border-stone-200 flex flex-col md:flex-row items-center gap-6 md:gap-10 print:hidden">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center shrink-0">
-              <Printer size={40} className="md:w-12 md:h-12" />
+        {/* Anti-sèche (Argumentaire) */}
+        <div className="bg-white rounded-3xl shadow-sm border border-stone-200 overflow-hidden">
+          <div className="bg-stone-900 p-6 md:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 print:bg-white print:text-stone-900 print:border-b print:border-stone-200">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-black mb-2 flex items-center gap-3">
+                <FileText className="text-emerald-400 print:text-stone-900" size={32} />
+                L'Anti-Sèche du Collectif
+              </h2>
+              <p className="text-stone-400 text-sm md:text-base print:text-stone-600">L'argumentaire complet et vérifié pour convaincre sur le terrain.</p>
             </div>
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-black text-stone-900 mb-2">Pétition Papier</h2>
-              <p className="text-stone-600 mb-4 md:mb-0 text-base md:text-lg">
-                Imprimez la version papier pour récolter des signatures lors de votre porte-à-porte.
-              </p>
-            </div>
-            <div className="w-full md:w-auto shrink-0">
-              <Link 
-                href="/espace-membre/imprimer" 
-                target="_blank"
-                className="btn-primary justify-center flex items-center gap-2 py-4 px-8 text-lg w-full md:w-auto shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-500 ring-offset-2 ring-offset-white"
-              >
-                <Printer size={24} /> Imprimer le document
-              </Link>
-            </div>
-          </div>
-          
-          {/* Action : Consult signatures */}
-          <div className="bg-white p-6 md:p-10 rounded-3xl shadow-md border border-stone-200 flex flex-col md:flex-row items-center gap-6 md:gap-10 print:hidden">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center shrink-0">
-              <Users size={40} className="md:w-12 md:h-12" />
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-black text-stone-900 mb-2">Signataires de la pétition</h2>
-              <p className="text-stone-600 mb-4 md:mb-0 text-base md:text-lg">
-                Consultez la liste de tous les signataires enregistrés (informations de contact masquées).
-              </p>
-            </div>
-            <div className="w-full md:w-auto shrink-0">
-              <Link 
-                href="/espace-membre/signataires"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl justify-center flex items-center gap-2 py-4 px-8 text-lg w-full md:w-auto shadow-lg shadow-blue-600/30 ring-2 ring-blue-500 ring-offset-2 ring-offset-white transition-all"
-              >
-                <FileText size={24} /> Voir la liste
-              </Link>
-            </div>
-          </div>
-          {/* Consignes */}
-          <div className="bg-emerald-50 p-6 md:p-8 rounded-3xl border-2 border-emerald-200 flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center print:hidden">
-            <div className="font-black text-emerald-900 flex items-center gap-2 shrink-0 text-xl">
-              <AlertTriangle size={28} /> Consignes clés
-            </div>
-            <ul className="text-emerald-900 flex-1 space-y-3 md:space-y-0 md:flex md:flex-wrap gap-x-8 gap-y-4 list-none text-base md:text-lg font-medium">
-              <li className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div> Faire écrire <strong>en MAJUSCULES</strong></li>
-              <li className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div> Ne pas oublier le <strong>lien avec l'école</strong></li>
-              <li className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div> Remettre les feuilles à Axelle / Malo</li>
-            </ul>
+            <button onClick={() => window.print()} className="hidden md:flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-colors print:hidden">
+              <Printer size={16} /> Imprimer l'anti-sèche
+            </button>
           </div>
 
-          {/* Cheat Sheet */}
-          <div className="bg-white rounded-3xl shadow-xl shadow-stone-200/60 border border-stone-200 overflow-hidden print:shadow-none print:border-none print:m-0 print:p-0">
-            <div className="bg-stone-900 p-6 md:p-10 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 print:bg-white print:text-stone-900 print:border-b-4 print:border-stone-900 print:p-0 print:pb-4">
-              <div className="flex items-center gap-4">
-                <div className="bg-amber-400 text-stone-900 p-3 md:p-4 rounded-2xl shrink-0 print:hidden">
-                  <FileText size={32} />
-                </div>
-                <div>
-                  <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-1">L'Antisèche</h2>
-                  <p className="text-stone-400 font-medium md:text-lg print:text-stone-600">Votre guide pour le Porte-à-Porte 🚪</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => window.print()}
-                className="flex items-center justify-center gap-2 bg-white text-stone-900 px-5 py-3 rounded-xl font-bold hover:bg-stone-100 transition-colors print:hidden"
-              >
-                <Printer size={20} />
-                <span className="hidden sm:inline">Imprimer (PDF)</span>
-                <span className="sm:hidden">Imprimer</span>
-              </button>
-            </div>
-
-            <div className="p-6 md:p-10 space-y-12 print:p-0 print:space-y-8 print:mt-6">
+          <div className="p-6 md:p-8 space-y-8 md:space-y-12">
+            
+            <div className="print:break-inside-avoid">
+              <h3 className="flex items-center gap-3 text-xl md:text-2xl font-black text-stone-900 mb-6 pb-2 border-b-2 border-stone-100 print:mb-3">
+                <span className="bg-amber-100 p-2 rounded-xl text-2xl print:bg-white print:p-0">🛡️</span> FAQ Express (Spécial Porte-à-Porte)
+              </h3>
               
-              {/* Objectif & Règle */}
-              <div className="grid md:grid-cols-2 gap-6 print:gap-4">
-                <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl print:border-2 print:border-blue-900 print:bg-white print:break-inside-avoid">
-                  <div className="flex items-center gap-3 mb-3 text-blue-900 font-black text-lg">
-                    <Target size={24} className="text-blue-600 print:text-blue-900" /> Votre objectif
-                  </div>
-                  <p className="text-blue-800 md:text-lg print:text-stone-900">Convaincre en 2 minutes chrono et faire signer la pétition.</p>
+              <div className="grid md:grid-cols-2 gap-6 print:gap-4 print:grid-cols-1">
+                <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
+                  <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"La commune n'a pas les moyens !"</span></div>
+                  <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="text-base md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>Faux.</strong> Le Trésor public nous autorise 400 000 € d'emprunt. Une fois les aides déduites, le projet optimisé coûte 212 000 €. C'est largement finançable sans toucher à notre excédent.</span></div>
                 </div>
-                <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl print:border-2 print:border-amber-900 print:bg-white print:break-inside-avoid">
-                  <div className="flex items-center gap-3 mb-3 text-amber-900 font-black text-lg">
-                    <Lightbulb size={24} className="text-amber-600 print:text-amber-900" /> La règle d'or
-                  </div>
-                  <p className="text-amber-800 md:text-lg print:text-stone-900">Restez souriant, factuel. Pas de querelles politiques. On parle d'avenir et du portefeuille de la commune.</p>
-                </div>
-              </div>
 
-              {/* Accroche */}
-              <div>
-                <h3 className="flex items-center gap-3 text-xl md:text-2xl font-black text-stone-900 mb-6 pb-2 border-b-2 border-stone-100 print:mb-3">
-                  <span className="bg-stone-100 p-2 rounded-xl text-2xl print:bg-white print:p-0">🗣️</span> 1. L'Accroche
-                </h3>
-                <div className="bg-stone-50 border-l-4 border-stone-900 p-6 md:p-8 rounded-r-2xl print:bg-white print:p-4">
-                  <p className="text-lg md:text-xl italic font-medium text-stone-700 leading-relaxed print:text-base">
-                    "Bonjour ! Je suis [Prénom], du collectif pour l'école de Kergrist-Moëlou. Je passe car la rénovation de notre école est bloquée, ce qui met en péril 340 000 € de subventions pour la commune. Si on abandonne, on va aussi devoir jeter au minimum 70 000 € d'études par les fenêtres, payées avec nos impôts. Vous avez 2 minutes ?"
-                  </p>
+                <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
+                  <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"On ferait des économies en annulant tout."</span></div>
+                  <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="text-base md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>C’est un gouffre.</strong> Si on annule, la loi nous oblige à payer au moins 70 000 €* d'études déjà réalisées, pour zéro travaux. En prime, on perd nos subventions.</span></div>
+                </div>
+
+                <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
+                  <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"Pourquoi ne pas repartir de zéro ?"</span></div>
+                  <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="text-base md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>Pire option.</strong> On jette l'argent déjà dépensé, et faire "plus petit" annule toutes nos aides (qui exigent une vraie rénovation thermique).</span></div>
+                </div>
+
+                <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
+                  <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"Faisons juste les urgences pour le radon."</span></div>
+                  <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="text-base md:text-lg leading-relaxed print:text-sm print:text-stone-900">Sans aide globale, la facture sera d'au moins 120 000 € (50 000 € travaux + 70 000 €* d'études jetées). Tout ça pour garder une passoire thermique.</span></div>
                 </div>
               </div>
-
-              {/* 3 Arguments */}
-              <div className="print:break-inside-avoid">
-                <h3 className="flex items-center gap-3 text-xl md:text-2xl font-black text-stone-900 mb-6 pb-2 border-b-2 border-stone-100 print:mb-3">
-                  <span className="bg-rose-100 p-2 rounded-xl text-2xl print:bg-white print:p-0">💥</span> 2. Les 3 arguments chocs
-                </h3>
-                
-                <div className="space-y-6 print:space-y-4">
-                  <div className="bg-white border-2 border-stone-100 p-6 md:p-8 rounded-2xl shadow-sm print:shadow-none print:p-4 print:border-stone-300">
-                    <h4 className="font-black text-stone-900 text-lg md:text-xl mb-3 flex items-center gap-2 print:text-base">
-                      <span className="text-emerald-600 print:text-stone-900">1️⃣</span> L'absurdité du blocage actuel
-                    </h4>
-                    <p className="text-stone-600 md:text-lg leading-relaxed print:text-sm print:text-stone-900">
-                      "Certains élus refusent de voter un avenant technique de 2 170 €. Le problème, c'est qu'en bloquant ça, ils paralysent tout le dossier de subventions. On risque de perdre 340 000 € d'aides (Région, Département, État) qui paient 60 % du projet."
-                    </p>
-                  </div>
-
-                  <div className="bg-white border-2 border-stone-100 p-6 md:p-8 rounded-2xl shadow-sm print:shadow-none print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <h4 className="font-black text-stone-900 text-lg md:text-xl mb-3 flex items-center gap-2 print:text-base">
-                      <span className="text-emerald-600 print:text-stone-900">2️⃣</span> Le vrai coût : ce n'est pas un projet "pharaonique"
-                    </h4>
-                    <p className="text-stone-600 md:text-lg leading-relaxed print:text-sm print:text-stone-900">
-                      "Il y a eu des devis trop élevés par le passé (735 000 €), mais le projet actuel sur la table a été ajusté pour rentrer dans l'enveloppe initiale de <strong>550 000 €</strong>. Avec les aides, le reste à charge est de ~212 000 €, ce qui est largement dans notre capacité d'emprunt (400 000 €)."
-                    </p>
-                  </div>
-
-                  <div className="bg-white border-2 border-stone-100 p-6 md:p-8 rounded-2xl shadow-sm print:shadow-none print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <h4 className="font-black text-stone-900 text-lg md:text-xl mb-3 flex items-center gap-2 print:text-base">
-                      <span className="text-emerald-600 print:text-stone-900">3️⃣</span> Le piège mortel de l'annulation
-                    </h4>
-                    <p className="text-stone-600 md:text-lg leading-relaxed print:text-sm print:text-stone-900">
-                      "Si on abandonne, on doit quand même payer ce qui a été fait (diagnostics, architectes) : c'est <strong>plus de 70 000 € de perte sèche</strong> immédiate. De plus, on devra renoncer aux aides (conditionnées à des travaux globaux). Faire juste des rustines plus tard nous coûtera au final bien plus cher, 100 % à notre charge."
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* FAQ Express */}
-              <div className="print:break-inside-avoid">
-                <h3 className="flex items-center gap-3 text-xl md:text-2xl font-black text-stone-900 mb-6 pb-2 border-b-2 border-stone-100 print:mb-3">
-                  <span className="bg-blue-100 p-2 rounded-xl text-2xl print:bg-white print:p-0">🛡️</span> 3. FAQ Express (Spécial Porte-à-Porte)
-                </h3>
-                
-                <div className="grid md:grid-cols-2 gap-6 print:gap-4 print:grid-cols-1">
-                  
-                  <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"La commune n'a pas les moyens !"</span></div>
-                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>Faux.</strong> Le Trésor public nous autorise 400 000 € d'emprunt. Une fois les aides déduites, le projet optimisé coûte 212 000 €. C'est largement finançable et ça laisse de l'argent pour les autres projets, sans même toucher à notre excédent (176 000 €).</span></div>
-                  </div>
-
-                  <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"On ferait des économies en annulant tout."</span></div>
-                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>C’est un gouffre.</strong> Si on annule, la loi nous oblige à payer au moins 70 000 €* d'études déjà réalisées, pour zéro travaux. En prime, on perd nos 340 000 € de subventions. On paiera pour du vent.</span></div>
-                  </div>
-
-                  <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"Pourquoi ne pas repartir de zéro en faisant plus petit ?"</span></div>
-                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>Pire option.</strong> On jette l'argent déjà dépensé, et faire "plus petit" annule toutes nos aides (qui exigent une vraie rénovation thermique). La commune devrait alors payer les rustines à 100 %.</span></div>
-                  </div>
-
-                  <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"Faisons juste les urgences pour le radon (50 000 €)."</span></div>
-                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900">Sans aide globale, la facture réelle sera d'au moins 120 000 € (50 000 € de travaux + les 70 000 €* d'études jetées à la poubelle). Tout ça pour garder une passoire thermique.</span></div>
-                  </div>
-
-                  <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"Pourquoi y a-t-il urgence ?"</span></div>
-                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900">L'aide de l'État (180 000 €) a une date d'expiration stricte. Si la mairie continue de bloquer pour un petit avenant de 2 170 €, notre argent partira financer l'école d'un autre village.</span></div>
-                  </div>
-
-                  <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"127 000 € d'études, c'est beaucoup trop !"</span></div>
-                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>Ce ne sont pas juste des "dessins".</strong> Ça inclut tous les diagnostics imposés par la loi (amiante, plomb, radon, sols) et les calculs des ingénieurs (environ 20% du budget, la norme pour sécuriser un très vieux bâtiment public). Surtout, une partie de ces frais (19 000 €) est exigée par la Région pour pouvoir débloquer 60 000 € d'aides. C'est donc un passage obligatoire et hyper rentable pour la commune.</span></div>
-                  </div>
-
-                  <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 print:bg-white print:p-4 print:border-stone-300 print:break-inside-avoid">
-                    <div className="font-bold text-rose-700 flex gap-2 mb-3"><XCircle className="shrink-0" size={24}/> <span className="text-lg">"Au début, vous parliez de 127 000 € jetés, vos chiffres changent !"</span></div>
-                    <div className="text-emerald-800 flex gap-2"><CheckCircle2 className="shrink-0" size={24}/> <span className="md:text-lg leading-relaxed print:text-sm print:text-stone-900"><strong>On est 100 % transparents :</strong> 127 000 €, c'est ce que la mairie a provisionné au total. Au moins 70 000 €*, c'est ce qu'on devra sortir <em>immédiatement</em> de notre poche pour payer le travail déjà fait si le projet s'arrête net. Le gaspillage est colossal.</span></div>
-                  </div>
-
-                </div>
-
-                <div className="mt-4 p-4 text-sm text-stone-500 bg-stone-100 rounded-xl print:bg-white print:border print:border-stone-300 print:text-stone-600 print:break-inside-avoid">
-                  <p><strong>* Note de transparence :</strong> Les 70 000 € représentent la perte sèche minimum stricte calculée sur les contrats arrêtés à la fin de l'ancienne mandature (mars 2026). Toute nouvelle facture d'étude payée par l'actuelle municipalité depuis avril ne ferait qu'alourdir ce gaspillage.</p>
-                </div>
-              </div>
-              
-              {/* Conclusion */}
-              <div className="print:break-inside-avoid">
-                <h3 className="flex items-center gap-3 text-xl md:text-2xl font-black text-stone-900 mb-6 pb-2 border-b-2 border-stone-100 print:mb-3">
-                  <span className="bg-amber-100 p-2 rounded-xl text-2xl print:bg-white print:p-0">✍️</span> 4. La conclusion
-                </h3>
-                <div className="bg-emerald-50 border-l-4 border-emerald-600 p-6 md:p-8 rounded-r-2xl print:bg-white print:p-4">
-                  <p className="text-lg md:text-xl font-bold text-emerald-900 leading-relaxed italic print:text-base print:text-stone-900">
-                    "On veut juste protéger les finances de la commune et offrir une école saine. Il faut réunir une commission, valider l'Option 1 pour garder nos subventions. Vous pouvez signer la pétition pour appuyer cette démarche de bon sens ?"
-                  </p>
-                </div>
-              </div>
-
             </div>
-          </div>
 
+            <div className="print:break-inside-avoid">
+              <h3 className="flex items-center gap-3 text-xl md:text-2xl font-black text-stone-900 mb-6 pb-2 border-b-2 border-stone-100 print:mb-3">
+                <span className="bg-amber-100 p-2 rounded-xl text-2xl print:bg-white print:p-0">✍️</span> La conclusion
+              </h3>
+              <div className="bg-emerald-50 border-l-4 border-emerald-600 p-6 md:p-8 rounded-r-2xl print:bg-white print:p-4">
+                <p className="text-lg md:text-xl font-bold text-emerald-900 leading-relaxed italic print:text-base print:text-stone-900">
+                  "On veut juste protéger les finances de la commune et offrir une école saine. Il faut réunir une commission, valider l'Option 1 pour garder nos subventions. Vous pouvez signer la pétition pour appuyer cette démarche ?"
+                </p>
+              </div>
+            </div>
+
+          </div>
         </div>
-      </main>
+
+      </div>
     </div>
   );
 }
