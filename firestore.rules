@@ -79,7 +79,9 @@ service cloud.firestore {
     // PETITION: Tout le monde peut signer, seuls les admins (ou l'API server) peuvent lire la collection complète
     match /signatures/{sigId} {
       allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow read: if isAdmin() || hasRole('correcteur');
+      allow update: if hasRole('correcteur');
+      allow delete: if isAdmin();
     }
     
     // STATS: Tout le monde peut lire et mettre à jour les compteurs publics
