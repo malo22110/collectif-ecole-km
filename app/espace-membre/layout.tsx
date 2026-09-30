@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft } from "lucide-react";
+import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserAvatar from "../components/UserAvatar";
@@ -12,6 +12,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
   const [user, setUser] = useState<any>(null);
   const [isMember, setIsMember] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -37,6 +38,10 @@ export default function EspaceMembreLayout({ children }: { children: React.React
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-stone-50">Chargement...</div>;
 
   if (!user || isMember === false) {
@@ -58,31 +63,60 @@ export default function EspaceMembreLayout({ children }: { children: React.React
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <div className="w-full md:w-64 bg-stone-900 text-stone-300 flex flex-col md:min-h-screen shrink-0 print:hidden">
-        <div className="p-6 border-b border-stone-800">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <ShieldAlert size={20} className="text-emerald-500" /> Espace Membre
-          </h2>
-          <p className="text-xs text-stone-500 mt-1 truncate">{user.email}</p>
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between bg-stone-900 text-white p-4 print:hidden sticky top-0 z-40">
+        <div className="flex items-center gap-2 font-bold text-lg">
+          <ShieldAlert size={20} className="text-emerald-500" /> Espace Membre
+        </div>
+        <button 
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 -mr-2 text-stone-300 hover:text-white hover:bg-stone-800 rounded-lg"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* Mobile Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar / Drawer */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-stone-900 text-stone-300 flex flex-col h-full transform transition-transform duration-300 ease-in-out md:relative md:w-64 md:transform-none md:min-h-screen shrink-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className="p-6 border-b border-stone-800 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <ShieldAlert size={20} className="text-emerald-500" /> Espace Membre
+            </h2>
+            <p className="text-xs text-stone-500 mt-1 truncate max-w-[200px]">{user.email}</p>
+          </div>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden p-2 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800"
+          >
+            <X size={20} />
+          </button>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2 flex flex-row md:flex-col overflow-x-auto md:overflow-visible">
+        <nav className="flex-1 p-4 space-y-2 flex flex-col overflow-y-auto">
           <Link 
             href="/espace-membre"
-            className={`flex-1 md:flex-none flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
-            <LayoutDashboard size={20} /> <span className="hidden sm:inline">Tableau de bord</span>
+            <LayoutDashboard size={20} /> <span>Tableau de bord</span>
           </Link>
           <Link 
             href="/espace-membre/signataires"
-            className={`flex-1 md:flex-none flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/signataires" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/signataires" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
-            <Users size={20} /> <span className="hidden sm:inline">Signataires</span>
+            <Users size={20} /> <span>Signataires</span>
           </Link>
         </nav>
 
-        <div className="p-4 border-t border-stone-800 space-y-2">
+        <div className="p-4 border-t border-stone-800 space-y-2 mt-auto">
           <Link href="/" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-stone-800 transition-colors text-stone-400">
             <ArrowLeft size={20} /> Retour au site
           </Link>
@@ -93,7 +127,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 max-w-full overflow-hidden">
+      <div className="flex-1 max-w-full overflow-x-hidden md:overflow-visible">
         {children}
       </div>
     </div>
