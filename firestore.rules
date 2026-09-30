@@ -40,7 +40,11 @@ service cloud.firestore {
 
     match /presse/{presseId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if hasRole('presse');
+    }
+
+    match /journalistes/{journalisteId} {
+      allow read, write: if hasRole('presse');
     }
 
     function isAdmin() {
