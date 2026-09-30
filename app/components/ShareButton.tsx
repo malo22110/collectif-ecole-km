@@ -52,7 +52,7 @@ export default function ShareButton({
     <button 
       onClick={handleShare}
       className={`${className} ${getVariantClasses()} hover:scale-105 active:scale-95`}
-      title="Partager la pétition"
+      title="Partager"
     >
       {copied ? <Check size={20} /> : <Share2 size={20} className={variant === 'secondary' ? 'text-emerald-700' : ''} />}
       {copied ? "Lien copié !" : "Partager"}

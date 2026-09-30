@@ -9,7 +9,8 @@ import React, { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
-import { ArrowLeft, Calendar, User, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, User, Clock, Share2 } from "lucide-react";
+import ShareButton from "@/app/components/ShareButton";
 
 interface Props {
   id: string;
@@ -91,6 +92,16 @@ export default function ArticlePageClient({ id }: Props) {
           dangerouslySetInnerHTML={{ __html: article.content || "" }}
           className="prose prose-stone prose-lg md:prose-xl max-w-none prose-a:text-emerald-600 hover:prose-a:text-emerald-700 prose-headings:font-bold prose-img:rounded-xl"
         />
+
+        <div className="mt-12 pt-8 border-t border-stone-200 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-stone-500 font-medium">Cet article vous a intéressé ? Partagez-le autour de vous :</p>
+          <ShareButton 
+            url={`https://collectif-ecole-km.fr/actualites/${article.slug || article.id}`}
+            title={article.title}
+            text="Découvrez cet article sur la mobilisation pour l'école de Kergrist-Moëlou !"
+            variant="secondary"
+          />
+        </div>
       </article>
 
       <div className="max-w-3xl mx-auto px-4 mt-20">
