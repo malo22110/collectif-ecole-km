@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings, HelpCircle, Newspaper, PenLine } from "lucide-react";
+import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings, HelpCircle, Newspaper, PenLine, Shield, UserCircle2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserAvatar from "../components/UserAvatar";
@@ -147,12 +147,28 @@ export default function EspaceMembreLayout({ children }: { children: React.React
             </Link>
           )}
 
+          <Link 
+            href="/espace-membre/equipe"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/equipe" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+          >
+            <UserCircle2 size={20} /> <span>L'équipe</span>
+          </Link>
+
           {(userRoles.includes('admin') || userRoles.includes('correcteur')) && (
             <Link 
               href="/espace-membre/correcteur"
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
             >
               <PenLine size={20} /> <span>Corriger la Pétition</span>
+            </Link>
+          )}
+
+          {(userRoles.includes('admin') || userRoles.includes('gestionnaire')) && (
+            <Link 
+              href="/espace-membre/gestionnaire"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
+            >
+              <Shield size={20} /> <span>Demandes de rôles</span>
             </Link>
           )}
 
