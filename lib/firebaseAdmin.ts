@@ -18,23 +18,34 @@ function getAdminApp(): App {
     return getApps()[0];
   }
 
-  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "./secrets/firebase-service-account.json";
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
-  if (serviceAccountJson) {
-    // Option A : JSON inline via variable d'environnement (recommandé pour la prod/CI)
-    const serviceAccount = JSON.parse(serviceAccountJson);
-    app = initializeApp({ credential: cert(serviceAccount) });
-  } else if (serviceAccountPath) {
-    // Option B : chemin vers le fichier JSON local (développement)
-    // Utilisation de fs pour éviter le "require() dynamique" qui fait crasher Webpack
-    const absolutePath = path.resolve(process.cwd(), serviceAccountPath);
-    const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, "utf-8"));
-    app = initializeApp({ credential: cert(serviceAccount) });
-  } else {
-    // Option C : Fallback sur les credentials par défaut (ADC)
-    // C'est ce qui sera utilisé en production sur Firebase App Hosting / Cloud Run
-    app = initializeApp();
+  try {
+    if (serviceAccountJson) {
+      const serviceAccount = JSON.parse(serviceAccountJson);
+      app = initializeApp({ 
+        credential: cert(serviceAccount),
+        projectId: serviceAccount.project_id
+      });
+    } else {
+      const absolutePath = path.resolve(process.cwd(), serviceAccountPath);
+      if (fs.existsSync(absolutePath)) {
+        const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, "utf-8"));
+        app = initializeApp({ 
+          credential: cert(serviceAccount),
+          projectId: serviceAccount.project_id
+        });
+      } else {
+        // Fallback ultime (ex: Cloud Run / App Hosting via ADC)
+        app = initializeApp({
+          projectId: "collectif-ecole-km" // Hardcodé pour éviter l'erreur NOT_FOUND si l'ADC ne trouve pas le bon projet
+        });
+      }
+    }
+  } catch (error) {
+    console.warn("Erreur lors de l'initialisation de firebase-admin, fallback sur ADC:", error);
+    app = initializeApp({ projectId: "collectif-ecole-km" });
   }
 
   return app;
