@@ -175,10 +175,10 @@ export default function MailManager() {
         <div className="bg-emerald-50 p-6 rounded-2xl shadow-sm border border-emerald-100">
           <div className="flex items-center gap-3 text-emerald-700 mb-2">
             <Users size={20} />
-            <h3 className="font-semibold text-sm uppercase tracking-wider">Doublons identifiés</h3>
+            <h3 className="font-semibold text-sm uppercase tracking-wider">Membres signataires</h3>
           </div>
           <p className="text-3xl font-black text-emerald-900">{loadingStats ? "..." : getIntersectionCount()}</p>
-          <p className="text-xs text-emerald-600 mt-1 font-medium">Ont signé la pétition en étant membre</p>
+          <p className="text-xs text-emerald-600 mt-1 font-medium">Membres ayant signé la pétition</p>
         </div>
       </div>
 
