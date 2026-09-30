@@ -11,6 +11,9 @@ import { notFound } from "next/navigation";
 import { adminDb } from "@/lib/firebaseAdmin";
 import ArticlePageClient from "./ArticlePageClient";
 
+// Revalider le cache toutes les 60 secondes pour éviter de rester bloqué sur une erreur 404
+export const revalidate = 60;
+
 interface Props {
   params: Promise<{ id: string }>;
 }
@@ -32,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     const article = docSnap.data()!;
-    const siteUrl = "https://collectif-ecole-km.web.app";
+    const siteUrl = "https://collectif-ecole-km.fr";
     const articleUrl = `${siteUrl}/actualites/${id}`;
 
     // Extrait un texte brut depuis le HTML du contenu (pour la description OG)
@@ -94,7 +97,13 @@ export default async function ArticlePage({ params }: Props) {
   // Vérifier que l'article existe côté serveur (pour le 404 propre)
   try {
     const docSnap = await adminDb.collection("articles").doc(id).get();
-    if (!docSnap.exists || docSnap.data()?.status !== "published") {
+    if (!docSnap.exists) {
+      notFound();
+    }
+    
+    // Si status est absent, on considère que c'est un vieil article publié
+    const status = docSnap.data()?.status || "published";
+    if (status !== "published") {
       notFound();
     }
   } catch {
