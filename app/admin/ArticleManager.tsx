@@ -102,7 +102,6 @@ export default function ArticleManager() {
 
       // Upload image if selected
       if (imageFile) {
-        setSaving(true); // Ensure saving state is active during compression
         try {
           const options = {
             maxSizeMB: 0.3, // 300 Ko max pour les previews Signal/WhatsApp
