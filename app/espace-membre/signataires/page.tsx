@@ -101,8 +101,8 @@ export default function SignatairesPage() {
         <div className="flex flex-col flex-1 overflow-hidden">
           
           {/* Filters Bar */}
-          <div className="p-4 md:px-8 py-4 bg-white border-b border-stone-200 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
-            <div className="relative w-full md:max-w-md">
+          <div className="p-4 md:px-8 py-4 bg-white border-b border-stone-200 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 shrink-0">
+            <div className="relative w-full xl:max-w-sm shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
               <input 
                 type="text" 
@@ -113,11 +113,11 @@ export default function SignatairesPage() {
               />
             </div>
             
-            <div className="flex gap-3 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
               <select 
                 value={filterVille} 
                 onChange={e => setFilterVille(e.target.value)}
-                className="input-base flex-1 md:flex-none py-2 text-sm cursor-pointer"
+                className="input-base w-full sm:w-[200px] py-2 text-sm cursor-pointer truncate"
               >
                 <option value="">Toutes les communes</option>
                 {villesUniques.map(v => <option key={v} value={v}>{v}</option>)}
@@ -126,7 +126,7 @@ export default function SignatairesPage() {
               <select 
                 value={filterQualite} 
                 onChange={e => setFilterQualite(e.target.value)}
-                className="input-base flex-1 md:flex-none py-2 text-sm cursor-pointer"
+                className="input-base w-full sm:w-[250px] py-2 text-sm cursor-pointer truncate"
               >
                 <option value="">Tous les liens</option>
                 {qualitesUniques.map(q => <option key={q} value={q}>{q}</option>)}
