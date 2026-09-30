@@ -23,31 +23,31 @@
       "source": "firebase/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/firebase-auth-basics/SKILL.md",
-      "computedHash": "51891d4c011f503134931439bd0d85bcfd80725df5d05970bd8db8604b9d1fee"
+      "computedHash": "872628e6958002c6670dc56bdb1e18b296f6742deb86110f8ee694aab25ddb42"
     },
     "firebase-basics": {
       "source": "firebase/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/firebase-basics/SKILL.md",
-      "computedHash": "3a41bf302bfce4dac272575c51a02d0fc1bdac8dcb6cb5496103301b68ffbb67"
+      "computedHash": "6ed16b8a4dc758b00810c2e0814cb6044f45852c3bc016938b9c0feae231d74e"
     },
     "firebase-crashlytics": {
       "source": "firebase/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/firebase-crashlytics/SKILL.md",
-      "computedHash": "f179208d1201dafdac7ccef79815047d96b3706d38f9c8fa84217f58fe081bd9"
+      "computedHash": "624c7d4b4a31aec138cb6a1dcce98258b9aced66ac81dbbada31a78b09802f79"
     },
     "firebase-data-connect": {
       "source": "firebase/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/firebase-data-connect-basics/SKILL.md",
-      "computedHash": "6563fafc742361ad23e4fd355f8fc075490f3d96c89fa713bb139c2256f552fd"
+      "computedHash": "ca3de978a8fd7ef2ae7048e155f6c5285baa7c0abb5156a3b06dccae8b36f689"
     },
     "firebase-firestore": {
       "source": "firebase/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/firebase-firestore/SKILL.md",
-      "computedHash": "c107565e8e3447de243dc15b27776476f212df8c7437867c67c59286907a5813"
+      "computedHash": "ceb185eeadfd5b7a0411ec93314cc13980bbc943ae26fe0103de0b7aae69d0f4"
     },
     "firebase-hosting-basics": {
       "source": "firebase/agent-skills",
@@ -59,7 +59,7 @@
       "source": "firebase/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/firebase-remote-config-basics/SKILL.md",
-      "computedHash": "963796cf398d5af5c907b1f2ba0525c9ee919067913159a580e1429841c91d21"
+      "computedHash": "cccf0ae250cb08a9226b956e3ee90c9838e250dee3cf8736560a453e7831bb26"
     },
     "firebase-security-rules-auditor": {
       "source": "firebase/agent-skills",
