@@ -43,7 +43,7 @@ export default function LandingPage() {
         const fetchedArticles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
         // Sorting manually since ordering requires a composite index on firestore
         fetchedArticles.sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime());
-        setArticles(fetchedArticles.slice(0, 3));
+        setArticles(fetchedArticles.slice(0, 4));
       } catch (error) {
         console.error('Erreur articles:', error);
       }
@@ -306,72 +306,82 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+        {/* Actualités */}
+        {articles.length > 0 && (
+          <section className="w-full" id="actualites">
+            {/* Article à la une */}
+            {articles[0] && (
+              <a href={`/actualites/${articles[0].slug || articles[0].id}`} className="group block relative w-full h-[80vh] md:h-[60vh] overflow-hidden">
+                {articles[0].imageUrl ? (
+                  <img src={articles[0].imageUrl} alt={articles[0].title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                ) : (
+                  <div className="absolute inset-0 w-full h-full bg-stone-800 flex items-center justify-center">
+                    <Newspaper size={64} className="text-stone-700" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-16 max-w-7xl mx-auto w-full">
+                  <span className="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider w-fit mb-4">À la une</span>
+                  <h3 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight group-hover:text-emerald-300 transition-colors">
+                    {articles[0].title}
+                  </h3>
+                  <div className="flex items-center gap-4 text-stone-300 text-sm md:text-base">
+                    <span>
+                      {new Date(articles[0].publishedAt || Date.now()).toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </span>
+                    <span className="flex items-center gap-1 text-emerald-400 font-bold group-hover:translate-x-2 transition-transform">
+                      Lire l'article <ChevronRight size={18} />
+                    </span>
+                  </div>
+                </div>
+              </a>
+            )}
 
-        {/* Ils parlent de nous */}
-        {presseArticles.length > 0 && (
-          <section className="py-20 bg-stone-50 px-4 border-b border-stone-200" id="presse">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-stone-900 mb-4">Ils parlent de nous</h2>
-                <p className="text-stone-600 max-w-2xl mx-auto text-lg">
-                  Revue de presse et articles relayant notre mobilisation pour l'école de Kergrist-Moëlou.
-                </p>
+            {/* Autres articles */}
+            {articles.length > 1 && (
+              <div className="bg-white py-16 px-4 border-b border-stone-200">
+                <div className="max-w-6xl mx-auto">
+                  <div className="grid md:grid-cols-3 gap-8">
+                    {articles.slice(1).map(article => (
+                      <a key={article.id} href={`/actualites/${article.slug || article.id}`} className="group flex flex-col bg-stone-50 rounded-2xl overflow-hidden border border-stone-100 hover:border-emerald-200 hover:shadow-lg transition-all">
+                        {article.imageUrl ? (
+                          <div className="h-48 overflow-hidden">
+                            <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          </div>
+                        ) : (
+                          <div className="h-48 bg-stone-200 flex items-center justify-center text-stone-400">
+                            <Newspaper size={48} opacity={0.5} />
+                          </div>
+                        )}
+                        <div className="p-6 flex flex-col flex-1">
+                          <div className="text-sm font-bold text-emerald-600 mb-2">
+                            {new Date(article.publishedAt || Date.now()).toLocaleDateString('fr-FR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
+                          <h3 className="text-xl font-bold text-stone-900 mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                            {article.title}
+                          </h3>
+                          <div className="mt-auto flex items-center gap-1 text-sm font-semibold text-stone-600 group-hover:text-emerald-600 transition-colors pt-4 border-t border-stone-200">
+                            Lire l'article <ChevronRight size={16} />
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
-              
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {presseArticles.map((article) => (
-                  <a 
-                    key={article.id}
-                    href={article.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="group bg-white rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.1)] transition-all duration-300 border border-stone-100 flex flex-col h-full text-left"
-                  >
-                    {article.imageUrl && (
-                      <div className="relative w-full h-[200px] overflow-hidden shrink-0">
-                        <span className="absolute top-3 left-3 bg-stone-900 text-white text-xs font-semibold px-2 py-1 rounded uppercase tracking-wider z-10 shadow-sm">
-                          Actualité
-                        </span>
-                        <img 
-                          src={article.imageUrl} 
-                          alt={article.title} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                        />
-                      </div>
-                    )}
-                    
-                    <div className="p-5 flex flex-col flex-1">
-                      <div className="flex items-center text-xs text-stone-500 mb-2.5">
-                        <time dateTime={article.date}>
-                          {article.date ? new Date(article.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "Récemment"}
-                        </time>
-                      </div>
-                      
-                      <h3 className="text-[1.15rem] font-bold text-stone-900 leading-[1.4] mb-3 group-hover:text-emerald-700 transition-colors line-clamp-3">
-                        {article.title}
-                      </h3>
-                      
-                      {article.description && (
-                        <p className="text-sm text-stone-600 leading-relaxed mb-5 line-clamp-3">
-                          {article.description}
-                        </p>
-                      )}
-                      
-                      <div className="mt-auto pt-3 border-t border-stone-100 flex justify-between items-center text-sm">
-                        <span className="text-stone-500 font-medium">
-                          Par {article.source || "Presse Locale"}
-                        </span>
-                        <span className="text-emerald-600 font-bold transition-transform duration-200 group-hover:translate-x-1 flex items-center gap-1">
-                          Lire <span aria-hidden="true">&rarr;</span>
-                        </span>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
+            )}
           </section>
         )}
+
+
 
         {/* Charte Section */}
         <section className="py-20 bg-stone-50 px-4 border-b border-stone-200" id="charte">
@@ -457,53 +467,6 @@ export default function LandingPage() {
         </section>
 
         {/* Actualités Section */}
-        
-        {articles.length > 0 && (
-          <section className="py-20 bg-white px-4 border-b border-stone-200">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex justify-between items-end mb-12">
-                <div>
-                  <h2 className="text-3xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                    <Newspaper className="text-emerald-600" />
-                    Dernières actualités
-                  </h2>
-                  <p className="text-stone-600">Suivez les avancées du collectif et les infos sur le projet.</p>
-                </div>
-              </div>
-              
-              <div className="grid md:grid-cols-3 gap-8">
-                {articles.map(article => (
-                  <a key={article.id} href={`/actualites/${article.slug || article.id}`} className="group flex flex-col bg-stone-50 rounded-2xl overflow-hidden border border-stone-100 hover:border-emerald-200 hover:shadow-lg transition-all">
-                    {article.imageUrl ? (
-                      <div className="h-48 overflow-hidden">
-                        <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                    ) : (
-                      <div className="h-48 bg-stone-200 flex items-center justify-center text-stone-400">
-                        <Newspaper size={48} opacity={0.5} />
-                      </div>
-                    )}
-                    <div className="p-6 flex flex-col flex-1">
-                      <div className="text-sm font-bold text-emerald-600 mb-2">
-                        {new Date(article.publishedAt || Date.now()).toLocaleDateString('fr-FR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </div>
-                      <h3 className="text-xl font-bold text-stone-900 mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">
-                        {article.title}
-                      </h3>
-                      <div className="mt-auto flex items-center gap-1 text-sm font-semibold text-stone-600 group-hover:text-emerald-600 transition-colors pt-4 border-t border-stone-200">
-                        Lire l'article <ChevronRight size={16} />
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Arguments Grid (Pétition focus) */}
         <section className="py-20 bg-white px-4" id="petition">
@@ -658,6 +621,73 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Ils parlent de nous */}
+        {presseArticles.length > 0 && (
+          <section className="py-20 bg-stone-50 px-4 border-b border-stone-200" id="presse">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-stone-900 mb-4">Ils parlent de nous</h2>
+                <p className="text-stone-600 max-w-2xl mx-auto text-lg">
+                  Revue de presse et articles relayant notre mobilisation pour l'école de Kergrist-Moëlou.
+                </p>
+              </div>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                {presseArticles.map((article) => (
+                  <a 
+                    key={article.id}
+                    href={article.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="group bg-white rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.1)] transition-all duration-300 border border-stone-100 flex flex-col h-full text-left"
+                  >
+                    {article.imageUrl && (
+                      <div className="relative w-full h-[200px] overflow-hidden shrink-0">
+                        <span className="absolute top-3 left-3 bg-stone-900 text-white text-xs font-semibold px-2 py-1 rounded uppercase tracking-wider z-10 shadow-sm">
+                          Actualité
+                        </span>
+                        <img 
+                          src={article.imageUrl} 
+                          alt={article.title} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="p-5 flex flex-col flex-1">
+                      <div className="flex items-center text-xs text-stone-500 mb-2.5">
+                        <time dateTime={article.date}>
+                          {article.date ? new Date(article.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "Récemment"}
+                        </time>
+                      </div>
+                      
+                      <h3 className="text-[1.15rem] font-bold text-stone-900 leading-[1.4] mb-3 group-hover:text-emerald-700 transition-colors line-clamp-3">
+                        {article.title}
+                      </h3>
+                      
+                      {article.description && (
+                        <p className="text-sm text-stone-600 leading-relaxed mb-5 line-clamp-3">
+                          {article.description}
+                        </p>
+                      )}
+                      
+                      <div className="mt-auto pt-3 border-t border-stone-100 flex justify-between items-center text-sm">
+                        <span className="text-stone-500 font-medium">
+                          Par {article.source || "Presse Locale"}
+                        </span>
+                        <span className="text-emerald-600 font-bold transition-transform duration-200 group-hover:translate-x-1 flex items-center gap-1">
+                          Lire <span aria-hidden="true">&rarr;</span>
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
 
         {/* Lead Capture / Join Form */}
         <section className="py-20 px-4 bg-stone-50" id="rejoindre">
