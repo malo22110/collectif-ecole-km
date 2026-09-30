@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"app/espace-membre/page.tsx -> @/lib/firebase":{"id":9664,"files":[]},"app/espace-membre/page.tsx -> firebase/firestore":{"id":3935,"files":[]}}';
+self.__REACT_LOADABLE_MANIFEST="{\"app/espace-membre/layout.tsx -> @/lib/firebase\":{\"id\":\"app/espace-membre/layout.tsx -> @/lib/firebase\",\"files\":[]},\"app/espace-membre/layout.tsx -> firebase/firestore\":{\"id\":\"app/espace-membre/layout.tsx -> firebase/firestore\",\"files\":[]}}"

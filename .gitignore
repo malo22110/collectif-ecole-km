@@ -1,6 +1,10 @@
 node_modules/
 .next/
 out/
+.firebase/
+scratch/
+.DS_Store
+doc/Sources/test-petition.jpg
 secrets/
 *.service-account.json
 .env
