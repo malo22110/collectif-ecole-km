@@ -70,12 +70,10 @@ service cloud.firestore {
     match /membres/{membreEmail} {
       allow create: if (request.resource.data.keys().hasAll(['prenom', 'nom', 'email', 'dateInscription', 'status'])
                     && request.resource.data.status == 'pending') || isAdmin();
-      allow read: if request.auth != null && (request.auth.token.email == membreEmail || isAdmin());
-      allow update: if isAdmin() || (
-        request.auth != null &&
-        request.auth.token.email == membreEmail &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['roleRequest', 'roleRequests'])
-      );
+      allow read: if request.auth != null && (request.auth.token.email == membreEmail || isAdmin() || isMembreValide());
+      allow update: if isAdmin() || 
+        (hasRole('gestionnaire') && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['roles', 'role', 'roleRequest', 'roleRequests'])) ||
+        (request.auth != null && request.auth.token.email == membreEmail && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['roleRequest', 'roleRequests']));
       allow delete: if isAdmin();
     }
 

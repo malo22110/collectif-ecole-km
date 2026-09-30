@@ -239,7 +239,7 @@ export default function MembreManager() {
                 <td className="p-4">
                   {editingId === membre.id ? (
                     <div className="flex flex-col gap-2 bg-stone-50 p-2 rounded border border-stone-200">
-                      {['admin', 'redacteur', 'mail', 'faq', 'presse', 'correcteur'].map(r => {
+                      {['admin', 'gestionnaire', 'redacteur', 'mail', 'faq', 'presse', 'correcteur'].map(r => {
                         const currentRoles = Array.isArray(editForm.roles) ? editForm.roles : (editForm.role && editForm.role !== 'membre' ? [editForm.role] : []);
                         const isChecked = currentRoles.includes(r);
                         return (
