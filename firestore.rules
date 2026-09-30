@@ -44,10 +44,10 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
     
-    // PETITION: Tout le monde peut lire et créer des signatures
+    // PETITION: Tout le monde peut signer, seuls les admins (ou l'API server) peuvent lire la collection complète
     match /signatures/{sigId} {
-      allow read, create: if true;
-      allow update, delete: if isAdmin();
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
     
     // STATS: Tout le monde peut lire et mettre à jour les compteurs publics

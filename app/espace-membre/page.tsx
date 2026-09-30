@@ -98,6 +98,26 @@ export default function EspaceMembre() {
             </div>
           </div>
           
+          {/* Action : Consult signatures */}
+          <div className="bg-white p-6 md:p-10 rounded-3xl shadow-md border border-stone-200 flex flex-col md:flex-row items-center gap-6 md:gap-10 print:hidden">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center shrink-0">
+              <Users size={40} className="md:w-12 md:h-12" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-2xl md:text-3xl font-black text-stone-900 mb-2">Signataires de la pétition</h2>
+              <p className="text-stone-600 mb-4 md:mb-0 text-base md:text-lg">
+                Consultez la liste de tous les signataires enregistrés (informations de contact masquées).
+              </p>
+            </div>
+            <div className="w-full md:w-auto shrink-0">
+              <Link 
+                href="/espace-membre/signataires"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl justify-center flex items-center gap-2 py-4 px-8 text-lg w-full md:w-auto shadow-lg shadow-blue-600/30 ring-2 ring-blue-500 ring-offset-2 ring-offset-white transition-all"
+              >
+                <FileText size={24} /> Voir la liste
+              </Link>
+            </div>
+          </div>
           {/* Consignes */}
           <div className="bg-emerald-50 p-6 md:p-8 rounded-3xl border-2 border-emerald-200 flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center print:hidden">
             <div className="font-black text-emerald-900 flex items-center gap-2 shrink-0 text-xl">

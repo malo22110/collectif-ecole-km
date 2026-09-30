@@ -39,4 +39,7 @@ function getAdminApp(): App {
   return app;
 }
 
-export const adminDb = getFirestore(getAdminApp());
+export const adminApp = getAdminApp();
+export const adminDb = getFirestore(adminApp);
+export const adminAuth = require("firebase-admin/auth").getAuth(adminApp);
+
