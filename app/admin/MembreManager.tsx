@@ -41,6 +41,39 @@ export default function MembreManager() {
     return () => unsubscribe();
   }, []);
 
+  const handleApproveRole = async (membre: Membre) => {
+    try {
+      const currentRoles = Array.isArray(membre.roles) ? membre.roles : (membre.role && membre.role !== 'membre' ? [membre.role] : []);
+      const reqs = Array.isArray(membre.roleRequests) ? membre.roleRequests : (membre.roleRequest ? [membre.roleRequest] : []);
+      
+      const newRoles = Array.from(new Set([...currentRoles, ...reqs]));
+      
+      await updateDoc(doc(db, "membres", membre.id), {
+        roles: newRoles,
+        role: newRoles.length > 0 ? newRoles[0] : 'membre',
+        roleRequest: deleteField(),
+        roleRequests: deleteField()
+      });
+    } catch (e) {
+      console.error(e);
+      alert("Erreur lors de l'approbation.");
+    }
+  };
+  
+  const handleRejectRole = async (membre: Membre) => {
+    try {
+      await updateDoc(doc(db, "membres", membre.id), {
+        roleRequest: deleteField(),
+        roleRequests: deleteField()
+      });
+    } catch (e) {
+      console.error(e);
+      alert("Erreur lors du refus.");
+    }
+  };
+
+  const membersWithRequests = membres.filter(m => (Array.isArray(m.roleRequests) && m.roleRequests.length > 0) || m.roleRequest);
+
   const filteredMembres = membres.filter(m => {
     const search = searchTerm.toLowerCase();
     return (
@@ -82,7 +115,69 @@ export default function MembreManager() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden mt-8">
+    <>
+      {/* Encart Demandes de Rôles */}
+      {membersWithRequests.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-emerald-200 overflow-hidden mt-8">
+          <div className="p-6 border-b border-emerald-100 flex justify-between items-center bg-emerald-50/50">
+            <h3 className="font-semibold text-emerald-900 flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
+              Demandes de rôles en attente
+            </h3>
+            <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-bold">
+              {membersWithRequests.length} demande(s)
+            </span>
+          </div>
+          <div className="divide-y divide-emerald-50">
+            {membersWithRequests.map(membre => {
+              const reqs = Array.isArray(membre.roleRequests) ? membre.roleRequests : [membre.roleRequest];
+              return (
+                <div key={`req-${membre.id}`} className="p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 hover:bg-emerald-50/30 transition-colors">
+                  <div>
+                    <h4 className="font-bold text-stone-900">{membre.prenom} {membre.nom}</h4>
+                    <p className="text-stone-500 text-sm">{membre.email}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-stone-400">Rôle(s) actuel(s) :</span>
+                      {(Array.isArray(membre.roles) ? membre.roles : [membre.role]).filter(Boolean).map(r => (
+                        <span key={r} className="text-[10px] uppercase bg-stone-100 px-1.5 py-0.5 rounded text-stone-700">{r}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col md:flex-row items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-amber-600">Demande :</span>
+                      {reqs.filter(Boolean).map(req => (
+                        <span key={req} className="text-[11px] font-bold uppercase bg-amber-100 text-amber-700 px-2 py-1 rounded-md border border-amber-200">
+                          {req}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handleApproveRole(membre)}
+                        className="btn-primary py-1.5 px-4 text-sm"
+                      >
+                        Approuver
+                      </button>
+                      <button 
+                        onClick={() => handleRejectRole(membre)}
+                        className="btn-secondary py-1.5 px-4 text-sm text-stone-500 border-stone-200"
+                      >
+                        Refuser
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden mt-8">
       <div className="p-6 border-b border-stone-200 bg-stone-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h3 className="text-xl font-bold text-stone-900">Tous les membres</h3>
@@ -239,5 +334,6 @@ export default function MembreManager() {
         </table>
       </div>
     </div>
+    </>
   );
 }
