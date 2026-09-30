@@ -10,12 +10,12 @@ service cloud.firestore {
 
     match /faqs/{faqId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     match /commentaires/{commentId} {
       allow read: if true;
-      allow create: if request.auth != null;
+      allow create: if isMembreValidé();
       allow update, delete: if isAdmin();
     }
     function isMembreValidé() {
@@ -47,7 +47,8 @@ service cloud.firestore {
       return request.auth != null && (
         request.auth.token.email == 'lecam.malo@gmail.com' || 
         request.auth.token.email == 'contact@collectif-ecole-km.fr' || 
-        request.auth.token.email == 'collectif.ecole.km@gmail.com'
+        request.auth.token.email == 'collectif.ecole.km@gmail.com' ||
+        get(/databases/$(database)/documents/membres/$(request.auth.token.email)).data.role == 'admin'
       );
     }
     match /membres/{membreEmail} {
@@ -71,7 +72,8 @@ service cloud.firestore {
     
     // STATS: Tout le monde peut lire et mettre à jour les compteurs publics
     match /stats/{statId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /mailOutbox/{mailId} {
@@ -90,7 +92,7 @@ service cloud.firestore {
       // Lecture : admins uniquement
       allow read: if isAdmin();
       // Création : utilisateur authentifié, avec son email en submittedBy
-      allow create: if request.auth != null
+      allow create: if isMembreValidé()
         && request.resource.data.submittedBy == request.auth.token.email
         && request.resource.data.status == 'pending'
         && request.resource.data.keys().hasAll(['pageId', 'status', 'submittedBy', 'submittedAt', 'data']);
