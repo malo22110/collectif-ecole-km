@@ -16,30 +16,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/espace-membre/layout.js"
     ],
-    "/espace-membre/numeriser-petition/page": [
+    "/espace-membre/correcteur/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/espace-membre/numeriser-petition/page.js"
+      "static/chunks/app/espace-membre/correcteur/page.js"
     ],
-    "/admin/assistant/page": [
+    "/api/signatures/export/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/assistant/page.js"
+      "static/chunks/app/api/signatures/export/route.js"
     ],
-    "/api/signatures/paper-import/route": [
+    "/admin/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/signatures/paper-import/route.js"
+      "static/chunks/app/admin/page.js"
     ],
-    "/api/signatures/non-signataires/route": [
+    "/api/admin/petition-export/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/signatures/non-signataires/route.js"
-    ],
-    "/espace-membre/non-signataires/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/espace-membre/non-signataires/page.js"
+      "static/chunks/app/api/admin/petition-export/route.js"
     ],
     "/petition/layout": [
       "static/chunks/webpack.js",
@@ -50,6 +45,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/petition/page.js"
+    ],
+    "/espace-membre/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/espace-membre/page.js"
     ]
   }
 }
