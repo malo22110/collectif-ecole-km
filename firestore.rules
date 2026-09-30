@@ -15,17 +15,17 @@ service cloud.firestore {
 
     match /commentaires/{commentId} {
       allow read: if true;
-      allow create: if isMembreValidé();
+      allow create: if isMembreValide();
       allow update, delete: if isAdmin();
     }
-    function isMembreValidé() {
+    function isMembreValide() {
       return request.auth != null && get(/databases/$(database)/documents/membres/$(request.auth.token.email)).data.status == 'validated';
     }
 
     match /articles/{articleId} {
       allow read: if resource == null || resource.data.status == 'published' || isAdmin() || (request.auth != null && resource.data.authorEmail == request.auth.token.email);
       allow create: if isAdmin() || (
-        isMembreValidé() &&
+        isMembreValide() &&
         request.resource.data.status == 'draft' &&
         request.resource.data.authorEmail == request.auth.token.email
       );
@@ -110,7 +110,7 @@ service cloud.firestore {
       // Lecture : admins uniquement
       allow read: if isAdmin();
       // Création : utilisateur authentifié, avec son email en submittedBy
-      allow create: if isMembreValidé()
+      allow create: if isMembreValide()
         && request.resource.data.submittedBy == request.auth.token.email
         && request.resource.data.status == 'pending'
         && request.resource.data.keys().hasAll(['pageId', 'status', 'submittedBy', 'submittedAt', 'data']);
