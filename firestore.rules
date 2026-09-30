@@ -44,11 +44,23 @@ service cloud.firestore {
     }
 
     function isAdmin() {
+      let membreData = get(/databases/$(database)/documents/membres/$(request.auth.token.email)).data;
       return request.auth != null && (
         request.auth.token.email == 'lecam.malo@gmail.com' || 
         request.auth.token.email == 'contact@collectif-ecole-km.fr' || 
         request.auth.token.email == 'collectif.ecole.km@gmail.com' ||
-        get(/databases/$(database)/documents/membres/$(request.auth.token.email)).data.role == 'admin'
+        (membreData != null && membreData.role == 'admin') ||
+        (membreData != null && membreData.roles != null && 'admin' in membreData.roles)
+      );
+    }
+    
+    function hasRole(roleName) {
+      let membreData = get(/databases/$(database)/documents/membres/$(request.auth.token.email)).data;
+      return isAdmin() || (
+        request.auth != null && membreData != null && (
+          membreData.role == roleName ||
+          (membreData.roles != null && roleName in membreData.roles)
+        )
       );
     }
     match /membres/{membreEmail} {
@@ -58,7 +70,7 @@ service cloud.firestore {
       allow update: if isAdmin() || (
         request.auth != null &&
         request.auth.token.email == membreEmail &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['roleRequest'])
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['roleRequest', 'roleRequests'])
       );
       allow delete: if isAdmin();
     }
@@ -77,7 +89,7 @@ service cloud.firestore {
     }
 
     match /mailOutbox/{mailId} {
-      allow create, read, update, delete: if isAdmin();
+      allow create, read, update, delete: if hasRole('mail');
     }
 
     match /magicLinks/{linkId} {

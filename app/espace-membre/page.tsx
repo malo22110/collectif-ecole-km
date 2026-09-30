@@ -27,10 +27,14 @@ export default function EspaceMembreDashboard() {
   const handleRoleRequest = async (role: string) => {
     if (!auth.currentUser?.email) return;
     try {
+      const currentReqs = Array.isArray(membre?.roleRequests) ? membre.roleRequests : (membre?.roleRequest ? [membre.roleRequest] : []);
+      if (!currentReqs.includes(role)) currentReqs.push(role);
+      
       await updateDoc(doc(db, "membres", auth.currentUser.email), {
-        roleRequest: role
+        roleRequests: currentReqs,
+        roleRequest: role // keep for backwards compatibility briefly
       });
-      setMembre({ ...membre, roleRequest: role });
+      setMembre({ ...membre, roleRequests: currentReqs, roleRequest: role });
       alert("Votre demande a bien été envoyée aux administrateurs.");
     } catch (err) {
       console.error(err);
@@ -57,25 +61,34 @@ export default function EspaceMembreDashboard() {
           <div className="flex-1 text-center md:text-left">
             <h2 className="text-2xl font-black text-stone-900 mb-1">Rôles dans le collectif</h2>
             <p className="text-stone-600 text-base mb-3">
-              Votre rôle actuel : <strong className="uppercase text-stone-800">{membre?.role || 'Membre standard'}</strong>
+              Vos rôles actuels : <strong className="uppercase text-stone-800">
+                {(Array.isArray(membre?.roles) && membre.roles.length > 0) ? membre.roles.join(', ') : (membre?.role && membre.role !== 'membre' ? membre.role : 'Membre standard')}
+              </strong>
             </p>
-            {membre?.roleRequest ? (
-              <p className="text-amber-600 font-medium text-sm">
-                ⏳ Demande en attente pour le rôle "{membre.roleRequest}".
+            {((Array.isArray(membre?.roleRequests) && membre.roleRequests.length > 0) || membre?.roleRequest) && (
+              <p className="text-amber-600 font-medium text-sm mb-3">
+                ⏳ Demande(s) en attente : {(Array.isArray(membre?.roleRequests) ? membre.roleRequests : [membre?.roleRequest]).filter(Boolean).join(', ')}
               </p>
-            ) : (
+            )}
+            {true && (
               <div className="flex flex-col sm:flex-row gap-3">
                 <button 
                   onClick={() => handleRoleRequest('redacteur')}
                   className="text-sm text-stone-700 bg-white border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
-                  Demander l'accès Rédacteur (Articles)
+                  Accès Rédacteur
+                </button>
+                <button 
+                  onClick={() => handleRoleRequest('mail')}
+                  className="text-sm text-stone-700 bg-white border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Accès Mailing
                 </button>
                 <button 
                   onClick={() => handleRoleRequest('admin')}
                   className="text-sm text-stone-700 bg-white border border-stone-300 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
-                  Demander l'accès Administrateur
+                  Accès Admin
                 </button>
               </div>
             )}

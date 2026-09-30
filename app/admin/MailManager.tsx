@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Send, AlertCircle, CheckCircle2, Bold, Italic, List, ListOrdered } from "lucide-react";
+import { Send, AlertCircle, CheckCircle2, Bold, Italic, List, ListOrdered, Users, FileSignature } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
@@ -56,6 +56,50 @@ export default function MailManager() {
   const [scheduledAt, setScheduledAt] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  
+  const [target, setTarget] = useState<"all" | "membres" | "signataires">("all");
+  const [membres, setMembres] = useState<any[]>([]);
+  const [signatures, setSignatures] = useState<any[]>([]);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const mSnap = await getDocs(collection(db, "membres"));
+        const mData = mSnap.docs.map(d => d.data());
+        setMembres(mData.filter(m => m.status === 'validated' && m.email));
+        
+        const sSnap = await getDocs(collection(db, "signatures"));
+        const sData = sSnap.docs.map(d => d.data());
+        setSignatures(sData.filter(s => s.email));
+      } catch (e) {
+        console.error("Erreur stats:", e);
+      } finally {
+        setLoadingStats(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const getUniqueEmails = () => {
+    const emails = new Set<string>();
+    if (target === "all" || target === "membres") {
+      membres.forEach(m => { if (m.email) emails.add(m.email.toLowerCase().trim()); });
+    }
+    if (target === "all" || target === "signataires") {
+      signatures.forEach(s => { if (s.email) emails.add(s.email.toLowerCase().trim()); });
+    }
+    return Array.from(emails);
+  };
+
+  const getIntersectionCount = () => {
+    let count = 0;
+    const membreEmails = new Set(membres.map(m => m.email.toLowerCase().trim()));
+    signatures.forEach(s => {
+      if (s.email && membreEmails.has(s.email.toLowerCase().trim())) count++;
+    });
+    return count;
+  };
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -88,6 +132,8 @@ export default function MailManager() {
         subject,
         html: htmlContent,
         testMode,
+        target,
+        recipientCount: getUniqueEmails().length,
         status: "pending",
         createdAt: serverTimestamp()
       };
@@ -109,6 +155,33 @@ export default function MailManager() {
   };
 
   return (
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+          <div className="flex items-center gap-3 text-stone-500 mb-2">
+            <Users size={20} className="text-emerald-600" />
+            <h3 className="font-semibold text-sm uppercase tracking-wider">Membres Validés</h3>
+          </div>
+          <p className="text-3xl font-black text-stone-900">{loadingStats ? "..." : membres.length}</p>
+        </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+          <div className="flex items-center gap-3 text-stone-500 mb-2">
+            <FileSignature size={20} className="text-emerald-600" />
+            <h3 className="font-semibold text-sm uppercase tracking-wider">Signataires Pétition</h3>
+          </div>
+          <p className="text-3xl font-black text-stone-900">{loadingStats ? "..." : signatures.length}</p>
+        </div>
+        <div className="bg-emerald-50 p-6 rounded-2xl shadow-sm border border-emerald-100">
+          <div className="flex items-center gap-3 text-emerald-700 mb-2">
+            <Users size={20} />
+            <h3 className="font-semibold text-sm uppercase tracking-wider">Doublons identifiés</h3>
+          </div>
+          <p className="text-3xl font-black text-emerald-900">{loadingStats ? "..." : getIntersectionCount()}</p>
+          <p className="text-xs text-emerald-600 mt-1 font-medium">Ont signé la pétition en étant membre</p>
+        </div>
+      </div>
+
     <div className="bg-white border border-stone-200 p-6 rounded-2xl shadow-sm">
       <h3 className="text-xl font-bold text-stone-900 mb-6">Campagne d'e-mailing (SpreadMail)</h3>
       
@@ -127,6 +200,23 @@ export default function MailManager() {
       )}
 
       <form onSubmit={handleSend} className="space-y-6">
+        <div>
+          <label className="block text-sm font-semibold text-stone-700 mb-2">Audience cible (dé-doublonnée)</label>
+          <div className="flex gap-4 bg-stone-50 p-2 rounded-xl border border-stone-200">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="target" checked={target === "all"} onChange={() => setTarget("all")} className="text-emerald-600 focus:ring-emerald-500" />
+              <span className="text-sm font-medium">Tous ({loadingStats ? "..." : getUniqueEmails().length})</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="target" checked={target === "membres"} onChange={() => setTarget("membres")} className="text-emerald-600 focus:ring-emerald-500" />
+              <span className="text-sm font-medium">Membres</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="target" checked={target === "signataires"} onChange={() => setTarget("signataires")} className="text-emerald-600 focus:ring-emerald-500" />
+              <span className="text-sm font-medium">Signataires</span>
+            </label>
+          </div>
+        </div>
         <div>
           <label className="block text-sm font-semibold text-stone-700 mb-2">Objet de l'e-mail</label>
           <input 
@@ -183,6 +273,7 @@ export default function MailManager() {
           {status === "sending" ? "Envoi en cours..." : "Diffuser l'e-mail"}
         </button>
       </form>
+    </div>
     </div>
   );
 }

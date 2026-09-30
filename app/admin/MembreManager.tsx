@@ -14,7 +14,9 @@ interface Membre {
   status: "pending" | "validated" | "rejected";
   dateInscription: string;
   role?: string;
+  roles?: string[];
   roleRequest?: string;
+  roleRequests?: string[];
 }
 
 export default function MembreManager() {
@@ -136,22 +138,48 @@ export default function MembreManager() {
                 </td>
                 <td className="p-4">
                   {editingId === membre.id ? (
-                    <select 
-                      className="input-base py-1 px-2 text-xs" 
-                      value={editForm.role || 'membre'} 
-                      onChange={e => setEditForm({...editForm, role: e.target.value})}
-                    >
-                      <option value="membre">Membre</option>
-                      <option value="redacteur">Rédacteur</option>
-                      <option value="admin">Admin</option>
-                    </select>
+                    <div className="flex flex-col gap-2 bg-stone-50 p-2 rounded border border-stone-200">
+                      {['admin', 'redacteur', 'mail'].map(r => {
+                        const currentRoles = Array.isArray(editForm.roles) ? editForm.roles : (editForm.role && editForm.role !== 'membre' ? [editForm.role] : []);
+                        const isChecked = currentRoles.includes(r);
+                        return (
+                          <label key={r} className="flex items-center gap-2 text-xs cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={isChecked}
+                              onChange={(e) => {
+                                let newRoles = [...currentRoles];
+                                if (e.target.checked) newRoles.push(r);
+                                else newRoles = newRoles.filter(x => x !== r);
+                                setEditForm({...editForm, roles: newRoles, role: newRoles.length > 0 ? newRoles[0] : 'membre'});
+                              }}
+                              className="w-3 h-3 text-emerald-600 rounded border-stone-300"
+                            />
+                            <span className="capitalize">{r}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   ) : (
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-xs uppercase bg-stone-100 px-2 py-0.5 rounded w-fit">{membre.role || 'membre'}</span>
-                      {membre.roleRequest && (
-                        <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
-                          Demande: {membre.roleRequest}
-                        </span>
+                      <div className="flex flex-wrap gap-1">
+                        {(Array.isArray(membre.roles) && membre.roles.length > 0) ? membre.roles.map(r => (
+                          <span key={r} className="font-semibold text-[10px] uppercase bg-stone-100 px-1.5 py-0.5 rounded text-stone-700 border border-stone-200">{r}</span>
+                        )) : (membre.role && membre.role !== 'membre' ? (
+                          <span className="font-semibold text-[10px] uppercase bg-stone-100 px-1.5 py-0.5 rounded text-stone-700 border border-stone-200">{membre.role}</span>
+                        ) : (
+                          <span className="font-semibold text-[10px] uppercase bg-stone-50 px-1.5 py-0.5 rounded text-stone-400 border border-stone-100">Membre</span>
+                        ))}
+                      </div>
+                      
+                      {((Array.isArray(membre.roleRequests) && membre.roleRequests.length > 0) || membre.roleRequest) && (
+                        <div className="flex flex-col gap-0.5 mt-1">
+                          {(Array.isArray(membre.roleRequests) ? membre.roleRequests : [membre.roleRequest]).filter(Boolean).map(req => (
+                            <span key={req} className="text-[10px] text-amber-600 font-bold bg-amber-50 px-1 py-0.5 rounded border border-amber-200 w-fit">
+                              + {req}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   )}

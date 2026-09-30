@@ -12,10 +12,11 @@ import DuplicateManager from "./DuplicateManager";
 import MailManager from "./MailManager";
 import PresseManager from "./PresseManager";
 import { Mail } from "lucide-react";
-import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot, Newspaper } from "lucide-react";
+import { Users, FileText, HelpCircle, CheckCircle2, XCircle, LogOut, Settings, Bot, Newspaper, Send } from "lucide-react";
 import Link from "next/link";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
-import { collection, query, where, onSnapshot, updateDoc, doc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, updateDoc, doc, getDoc } from "firebase/firestore";
+import MailingManager from "./MailingManager";
 import { auth, db } from "@/lib/firebase";
 
 interface Membre {
@@ -35,6 +36,7 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState("");
   
   const [pendingMembers, setPendingMembers] = useState<Membre[]>([]);
+  const [userRoles, setUserRoles] = useState<string[]>(['membre']);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -46,6 +48,19 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!user) return;
+    
+    // Fetch roles
+    const fetchRole = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, "membres", user.email!));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUserRoles(Array.isArray(data.roles) ? data.roles : (data.role ? [data.role] : ['membre']));
+        }
+      } catch (err) {}
+    };
+    fetchRole();
+
     const q = query(collection(db, "membres"), where("status", "==", "pending"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const membresData = snapshot.docs.map(doc => ({
