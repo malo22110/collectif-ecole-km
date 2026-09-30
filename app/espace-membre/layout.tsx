@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings, HelpCircle, Newspaper, PenLine, Shield, UserCircle2, ScanLine } from "lucide-react";
+import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings, HelpCircle, Newspaper, PenLine, Shield, UserCircle2, ScanLine, UserRoundX } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserAvatar from "../components/UserAvatar";
@@ -118,6 +118,13 @@ export default function EspaceMembreLayout({ children }: { children: React.React
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/signataires" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
             <Users size={20} /> <span>Signataires</span>
+          </Link>
+
+          <Link
+            href="/espace-membre/non-signataires"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/non-signataires" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+          >
+            <UserRoundX size={20} /> <span>Membres n'ayant pas signé</span>
           </Link>
 
           <Link

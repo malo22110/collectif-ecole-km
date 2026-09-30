@@ -7,6 +7,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import * as nodemailer from "nodemailer";
 import * as logger from "firebase-functions/logger";
 import { getEmailFooter, getBaseHtmlTemplate } from "./emailTemplates";
+import { formatPublicRecentSigner } from "./petitionPublicNames";
 
 setGlobalOptions({ region: "europe-west9" });
 
@@ -301,13 +302,7 @@ export const updatePetitionStats = onDocumentWritten({ document: "signatures/{si
       return timeB - timeA;
     });
 
-    const recentNames = validSignatures.slice(0, 10).map(s => {
-      const prenom = s.prenom || "Anonyme";
-      const nom = s.nom || "";
-      const qualite = s.qualite ? ` (${s.qualite})` : "";
-      const initiale = nom ? nom.charAt(0).toUpperCase() + "." : "";
-      return `${prenom} ${initiale}${qualite}`.trim();
-    });
+    const recentNames = validSignatures.slice(0, 10).map(formatPublicRecentSigner);
     
     // On déduplique la liste des noms récents pour l'affichage propre
     const dedupedRecent = [...new Set(recentNames)];
