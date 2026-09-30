@@ -57,7 +57,7 @@ export default function MailManager() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   
-  const [target, setTarget] = useState<"all" | "membres" | "signataires">("all");
+  const [target, setTarget] = useState<"all" | "membres" | "signataires" | "membres_non_signataires">("all");
   const [membres, setMembres] = useState<any[]>([]);
   const [signatures, setSignatures] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -83,6 +83,18 @@ export default function MailManager() {
 
   const getUniqueEmails = () => {
     const emails = new Set<string>();
+    
+    if (target === "membres_non_signataires") {
+      const signatureEmails = new Set(signatures.map(s => s.email?.toLowerCase().trim()).filter(Boolean));
+      membres.forEach(m => {
+        const email = m.email?.toLowerCase().trim();
+        if (email && !signatureEmails.has(email)) {
+          emails.add(email);
+        }
+      });
+      return Array.from(emails);
+    }
+    
     if (target === "all" || target === "membres") {
       membres.forEach(m => { if (m.email) emails.add(m.email.toLowerCase().trim()); });
     }
@@ -202,10 +214,10 @@ export default function MailManager() {
       <form onSubmit={handleSend} className="space-y-6">
         <div>
           <label className="block text-sm font-semibold text-stone-700 mb-2">Audience cible (dé-doublonnée)</label>
-          <div className="flex gap-4 bg-stone-50 p-2 rounded-xl border border-stone-200">
+          <div className="flex flex-wrap gap-4 bg-stone-50 p-3 rounded-xl border border-stone-200">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="target" checked={target === "all"} onChange={() => setTarget("all")} className="text-emerald-600 focus:ring-emerald-500" />
-              <span className="text-sm font-medium">Tous ({loadingStats ? "..." : getUniqueEmails().length})</span>
+              <span className="text-sm font-medium">Tous ({loadingStats ? "..." : target === "all" ? getUniqueEmails().length : '...'})</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="target" checked={target === "membres"} onChange={() => setTarget("membres")} className="text-emerald-600 focus:ring-emerald-500" />
@@ -215,7 +227,14 @@ export default function MailManager() {
               <input type="radio" name="target" checked={target === "signataires"} onChange={() => setTarget("signataires")} className="text-emerald-600 focus:ring-emerald-500" />
               <span className="text-sm font-medium">Signataires</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer bg-amber-100/50 px-2 py-1 rounded-lg border border-amber-200">
+              <input type="radio" name="target" checked={target === "membres_non_signataires"} onChange={() => setTarget("membres_non_signataires")} className="text-amber-600 focus:ring-amber-500" />
+              <span className="text-sm font-medium text-amber-900">Membres n'ayant pas signé</span>
+            </label>
           </div>
+          <p className="text-xs text-stone-500 mt-2">
+            Nombre de destinataires calculé pour l'envoi : <strong>{loadingStats ? "..." : getUniqueEmails().length}</strong>
+          </p>
         </div>
         <div>
           <label className="block text-sm font-semibold text-stone-700 mb-2">Objet de l'e-mail</label>
