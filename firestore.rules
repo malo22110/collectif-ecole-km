@@ -98,7 +98,25 @@ service cloud.firestore {
     }
 
     match /mailOutbox/{mailId} {
-      allow create, read, update, delete: if hasRole('mail');
+      // [SPEC-MAIL-03] Campaign PII and recipient lists are accessed only through authenticated server APIs.
+      allow read, write: if false;
+    }
+
+    match /mailMessageIndex/{messageId} {
+      // [SPEC-MAIL-04] Message-ID correlation is private server-only thread metadata.
+      allow read, write: if false;
+    }
+
+    // [SPEC-MAIL-02] Inbox content and reply threads are only served by the role-checked server API.
+    match /mailInbox/{messageId} {
+      allow read, write: if false;
+      match /replies/{replyId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /mailInboxSyncState/{stateId} {
+      allow read, write: if false;
     }
 
     match /magicLinks/{linkId} {

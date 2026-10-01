@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User, signOut, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User, signOut, isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 import { MessageSquare, Send, UserCircle, LogOut, Edit2, Trash2, X, Check } from "lucide-react";
 
 export default function Comments({ topic, inline }: { topic?: string, inline?: boolean }) {

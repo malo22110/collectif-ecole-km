@@ -4,14 +4,16 @@ admin.initializeApp();
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onDocumentUpdated, onDocumentCreated, onDocumentWritten } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import * as nodemailer from "nodemailer";
 import * as logger from "firebase-functions/logger";
 import { getEmailFooter, getBaseHtmlTemplate } from "./emailTemplates";
 import { formatPublicRecentSigner } from "./petitionPublicNames";
+import { createMailTransport, mailFrom, smtpPassword } from "./mailTransport";
+import { syncInfomaniakInbox } from "./mailInboxSync";
+import { getMailMessageIndexId } from "./mailInboxUtils";
 
 setGlobalOptions({ region: "europe-west9" });
 
-export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
+export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{membreId}", database: "ecole-db", secrets: [smtpPassword] }, async (event) => {
   const membreAvant = event.data?.before.data();
   const membreApres = event.data?.after.data();
   
@@ -24,13 +26,7 @@ export const envoyerMailBienvenue = onDocumentUpdated({ document: "membres/{memb
       return;
     }
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "collectif.ecole.km@gmail.com",
-        pass: process.env.GMAIL_PASSWORD,
-      },
-    });
+    const transporter = createMailTransport();
 
     const prenom = membreApres.prenom;
 
@@ -68,8 +64,8 @@ ${getEmailFooter(false)}`;
     const htmlContent = getBaseHtmlTemplate(htmlBodyContent);
 
     const mailOptions = {
-      from: '"Collectif Kergrist-Moëlou" <collectif.ecole.km@gmail.com>',
-      replyTo: 'collectif.ecole.km@gmail.com',
+      from: mailFrom,
+      replyTo: mailFrom.address,
       to: membreApres.email,
       subject: "Bienvenue au sein du collectif « Un nid tout neuf pour nos écureuils » ! 🐿️",
       text: textContent,
@@ -89,7 +85,7 @@ ${getEmailFooter(false)}`;
 });
 
 
-export const envoyerMagicLink = onDocumentCreated({ document: "magicLinks/{linkId}", database: "ecole-db" }, async (event) => {
+export const envoyerMagicLink = onDocumentCreated({ document: "magicLinks/{linkId}", database: "ecole-db", secrets: [smtpPassword] }, async (event) => {
   const data = event.data?.data();
   if (!data || !data.email || data.status !== 'pending') return;
 
@@ -105,13 +101,7 @@ export const envoyerMagicLink = onDocumentCreated({ document: "magicLinks/{linkI
     // Génération du lien de connexion sécurisé
     const signinLink = await admin.auth().generateSignInWithEmailLink(email, actionCodeSettings);
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "collectif.ecole.km@gmail.com",
-        pass: process.env.GMAIL_PASSWORD,
-      },
-    });
+    const transporter = createMailTransport();
 
     const textContent = `Bonjour,
 
@@ -142,7 +132,8 @@ Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sé
     const htmlContent = getBaseHtmlTemplate(htmlBodyContent);
 
     const mailOptions = {
-      from: '"Collectif Kergrist-Moëlou" <collectif.ecole.km@gmail.com>',
+      from: mailFrom,
+      replyTo: mailFrom.address,
       to: email,
       subject: "Votre lien magique de connexion 🪄",
       text: textContent,
@@ -162,64 +153,80 @@ Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sé
 
 
 async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
-  const data = docSnap.data();
-  if (!data || data.status !== 'pending') return;
+  const data = await docSnap.ref.firestore.runTransaction(async transaction => {
+    const current = await transaction.get(docSnap.ref);
+    if (!current.exists || current.get("status") !== "pending") return null;
+    transaction.update(docSnap.ref, {
+      status: "sending",
+      startedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    return current.data();
+  });
+  if (!data) return;
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "collectif.ecole.km@gmail.com",
-        pass: process.env.GMAIL_PASSWORD,
-      },
-    });
+    const transporter = createMailTransport();
 
     const subject = data.subject || "Nouvelle communication du collectif";
     const bodyContent = data.html || "<p>Message vide.</p>";
     const isTest = data.testMode === true;
-    
-    let recipients: string[] = [];
-    
-    if (isTest) {
-      recipients = ["lecam.malo@gmail.com"];
-    } else {
-      const snapshot = await getFirestore("ecole-db").collection('membres').where('status', '==', 'validated').get();
-      snapshot.forEach((doc: any) => {
-        const email = doc.data().email;
-        if (email) recipients.push(email);
-      });
-      recipients = [...new Set(recipients)];
-    }
+    const deliverySnapshot = await docSnap.ref.collection("recipients").where("status", "==", "pending").limit(1000).get();
+    const deliveries = deliverySnapshot.docs.filter(delivery => typeof delivery.get("email") === "string");
 
-    if (recipients.length === 0) {
+    if (deliveries.length === 0) {
       logger.info("Aucun destinataire trouvé pour ce mail.");
-      await docSnap.ref.update({ status: 'error', error: 'No recipients found.' });
+      await docSnap.ref.update({ status: "error", error: "Aucun destinataire éligible." });
       return;
     }
 
     const htmlContent = getBaseHtmlTemplate(bodyContent);
     let sentCount = 0;
-    
-    for (const email of recipients) {
+    let failedCount = 0;
+    const firestore = getFirestore("ecole-db");
+    for (const deliveryRef of deliveries) {
+      const recipient = deliveryRef.data();
+      const email = String(recipient.email).trim().toLowerCase();
       const mailOptions = {
-        from: '"Collectif Kergrist-Moëlou" <collectif.ecole.km@gmail.com>',
+        from: mailFrom,
+        replyTo: mailFrom.address,
         to: email,
         subject: subject,
-        html: htmlContent
+        html: htmlContent,
+        headers: { "X-Collectif-Campaign-ID": docSnap.id }
       };
       try {
-        await transporter.sendMail(mailOptions);
+        const result = await transporter.sendMail(mailOptions);
         sentCount++;
+        await deliveryRef.ref.update({ status: "sent", messageId: result.messageId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
+        const indexId = getMailMessageIndexId(result.messageId);
+        if (indexId) {
+          await firestore.collection("mailMessageIndex").doc(indexId).set({ threadId: docSnap.id, campaignId: docSnap.id })
+            .catch(error => logger.error("Impossible d’indexer le Message-ID de campagne.", error));
+        }
+        await docSnap.ref.update({
+          sentCount: admin.firestore.FieldValue.increment(1),
+          pendingCount: admin.firestore.FieldValue.increment(-1),
+          status: "sending"
+        });
       } catch (err) {
         logger.error(`Erreur d'envoi à ${email}:`, err);
+        failedCount++;
+        await deliveryRef.ref.update({ status: "error", error: "Échec de livraison SMTP.", failedAt: admin.firestore.FieldValue.serverTimestamp() });
+        await docSnap.ref.update({
+          failedCount: admin.firestore.FieldValue.increment(1),
+          pendingCount: admin.firestore.FieldValue.increment(-1),
+          status: "sending"
+        });
       }
     }
 
-    logger.info(`SpreadMail envoyé à ${sentCount} destinataires.`);
+    logger.info("Campagne traitée.", { sentCount, failedCount, testMode: isTest });
     await docSnap.ref.update({ 
-      status: 'sent', 
+      status: failedCount === 0 ? "sent" : sentCount > 0 ? "partial" : "error",
       sentAt: admin.firestore.FieldValue.serverTimestamp(),
-      sentCount: sentCount 
+      sentCount,
+      failedCount,
+      error: failedCount ? "Une ou plusieurs livraisons ont échoué." : admin.firestore.FieldValue.delete()
     });
   } catch (error) {
     logger.error("Erreur lors de l'envoi du SpreadMail :", error);
@@ -227,24 +234,23 @@ async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
   }
 }
 
-export const envoyerSpreadMail = onDocumentCreated({ document: "mailOutbox/{mailId}", database: "ecole-db" }, async (event) => {
-  const data = event.data?.data();
-  if (!data || data.status !== 'pending') return;
+export const envoyerSpreadMail = onDocumentWritten({ document: "mailOutbox/{mailId}", database: "ecole-db", secrets: [smtpPassword] }, async (event) => {
+  const before = event.data?.before.data();
+  const after = event.data?.after.data();
+  if (!event.data?.after.exists || !after || after.status !== "pending" || before?.status === "pending") return;
 
   // Si le mail est programmé dans le futur, on ne fait rien.
   // C'est le Cron Job qui s'en chargera.
-  if (data.scheduledAt && data.scheduledAt.toDate() > new Date()) {
+  if (after.scheduledAt && after.scheduledAt.toDate() > new Date()) {
     logger.info(`Mail ${event.params.mailId} programmé pour plus tard. On ignore.`);
     return;
   }
 
   // Sinon, on envoie immédiatement.
-  if (event.data) {
-    await processSpreadMail(event.data);
-  }
+  await processSpreadMail(event.data.after);
 });
 
-export const checkScheduledMails = onSchedule("every 5 minutes", async (event) => {
+export const checkScheduledMails = onSchedule({ schedule: "every 5 minutes", secrets: [smtpPassword] }, async (event) => {
   const now = new Date();
   
   // Cherche les mails en attente dont la date de programmation est passée
@@ -262,6 +268,72 @@ export const checkScheduledMails = onSchedule("every 5 minutes", async (event) =
   
   for (const doc of snapshot.docs) {
     await processSpreadMail(doc);
+  }
+});
+
+// [SPEC-MAIL-02] Synchronize the private Infomaniak inbox into the staff-only site mailbox.
+export const syncMailInbox = onSchedule({ schedule: "every 5 minutes", secrets: [smtpPassword] }, async () => {
+  await syncInfomaniakInbox();
+});
+
+// [SPEC-MAIL-02] Replies from the staff inbox are sent through the configured domain SMTP.
+export const envoyerReponseBoiteMail = onDocumentCreated({
+  document: "mailInbox/{messageId}/replies/{replyId}",
+  database: "ecole-db",
+  secrets: [smtpPassword]
+}, async event => {
+  const replyRef = event.data?.ref;
+  if (!replyRef) return;
+
+  const firestore = getFirestore("ecole-db");
+  const replyData = await firestore.runTransaction(async transaction => {
+    const snapshot = await transaction.get(replyRef);
+    if (!snapshot.exists || snapshot.get("status") !== "pending") return null;
+    transaction.update(replyRef, { status: "sending", startedAt: admin.firestore.FieldValue.serverTimestamp() });
+    return snapshot.data();
+  });
+  if (!replyData) return;
+
+  try {
+    const recipient = typeof replyData.to === "string" ? replyData.to : "";
+    const subject = typeof replyData.subject === "string" ? replyData.subject.slice(0, 500) : "Re: Votre message";
+    const text = typeof replyData.text === "string" ? replyData.text.slice(0, 12000) : "";
+    if (!recipient || !text) throw new Error("Réponse sans destinataire ou contenu.");
+
+    const originalMessageId = typeof replyData.originalMessageId === "string" ? replyData.originalMessageId.trim() : "";
+    const references = Array.isArray(replyData.originalReferences)
+      ? replyData.originalReferences.filter((value: unknown): value is string => typeof value === "string").slice(-10)
+      : [];
+    if (originalMessageId && !references.includes(originalMessageId)) references.push(originalMessageId);
+
+    const result = await createMailTransport().sendMail({
+      from: mailFrom,
+      replyTo: mailFrom.address,
+      to: recipient,
+      subject,
+      text,
+      headers: {
+        ...(originalMessageId ? { "In-Reply-To": originalMessageId } : {}),
+        ...(references.length ? { References: references.join(" ") } : {})
+      }
+    });
+    const originalMessage = await replyRef.parent.parent?.get();
+    const threadId = typeof originalMessage?.get("threadId") === "string"
+      ? originalMessage.get("threadId")
+      : replyRef.parent.parent?.id;
+    const messageIndexId = getMailMessageIndexId(result.messageId);
+    if (messageIndexId && threadId) {
+      await firestore.collection("mailMessageIndex").doc(messageIndexId).set({ threadId, inboxMessageId: replyRef.parent.parent?.id });
+    }
+    await replyRef.update({
+      status: "sent",
+      sentAt: admin.firestore.FieldValue.serverTimestamp(),
+      smtpMessageId: result.messageId
+    });
+    await replyRef.parent.parent?.update({ latestReplyAt: admin.firestore.FieldValue.serverTimestamp() });
+  } catch (error) {
+    logger.error("Erreur lors de l’envoi d’une réponse depuis la boîte de réception.", error);
+    await replyRef.update({ status: "error", error: "L’envoi a échoué. Réessayez depuis le message." });
   }
 });
 

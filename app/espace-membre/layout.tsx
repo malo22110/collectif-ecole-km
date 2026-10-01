@@ -12,6 +12,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
   const [user, setUser] = useState<any>(null);
   const [isMember, setIsMember] = useState<boolean | null>(null);
   const [userRoles, setUserRoles] = useState<string[]>(['membre']);
+  const [unreadMailCount, setUnreadMailCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -46,6 +47,39 @@ export default function EspaceMembreLayout({ children }: { children: React.React
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!user || !(userRoles.includes("admin") || userRoles.includes("mail"))) {
+      setUnreadMailCount(0);
+      return;
+    }
+    let active = true;
+    const refreshUnreadCount = async () => {
+      try {
+        const token = await user.getIdToken();
+        const response = await fetch("/api/mail-inbox/unread-count", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
+        });
+        if (!response.ok) return;
+        const result = await response.json();
+        if (active && Number.isInteger(result.count)) setUnreadMailCount(Math.max(0, result.count));
+      } catch {
+        // Keep the last known count when the mailbox API is temporarily unavailable.
+      }
+    };
+    void refreshUnreadCount();
+    const interval = window.setInterval(() => void refreshUnreadCount(), 120_000);
+    const onFocus = () => void refreshUnreadCount();
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("mail-inbox-updated", onFocus);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("mail-inbox-updated", onFocus);
+    };
+  }, [user, userRoles]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-stone-50">Chargement...</div>;
 
@@ -145,9 +179,11 @@ export default function EspaceMembreLayout({ children }: { children: React.React
           {(userRoles.includes('admin') || userRoles.includes('mail')) && (
             <Link 
               href="/espace-membre/mailing"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
+              aria-label={unreadMailCount ? `Campagne d’e-mailing, ${unreadMailCount} message(s) non lu(s)` : "Campagne d’e-mailing"}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname.startsWith("/espace-membre/mailing") ? "bg-emerald-600 text-white" : "hover:bg-stone-800 text-emerald-400"}`}
             >
-              <Mail size={20} /> <span>Campagne d'e-mailing</span>
+              <Mail size={20} /> <span className="min-w-0 flex-1 truncate">Campagne d'e-mailing</span>
+              {unreadMailCount > 0 && <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-rose-600 px-1.5 py-0.5 text-xs font-bold leading-4 text-white" aria-hidden="true">{unreadMailCount > 99 ? "99+" : unreadMailCount}</span>}
             </Link>
           )}
           

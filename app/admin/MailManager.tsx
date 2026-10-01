@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, addDoc, serverTimestamp, getDocs, query, where, deleteDoc, updateDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { Send, AlertCircle, CheckCircle2, Bold, Italic, List, ListOrdered, Users, FileSignature } from "lucide-react";
+import { collection, getDocs, query, where, deleteDoc, updateDoc, doc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { Send, AlertCircle, CheckCircle2, Bold, Italic, List, ListOrdered, Users, FileSignature, Inbox, SendHorizontal } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import MailInbox from "./MailInbox";
+import MailSent from "./MailSent";
+import RecipientAutocomplete, { type RecipientOption } from "@/app/components/RecipientAutocomplete";
 
 const MenuBar = ({ editor }: { editor: any }) => {
   if (!editor) return null;
@@ -50,6 +53,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 };
 
 export default function MailManager() {
+  const [activeView, setActiveView] = useState<"send" | "inbox" | "sent">("send");
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
   const [testMode, setTestMode] = useState(true);
@@ -57,7 +61,8 @@ export default function MailManager() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   
-  const [target, setTarget] = useState<"all" | "membres" | "signataires" | "membres_non_signataires" | "journalistes">("all");
+  const [target, setTarget] = useState<"all" | "membres" | "signataires" | "membres_non_signataires" | "journalistes" | "individuel">("all");
+  const [recipient, setRecipient] = useState<RecipientOption | null>(null);
   const [membres, setMembres] = useState<any[]>([]);
   const [signatures, setSignatures] = useState<any[]>([]);
   const [journalistes, setJournalistes] = useState<any[]>([]);
@@ -86,6 +91,8 @@ export default function MailManager() {
 
   const getUniqueEmails = () => {
     const emails = new Set<string>();
+
+    if (target === "individuel") return recipient ? [recipient.value] : [];
     
     if (target === "membres_non_signataires") {
       const signatureEmails = new Set(signatures.map(s => s.email?.toLowerCase().trim()).filter(Boolean));
@@ -196,28 +203,36 @@ export default function MailManager() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim() || !htmlContent.trim() || htmlContent === "<p></p>") return;
+    if (!testMode && target === "individuel" && !recipient) {
+      setErrorMsg("Choisis le membre destinataire.");
+      setStatus("error");
+      return;
+    }
 
     setStatus("sending");
     try {
-      
-      const payload: any = {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error("Votre session a expiré. Reconnectez-vous.");
+      const response = await fetch("/api/mail-outbox", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
         subject,
         html: htmlContent,
         testMode,
         target,
-        recipientCount: getUniqueEmails().length,
-        status: "pending",
-        createdAt: serverTimestamp()
-      };
-      
-      if (scheduledAt) {
-        payload.scheduledAt = new Date(scheduledAt);
-      }
-      
-      await addDoc(collection(db, "mailOutbox"), payload);
+        ...(target === "individuel" && recipient ? { recipientId: recipient.id } : {}),
+        ...(scheduledAt ? { scheduledAt: new Date(scheduledAt).toISOString() } : {})
+        })
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error || "Impossible de placer l’e-mail dans la file d’envoi.");
       setStatus("success");
       setSubject("");
+      setRecipient(null);
       if (editor) editor.commands.setContent("<p>Bonjour à tous,</p><p><br/></p><p>À très vite,<br/>Le Collectif</p>");
+      if (activeView !== "sent") setActiveView("sent");
       setTimeout(() => setStatus("idle"), 5000);
     } catch (err: any) {
       console.error(err);
@@ -227,7 +242,19 @@ export default function MailManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      <div role="tablist" aria-label="Outils email" className="flex gap-1 border-b border-stone-200">
+        <button type="button" role="tab" id="mail-send-tab" aria-controls="mail-send-panel" aria-selected={activeView === "send"} onClick={() => setActiveView("send")} className={`inline-flex min-h-11 items-center gap-2 border-b-2 px-4 text-sm font-semibold ${activeView === "send" ? "border-emerald-700 text-emerald-900" : "border-transparent text-stone-600 hover:text-stone-900"}`}>
+          <Send size={16} aria-hidden="true" />Envoyer
+        </button>
+        <button type="button" role="tab" id="mail-inbox-tab" aria-controls="mail-inbox-panel" aria-selected={activeView === "inbox"} onClick={() => setActiveView("inbox")} className={`inline-flex min-h-11 items-center gap-2 border-b-2 px-4 text-sm font-semibold ${activeView === "inbox" ? "border-emerald-700 text-emerald-900" : "border-transparent text-stone-600 hover:text-stone-900"}`}>
+          <Inbox size={16} aria-hidden="true" />Réception
+        </button>
+        <button type="button" role="tab" id="mail-sent-tab" aria-controls="mail-sent-panel" aria-selected={activeView === "sent"} onClick={() => setActiveView("sent")} className={`inline-flex min-h-11 items-center gap-2 border-b-2 px-4 text-sm font-semibold ${activeView === "sent" ? "border-emerald-700 text-emerald-900" : "border-transparent text-stone-600 hover:text-stone-900"}`}>
+          <SendHorizontal size={16} aria-hidden="true" />Envoyés
+        </button>
+      </div>
+      {activeView === "inbox" ? <div role="tabpanel" id="mail-inbox-panel" aria-labelledby="mail-inbox-tab"><MailInbox /></div> : activeView === "sent" ? <div role="tabpanel" id="mail-sent-panel" aria-labelledby="mail-sent-tab"><MailSent /></div> : <div role="tabpanel" id="mail-send-panel" aria-labelledby="mail-send-tab" className="space-y-6">
       {/* Stats Cards */}
       <div className="grid md:grid-cols-3 gap-4">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
@@ -295,9 +322,14 @@ export default function MailManager() {
               <input type="radio" name="target" checked={target === "journalistes"} onChange={() => setTarget("journalistes")} className="text-blue-600 focus:ring-blue-500" />
               <span className="text-sm font-medium text-blue-900">Journalistes (Presse)</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-stone-300 bg-white px-2 py-1">
+              <input type="radio" name="target" checked={target === "individuel"} onChange={() => setTarget("individuel")} className="text-emerald-700 focus:ring-emerald-600" />
+              <span className="text-sm font-medium text-stone-800">Un membre</span>
+            </label>
           </div>
+          {target === "individuel" && <div className="mt-3 max-w-xl"><RecipientAutocomplete label="Membre destinataire" selected={recipient} onChange={setRecipient} /></div>}
           <p className="text-xs text-stone-500 mt-2">
-            Nombre de destinataires calculé pour l'envoi : <strong>{loadingStats ? "..." : getUniqueEmails().length}</strong>
+            Nombre de destinataires estimé : <strong>{testMode ? (auth.currentUser?.email ? 1 : "...") : loadingStats && target !== "individuel" ? "..." : getUniqueEmails().length}</strong>
           </p>
         </div>
         <div>
@@ -343,7 +375,7 @@ export default function MailManager() {
             className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
           />
           <label htmlFor="testMode" className="text-sm text-stone-800">
-            <strong>Mode Test</strong> (Envoie l'e-mail uniquement à lecam.malo@gmail.com pour vérification)
+            <strong>Mode test</strong> (envoi uniquement à mon adresse : {auth.currentUser?.email || "compte connecté"})
           </label>
         </div>
 
@@ -353,10 +385,11 @@ export default function MailManager() {
           className="btn-primary w-full flex justify-center items-center gap-2"
         >
           <Send size={20} />
-          {status === "sending" ? "Envoi en cours..." : "Diffuser l'e-mail"}
+          {status === "sending" ? "Mise en file…" : "Envoyer l’e-mail"}
         </button>
       </form>
     </div>
+    </div>}
     </div>
   );
 }

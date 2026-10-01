@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { signInWithPopup, GoogleAuthProvider, sendSignInLinkToEmail, onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { signInWithPopup, GoogleAuthProvider, isSignInWithEmailLink, onAuthStateChanged, signInWithEmailLink } from "firebase/auth";
+import { addDoc, collection, query, serverTimestamp, where, getDocs } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserCircle2 } from "lucide-react";
@@ -24,6 +24,19 @@ export default function ConnexionPage() {
     return () => unsub();
   }, [router]);
 
+  useEffect(() => {
+    if (!isSignInWithEmailLink(auth, window.location.href)) return;
+    const savedEmail = window.localStorage.getItem("emailForSignIn") || window.prompt("Confirmez l’adresse e-mail destinataire du lien.");
+    if (!savedEmail) return;
+
+    void signInWithEmailLink(auth, savedEmail, window.location.href)
+      .then(() => {
+        window.localStorage.removeItem("emailForSignIn");
+        router.replace("/espace-membre");
+      })
+      .catch(() => setAuthError("Le lien de connexion est invalide ou a expiré. Demandez-en un nouveau."));
+  }, [router]);
+
   const handleGoogleLogin = async () => {
     setAuthError("");
     const provider = new GoogleAuthProvider();
@@ -41,12 +54,13 @@ export default function ConnexionPage() {
     e.preventDefault();
     setAuthError("");
     try {
-      const actionCodeSettings = {
-        url: window.location.origin + '/espace-membre',
-        handleCodeInApp: true,
-      };
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      window.localStorage.setItem('emailForSignIn', email);
+      await addDoc(collection(db, "magicLinks"), {
+        email: email.trim(),
+        url: `${window.location.origin}/connexion`,
+        createdAt: serverTimestamp(),
+        status: "pending"
+      });
+      window.localStorage.setItem('emailForSignIn', email.trim());
       setLinkSent(true);
     } catch (err: any) {
       setAuthError(err.message || "Erreur lors de l'envoi du lien");
