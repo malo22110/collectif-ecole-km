@@ -87,18 +87,16 @@ export async function GET(request: Request) {
 
     let signerIndex = 0;
     const rows = signerGroups.map(group => {
-      const sectionHeader = `<tr class="section-heading"><th colspan="7">${escapeHtml(group.title)} (${group.signers.length})</th></tr>`;
+      const sectionHeader = `<tr class="section-heading"><th colspan="5">${escapeHtml(group.title)} (${group.signers.length})</th></tr>`;
       const groupRows = group.signers.map(signer => {
         signerIndex += 1;
         return `
       <tr>
         <td class="number">${signerIndex}</td>
-        <td>${escapeHtml(signer.prenom)}</td>
-        <td>${escapeHtml(signer.nom)}</td>
+        <td>${escapeHtml(`${signer.prenom} ${signer.nom}`.trim())}</td>
         <td>${escapeHtml(signer.ville)}</td>
         <td>${escapeHtml(signer.qualite)}</td>
         <td>${escapeHtml(signer.signature)}</td>
-        <td>${signer.potentialDuplicate ? "Potentiel doublon" : ""}</td>
       </tr>`;
       }).join("");
       return group.signers.length ? sectionHeader + groupRows : "";
@@ -115,10 +113,15 @@ export async function GET(request: Request) {
     @page { size: A4 portrait; margin: 14mm 12mm; }
     * { box-sizing: border-box; }
     body { color: #1c1917; font: 10px/1.35 Arial, sans-serif; margin: 0 auto; max-width: 190mm; }
-    h1 { font-size: 18px; margin: 0 0 5px; }
-    h2 { font-size: 12px; font-weight: 600; margin: 0 0 12px; }
+    .petition-heading { border-bottom: 2px solid #1c1917; margin-bottom: 12px; padding-bottom: 8px; text-align: center; }
+    .petition-heading h1 { font-size: 17px; font-weight: 900; margin: 0 0 5px; text-transform: uppercase; }
+    .petition-heading h2 { font-size: 13px; font-weight: 700; margin: 0; }
     .meta { color: #57534e; margin: 0 0 4px; }
-    .notice { border: 1px solid #a8a29e; margin: 12px 0; padding: 7px; }
+    .notice { border: 1px solid #1c1917; font-weight: 700; margin: 10px 0; padding: 7px; }
+    .petition-arguments { font-size: 9px; line-height: 1.3; margin: 8px 0 12px; padding-left: 18px; }
+    .petition-arguments li { margin: 3px 0; }
+    .caps-notice { border: 2px solid #1c1917; font-size: 10px; font-weight: 700; letter-spacing: .08em; margin: 10px 0; padding: 6px; text-align: center; text-transform: uppercase; }
+    .hint { font-size: 8px; font-weight: 400; font-style: italic; }
     table { border-collapse: collapse; table-layout: fixed; width: 100%; }
     th, td { border: 1px solid #a8a29e; overflow-wrap: anywhere; padding: 5px 4px; text-align: left; vertical-align: top; }
     th { background: #f5f5f4; font-size: 9px; }
@@ -126,27 +129,35 @@ export async function GET(request: Request) {
     tr { break-inside: avoid; }
     .number { text-align: right; width: 7mm; }
     .section-heading th { background: #e7e5e4; break-after: avoid; font-size: 10px; padding-top: 7px; padding-bottom: 7px; }
-    th:nth-child(2), td:nth-child(2) { width: 16%; }
-    th:nth-child(3), td:nth-child(3) { width: 13%; }
-    th:nth-child(4), td:nth-child(4) { width: 14%; }
-    th:nth-child(5), td:nth-child(5) { width: 16%; }
-    th:nth-child(6), td:nth-child(6) { width: 25%; }
-    th:nth-child(7), td:nth-child(7) { width: 16%; }
-    .footer { color: #57534e; font-size: 8px; margin-top: 8px; }
+    th:nth-child(2), td:nth-child(2) { width: 25%; }
+    th:nth-child(3), td:nth-child(3) { width: 20%; }
+    th:nth-child(4), td:nth-child(4) { width: 35%; }
+    th:nth-child(5), td:nth-child(5) { width: 15%; }
+    .footer { border-top: 1px solid #d6d3d1; color: #57534e; font-size: 8px; font-weight: 700; margin-top: 16px; padding-top: 8px; text-align: center; }
     @media screen { body { padding: 18px; } }
     @media print { body { max-width: none; } }
   </style>
 </head>
 <body>
-  <h1>Pétition citoyenne pour la sauvegarde de l'école</h1>
-  <h2>Liste consolidée des signataires de la pétition</h2>
-  <p class="meta">Extraction du ${escapeHtml(extractedAt)} - ${signerCount} signataire(s)</p>
-  <p class="notice">Les signataires sont classés par groupe : habitants de Kergrist-Moëlou, parents d’élèves, puis autres signataires. Les signatures papier et en ligne sont réunies. Pour les signatures en ligne, le courriel déclaré est reproduit dans la colonne correspondante. Les entrées signalées comme doublons potentiels restent distinctes. Document confidentiel.</p>
+  <div class="petition-heading">
+    <h1>Pétition citoyenne</h1>
+    <h2>Rénovation de l'école de Kergrist-Moëlou : valorisons les études engagées vers un projet maîtrisé</h2>
+  </div>
+  <p class="meta">Liste consolidée des signataires - Extraction du ${escapeHtml(extractedAt)} - ${signerCount} signataire(s)</p>
+  <p class="notice">Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation déjà engagé, afin d'aboutir à une solution économe (retour à l'enveloppe de 550 000 € HT) et adaptée aux capacités de la commune, plutôt qu'à un blocage ou un abandon qui contraindrait à repartir de zéro.</p>
+  <ul class="petition-arguments">
+    <li><strong>Un projet déjà mature :</strong> L'état d'avancement des études permet de démarrer sans repartir de zéro.</li>
+    <li><strong>La préservation de l'argent public :</strong> 127 110 € de fonds communaux ont déjà été engagés. Abandonner le projet transforme cet argent en pure perte.</li>
+    <li><strong>Le risque sur les subventions :</strong> Le dossier actuel sécurise 340 000 € d'aides. Un abandon nous ferait perdre définitivement cette manne financière.</li>
+    <li><strong>L'urgence :</strong> Différer les travaux repousse la livraison et fragilise l'accueil des enfants.</li>
+    <li><strong>Les contraintes sanitaires :</strong> Les diagnostics imposent des travaux urgents (radon, amiante, électricité, PMR).</li>
+  </ul>
+  <p class="caps-notice">⚠️ Merci d'écrire lisiblement EN MAJUSCULES ⚠️</p>
   <table>
-    <thead><tr><th class="number">N°</th><th>Prénom</th><th>Nom</th><th>Commune</th><th>Lien avec l'école</th><th>Signature / courriel fourni</th><th>Vérification</th></tr></thead>
-    <tbody>${rows || '<tr><td colspan="7">Aucun signataire trouvé.</td></tr>'}</tbody>
+    <thead><tr><th class="number">N°</th><th>PRÉNOM ET NOM</th><th>COMMUNE DE RÉSIDENCE<br><span class="hint">("KM" pour Kergrist-Moëlou)</span></th><th>LIEN AVEC L'ÉCOLE (Parent, Habitant, Ancien...)</th><th>SIGNATURE</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="5">Aucun signataire trouvé.</td></tr>'}</tbody>
   </table>
-  <p class="footer">Le classement Kergrist utilise la commune ou le lien déclaré. Les parents qui ne sont pas déjà classés habitants de Kergrist figurent dans le groupe « Parents d’élèves ».</p>
+  <p class="footer">Pétition lancée par le Collectif citoyen pour la rénovation de l'école de Kergrist-Moëlou.<br>Les données collectées serviront uniquement à valider le soutien citoyen à cette démarche.</p>
 </body>
 </html>`;
 
