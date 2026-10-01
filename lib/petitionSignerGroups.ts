@@ -1,9 +1,13 @@
+import { isPotentialPetitionDuplicate } from "./petitionDuplicates.ts";
+
 export interface PetitionSigner {
+  id?: string;
   prenom: string;
   nom: string;
   ville: string;
   qualite: string;
   signature: string;
+  source?: "papier" | "en ligne" | "accord_collectif";
   potentialDuplicate: boolean;
 }
 
@@ -11,6 +15,13 @@ export interface PetitionSignerGroup {
   key: "kergrist" | "parents" | "autres";
   title: string;
   signers: PetitionSigner[];
+}
+
+export interface PotentialPetitionDuplicatePair {
+  firstRow: number;
+  secondRow: number;
+  first: PetitionSigner;
+  second: PetitionSigner;
 }
 
 function normalizeForClassification(value: string) {
@@ -42,4 +53,31 @@ export function groupPetitionSigners(signers: PetitionSigner[]): PetitionSignerG
   }
 
   return groups.map(group => ({ ...group, signers: group.signers.sort(compareSigners) }));
+}
+
+// [SPEC-PET-EXPORT-03] Report possible duplicates by their printed row numbers; never merge signatures automatically.
+export function findPotentialPetitionDuplicatePairs(groups: PetitionSignerGroup[]): PotentialPetitionDuplicatePair[] {
+  const numberedSigners = groups.flatMap(group => group.signers)
+    .map((signer, index) => ({ signer, row: index + 1 }));
+  const pairs: PotentialPetitionDuplicatePair[] = [];
+
+  for (let firstIndex = 0; firstIndex < numberedSigners.length; firstIndex++) {
+    const first = numberedSigners[firstIndex];
+    for (let secondIndex = firstIndex + 1; secondIndex < numberedSigners.length; secondIndex++) {
+      const second = numberedSigners[secondIndex];
+      if (isPotentialPetitionDuplicate(
+        { fullName: `${first.signer.prenom} ${first.signer.nom}`, ville: first.signer.ville },
+        { fullName: `${second.signer.prenom} ${second.signer.nom}`, ville: second.signer.ville }
+      )) {
+        pairs.push({
+          firstRow: first.row,
+          secondRow: second.row,
+          first: first.signer,
+          second: second.signer
+        });
+      }
+    }
+  }
+
+  return pairs;
 }

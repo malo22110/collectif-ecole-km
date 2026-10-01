@@ -62,7 +62,7 @@ export async function GET(request: Request) {
         nom: data.nom,
         ville: data.ville,
         qualite: data.qualite,
-        source: data.source === "papier" ? "papier" : "en ligne",
+        source: data.source === "papier" ? "papier" : data.source === "accord_collectif" ? "accord_collectif" : "en ligne",
         potentialDuplicate: data.potentialDuplicate === true,
         potentialDuplicateCount: Array.isArray(data.potentialDuplicateCandidates) ? data.potentialDuplicateCandidates.length : 0,
         createdAt: isoDate,

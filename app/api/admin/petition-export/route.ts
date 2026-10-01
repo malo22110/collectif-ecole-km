@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebaseAdmin";
-import { groupPetitionSigners, type PetitionSigner } from "@/lib/petitionSignerGroups";
+import { findPotentialPetitionDuplicatePairs, groupPetitionSigners, type PetitionSigner } from "@/lib/petitionSignerGroups";
+import { calculatePetitionStats } from "@/functions/src/petitionStats";
 
 export const dynamic = "force-dynamic";
 
@@ -70,14 +71,19 @@ export async function GET(request: Request) {
           nom: String(data.nom || ""),
           ville: String(data.ville || ""),
           qualite: String(data.qualite || ""),
+          source: data.source === "papier" ? "papier" : data.source === "accord_collectif" ? "accord_collectif" : "en ligne",
           signature: data.source === "papier"
             ? String(data.email || "Signature recueillie sur papier")
-            : String(data.email || document.id),
+            : data.source === "accord_collectif"
+              ? "Accord de principe — réunion fondatrice"
+              : String(data.email || document.id),
           potentialDuplicate: data.potentialDuplicate === true
         };
       });
     const signerGroups = groupPetitionSigners(signers);
     const signerCount = signerGroups.reduce((total, group) => total + group.signers.length, 0);
+    const potentialDuplicates = findPotentialPetitionDuplicatePairs(signerGroups);
+    const petitionStats = calculatePetitionStats(signers);
 
     const extractedAt = new Intl.DateTimeFormat("fr-FR", {
       dateStyle: "long",
@@ -101,6 +107,19 @@ export async function GET(request: Request) {
       }).join("");
       return group.signers.length ? sectionHeader + groupRows : "";
     }).join("");
+    const getSignerSourceLabel = (signer: PetitionSigner) => signer.source === "papier"
+      ? "papier"
+      : signer.source === "accord_collectif" ? "accord de principe" : "en ligne";
+    const duplicateRows = potentialDuplicates.map(pair => `
+      <li><strong>N° ${pair.firstRow}</strong> — ${escapeHtml(`${pair.first.prenom} ${pair.first.nom}`.trim())} (${getSignerSourceLabel(pair.first)}), ${escapeHtml(pair.first.ville || "commune non précisée")} et <strong>N° ${pair.secondRow}</strong> — ${escapeHtml(`${pair.second.prenom} ${pair.second.nom}`.trim())} (${getSignerSourceLabel(pair.second)}), ${escapeHtml(pair.second.ville || "commune non précisée")}</li>`).join("");
+    const statisticRows = [
+      ["Habitants de Kergrist-Moëlou", petitionStats.habitantsKergrist, `${petitionStats.habitantsKergristPercent}%`],
+      ["Parents d’élèves (catégorie statistique)", petitionStats.parentsEleves, `${petitionStats.parentsElevesPercent}%`],
+      ["Communes voisines", petitionStats.communesVoisines, `${petitionStats.communesVoisinesPercent}%`],
+      ["Autres soutiens", petitionStats.autres, `${petitionStats.autresPercent}%`],
+      ["Qualité déclarée contenant « parent » (non vérifiée)", petitionStats.declaredParentQuality, `${petitionStats.declaredParentQualityPercent}%`],
+      ["Part estimée des électeurs kergristois (base 539)", petitionStats.habitantsKergrist, `${(petitionStats.kergristElectorateEstimatePercent ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`]
+    ].map(([label, count, share]) => `<tr><th>${escapeHtml(label)}</th><td>${count}</td><td>${escapeHtml(share)}</td></tr>`).join("");
 
     const html = `<!doctype html>
 <html lang="fr">
@@ -122,6 +141,17 @@ export async function GET(request: Request) {
     .petition-arguments li { margin: 3px 0; }
     .caps-notice { border: 2px solid #1c1917; font-size: 10px; font-weight: 700; letter-spacing: .08em; margin: 10px 0; padding: 6px; text-align: center; text-transform: uppercase; }
     .hint { font-size: 8px; font-weight: 400; font-style: italic; }
+    .duplicate-analysis { border: 1px solid #d6d3d1; margin-top: 14px; padding: 8px; break-inside: avoid; }
+    .duplicate-analysis h3 { font-size: 10px; margin: 0 0 5px; }
+    .duplicate-analysis p, .duplicate-analysis ul { font-size: 9px; margin: 4px 0; }
+    .duplicate-analysis ul { padding-left: 18px; }
+    .duplicate-analysis li { margin: 3px 0; }
+    .petition-statistics { border: 1px solid #a8a29e; margin-top: 14px; padding: 8px; break-inside: avoid; }
+    .petition-statistics h3 { font-size: 11px; margin: 0 0 6px; }
+    .petition-statistics table { font-size: 9px; margin-bottom: 6px; }
+    .petition-statistics th { font-weight: 600; width: 68%; }
+    .petition-statistics td { text-align: right; white-space: nowrap; }
+    .petition-statistics p { font-size: 8px; line-height: 1.35; margin: 4px 0; }
     table { border-collapse: collapse; table-layout: fixed; width: 100%; }
     th, td { border: 1px solid #a8a29e; overflow-wrap: anywhere; padding: 5px 4px; text-align: left; vertical-align: top; }
     th { background: #f5f5f4; font-size: 9px; }
@@ -144,6 +174,7 @@ export async function GET(request: Request) {
     <h2>Rénovation de l'école de Kergrist-Moëlou : valorisons les études engagées vers un projet maîtrisé</h2>
   </div>
   <p class="meta">Liste consolidée des signataires - Extraction du ${escapeHtml(extractedAt)} - ${signerCount} signataire(s)</p>
+  <p class="meta">Les mentions « Accord de principe — réunion fondatrice » rapportent un accord enregistré par un administrateur; elles ne constituent pas une signature manuscrite ou en ligne.</p>
   <p class="notice">Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation déjà engagé, afin d'aboutir à une solution économe (retour à l'enveloppe de 550 000 € HT) et adaptée aux capacités de la commune, plutôt qu'à un blocage ou un abandon qui contraindrait à repartir de zéro.</p>
   <ul class="petition-arguments">
     <li><strong>Un projet déjà mature :</strong> L'état d'avancement des études permet de démarrer sans repartir de zéro.</li>
@@ -157,6 +188,16 @@ export async function GET(request: Request) {
     <thead><tr><th class="number">N°</th><th>PRÉNOM ET NOM</th><th>COMMUNE DE RÉSIDENCE<br><span class="hint">("KM" pour Kergrist-Moëlou)</span></th><th>LIEN AVEC L'ÉCOLE (Parent, Habitant, Ancien...)</th><th>SIGNATURE</th></tr></thead>
     <tbody>${rows || '<tr><td colspan="5">Aucun signataire trouvé.</td></tr>'}</tbody>
   </table>
+  <section class="duplicate-analysis">
+    <h3>Analyse de doublons potentiels (${potentialDuplicates.length} paire(s) à vérifier)</h3>
+    <p>Cette comparaison signale des noms identiques ou proches selon la commune. Elle ne confirme pas qu’il s’agit de la même personne et ne fusionne aucune signature.</p>
+    ${duplicateRows ? `<ul>${duplicateRows}</ul>` : "<p>Aucune paire de doublons potentiels détectée.</p>"}
+  </section>
+  <section class="petition-statistics">
+    <h3>Détail statistique des soutiens (${petitionStats.total} au total)</h3>
+    <table><thead><tr><th>Indicateur</th><th>Nombre</th><th>Part</th></tr></thead><tbody>${statisticRows}</tbody></table>
+    <p><strong>Règles de classement, appliquées dans cet ordre :</strong> Kergrist si la commune contient « kergrist » ou si le lien contient « habitant(e) de Kergrist »; sinon parent si le lien contient « parent »; sinon commune voisine si le lien contient « voisine » ou si une commune non vide est renseignée; toutes les autres entrées sont classées « Autres soutiens ». Chaque entrée est comptée une seule fois. « Qualité déclarée parent » est une auto-déclaration, pas un statut vérifié. La base de 539 personnes en âge de voter utilisée pour l’estimation Kergrist est à confirmer et actualiser avant publication comme chiffre officiel.</p>
+  </section>
   <p class="footer">Pétition lancée par le Collectif citoyen pour la rénovation de l'école de Kergrist-Moëlou.<br>Les données collectées serviront uniquement à valider le soutien citoyen à cette démarche.</p>
 </body>
 </html>`;

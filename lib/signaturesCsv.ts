@@ -33,7 +33,7 @@ export function buildSignaturesCsv(rows: SignatureExportRow[]): string {
     row.email,
     row.ville,
     row.qualite,
-    row.source === "papier" ? "Papier" : "En ligne",
+    row.source === "papier" ? "Papier" : row.source === "accord_collectif" ? "Accord de principe (réunion fondatrice)" : "En ligne",
     row.potentialDuplicate ? "Oui" : "Non",
     row.createdAt
   ])];

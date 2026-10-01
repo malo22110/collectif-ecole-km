@@ -19,3 +19,12 @@ test("[SPEC-PET-SCAN-05] conserve le format existant pour les signatures en lign
     qualite: "Parent d'élève"
   }), "Camille L. (Parent d'élève)");
 });
+
+test("[SPEC-PET-SCAN-05] masque l’identité dans le résumé public d’un accord de principe", () => {
+  assert.equal(formatPublicRecentSigner({
+    source: "accord_collectif",
+    prenom: "Camille",
+    nom: "Le Cam",
+    qualite: "Membre du collectif"
+  }), "Accord de principe enregistré");
+});

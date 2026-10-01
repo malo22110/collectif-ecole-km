@@ -36,3 +36,14 @@ test("[SPEC-CORRECTEUR-EXPORT-01] échappe les guillemets et neutralise les form
   assert.ok(csv.includes("\"'@SUM(A1)\""));
   assert.ok(csv.includes("\"'-2+3\""));
 });
+
+test("[SPEC-PET-AGREEMENT-01] distingue l’accord de principe des signatures papier et en ligne", () => {
+  const csv = buildSignaturesCsv([{
+    prenom: "Camille",
+    nom: "Le Cam",
+    email: "camille@example.test",
+    source: "accord_collectif"
+  }]);
+  assert.ok(csv.includes('"Accord de principe (réunion fondatrice)"'));
+  assert.ok(!csv.includes('"En ligne"'));
+});

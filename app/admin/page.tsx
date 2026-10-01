@@ -6,6 +6,7 @@ import FaqManager from "./FaqManager";
 import ImportMembers from "./ImportMembers";
 import ExportMembers from "./ExportMembers";
 import PetitionSignaturesExport from "./PetitionSignaturesExport";
+import PetitionCollectiveAgreements from "./PetitionCollectiveAgreements";
 import SetupCmsBtn from "./SetupCmsBtn";
 import HistoriqueAdmin from "./HistoriqueAdmin";
 import MembreManager from "./MembreManager";
@@ -230,6 +231,7 @@ function AdminDashboardContent() {
             <ImportMembers />
             <ExportMembers />
             <PetitionSignaturesExport />
+            <PetitionCollectiveAgreements />
           </div>
         )}
 

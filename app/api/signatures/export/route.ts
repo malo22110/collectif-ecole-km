@@ -64,7 +64,7 @@ export async function GET(request: Request) {
         email: String(data.email || ""),
         ville: String(data.ville || ""),
         qualite: String(data.qualite || ""),
-        source: data.source === "papier" ? "papier" : "en ligne",
+        source: data.source === "papier" ? "papier" : data.source === "accord_collectif" ? "accord_collectif" : "en ligne",
         potentialDuplicate: data.potentialDuplicate === true,
         createdAt
       };
