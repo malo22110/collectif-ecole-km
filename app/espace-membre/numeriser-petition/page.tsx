@@ -165,7 +165,8 @@ export default function NumeriserPetitionPage() {
   };
 
   return (
-    <main className="min-h-full overflow-y-auto bg-stone-50 p-4 md:p-8">
+    // [SPEC-PET-SCAN-06] Preserve scroll space below the final action on mobile, including the device safe area.
+    <main className="min-h-full overflow-y-auto bg-stone-50 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:p-8">
       <div className="mx-auto max-w-5xl space-y-6">
         <header>
           <h1 className="flex items-center gap-3 text-2xl font-black text-stone-900 md:text-3xl">
