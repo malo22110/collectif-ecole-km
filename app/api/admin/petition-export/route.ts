@@ -117,7 +117,8 @@ export async function GET(request: Request) {
       ["Parents d’élèves (catégorie statistique)", petitionStats.parentsEleves, `${petitionStats.parentsElevesPercent}%`],
       ["Communes voisines", petitionStats.communesVoisines, `${petitionStats.communesVoisinesPercent}%`],
       ["Autres soutiens", petitionStats.autres, `${petitionStats.autresPercent}%`],
-      ["Qualité déclarée contenant « parent » (non vérifiée)", petitionStats.declaredParentQuality, `${petitionStats.declaredParentQualityPercent}%`],
+      ["Qualité déclarée « parent d’élève » (non vérifiée)", petitionStats.declaredParentOfPupilQuality, `${petitionStats.declaredParentOfPupilQualityPercent}%`],
+      ["Signataires déclarés parent d’élève / 47 parents au total", `${petitionStats.declaredParentOfPupilQuality} / 47`, `${petitionStats.parentSignersOfKnownParentsPercent.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`],
       ["Part estimée des électeurs kergristois (base 539)", petitionStats.habitantsKergrist, `${(petitionStats.kergristElectorateEstimatePercent ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`]
     ].map(([label, count, share]) => `<tr><th>${escapeHtml(label)}</th><td>${count}</td><td>${escapeHtml(share)}</td></tr>`).join("");
 
@@ -196,7 +197,7 @@ export async function GET(request: Request) {
   <section class="petition-statistics">
     <h3>Détail statistique des soutiens (${petitionStats.total} au total)</h3>
     <table><thead><tr><th>Indicateur</th><th>Nombre</th><th>Part</th></tr></thead><tbody>${statisticRows}</tbody></table>
-    <p><strong>Règles de classement, appliquées dans cet ordre :</strong> Kergrist si la commune contient « kergrist » ou si le lien contient « habitant(e) de Kergrist »; sinon parent si le lien contient « parent »; sinon commune voisine si le lien contient « voisine » ou si une commune non vide est renseignée; toutes les autres entrées sont classées « Autres soutiens ». Chaque entrée est comptée une seule fois. « Qualité déclarée parent » est une auto-déclaration, pas un statut vérifié. La base de 539 personnes en âge de voter utilisée pour l’estimation Kergrist est à confirmer et actualiser avant publication comme chiffre officiel.</p>
+    <p><strong>Règles de classement, appliquées dans cet ordre :</strong> Kergrist si la commune contient « kergrist » ou si le lien contient « habitant(e) de Kergrist »; sinon parent d’élève si la qualité déclarée correspond à « Parent d’élève » (accent ignoré); sinon commune voisine si le lien contient « voisine » ou si une commune non vide est renseignée; toutes les autres entrées sont classées « Autres soutiens ». Chaque entrée est comptée une seule fois. Le ratio parent d’élève utilise 47 parents au total, valeur communiquée à confirmer; la qualité déclarée ne constitue pas une vérification individuelle. La base de 539 personnes en âge de voter utilisée pour l’estimation Kergrist est à confirmer et actualiser avant publication comme chiffre officiel.</p>
   </section>
   <p class="footer">Pétition lancée par le Collectif citoyen pour la rénovation de l'école de Kergrist-Moëlou.<br>Les données collectées serviront uniquement à valider le soutien citoyen à cette démarche.</p>
 </body>

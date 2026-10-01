@@ -1,19 +1,49 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { collection, addDoc, doc, onSnapshot, serverTimestamp, getDocs, query, where, getCountFromServer, setDoc, getDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { PenTool, CheckCircle2, AlertCircle, Users, ChevronRight, FileText } from 'lucide-react';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import {
+  collection,
+  addDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  getDocs,
+  query,
+  where,
+  getCountFromServer,
+  setDoc,
+  getDoc,
+} from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  PenTool,
+  CheckCircle2,
+  AlertCircle,
+  Users,
+  ChevronRight,
+  FileText,
+} from "lucide-react";
+import Link from "next/link";
 import UserAvatar from "../components/UserAvatar";
 import ShareButton from "../components/ShareButton";
 import { ArrowLeft } from "lucide-react";
 
 export default function PetitionPage() {
-  const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", ville: "", villeAutre: "", qualite: "", qualiteAutre: "", honeypot: "" });
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  
+  const [formData, setFormData] = useState({
+    prenom: "",
+    nom: "",
+    email: "",
+    ville: "",
+    villeAutre: "",
+    qualite: "",
+    qualiteAutre: "",
+    honeypot: "",
+  });
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+
   useEffect(() => {
     try {
       if (localStorage.getItem("petition_signed")) {
@@ -21,10 +51,15 @@ export default function PetitionPage() {
       }
     } catch (e) {}
   }, []);
-  const [stats, setStats] = useState<{ 
-    count: number; 
-    recent: string[]; 
-    breakdown?: { habitantsKergrist: number; parentsEleves: number; communesVoisines: number; autres: number; } 
+  const [stats, setStats] = useState<{
+    count: number;
+    recent: string[];
+    breakdown?: {
+      habitantsKergrist: number;
+      parentsEleves: number;
+      communesVoisines: number;
+      autres: number;
+    };
   }>({ count: 0, recent: [] });
   const [isMember, setIsMember] = useState(false);
 
@@ -40,18 +75,18 @@ export default function PetitionPage() {
         setIsMember(true);
         // Try to fetch member details
         try {
-          const docRef = doc(db, 'membres', user.email);
+          const docRef = doc(db, "membres", user.email);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const memberData = docSnap.data();
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               email: user.email || "",
               prenom: memberData.prenom || "",
-              nom: memberData.nom || ""
+              nom: memberData.nom || "",
             }));
           } else {
-            setFormData(prev => ({ ...prev, email: user.email || "" }));
+            setFormData((prev) => ({ ...prev, email: user.email || "" }));
           }
         } catch (e) {
           console.error(e);
@@ -71,25 +106,29 @@ export default function PetitionPage() {
     e.preventDefault();
     setStatus("submitting");
     try {
-      
-
       const { qualiteAutre, villeAutre, ...rest } = formData;
       const cleanEmail = (formData.email || "").trim().toLowerCase();
-      const payload: any = { ...rest, email: cleanEmail, createdAt: serverTimestamp() };
-      
+      const payload: any = {
+        ...rest,
+        email: cleanEmail,
+        createdAt: serverTimestamp(),
+      };
+
       if (payload.qualite === "Autre" && qualiteAutre) {
         payload.qualite = qualiteAutre;
       }
-      
+
       if (payload.ville === "Autre" && villeAutre) {
         payload.ville = villeAutre;
       }
-      
+
       try {
         await setDoc(doc(db, "signatures", cleanEmail), payload);
       } catch (err: any) {
-        if (err.code === 'permission-denied' || err.code === 'already-exists') {
-          alert("Cette adresse e-mail a déjà été utilisée pour signer la pétition.");
+        if (err.code === "permission-denied" || err.code === "already-exists") {
+          alert(
+            "Cette adresse e-mail a déjà été utilisée pour signer la pétition.",
+          );
           setStatus("idle");
           return;
         }
@@ -113,7 +152,10 @@ export default function PetitionPage() {
     <div className="min-h-screen bg-stone-50 pb-20">
       <header className="bg-emerald-900 border-b border-emerald-800/50 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between text-emerald-100">
-          <Link href="/" className="flex items-center gap-2 hover:text-white font-medium transition-colors text-sm">
+          <Link
+            href="/"
+            className="flex items-center gap-2 hover:text-white font-medium transition-colors text-sm"
+          >
             <ArrowLeft size={18} />
             <span className="hidden sm:inline">Retour à l'accueil</span>
           </Link>
@@ -122,11 +164,15 @@ export default function PetitionPage() {
           </div>
         </div>
       </header>
-      
+
       {/* Header Héro */}
       <div className="bg-emerald-900 text-emerald-50 py-20 md:py-32 px-4 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src="/images/hero_petition.jpg" alt="Enfants à l'école de Kergrist-Moëlou" className="w-full h-full object-cover object-center" />
+          <img
+            src="/images/hero_petition.jpg"
+            alt="Enfants à l'école de Kergrist-Moëlou"
+            className="w-full h-full object-cover object-center"
+          />
           <div className="absolute inset-0 bg-emerald-900/75 pointer-events-none" />
           <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/90 to-transparent pointer-events-none" />
         </div>
@@ -145,91 +191,177 @@ export default function PetitionPage() {
 
       <div className="max-w-6xl mx-auto px-4 -mt-8 relative z-20">
         <div className="flex flex-col lg:flex-row gap-8">
-          
           {/* Main Content (Texte de la pétition) */}
           <div className="flex-1 bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-stone-200/50 border border-stone-100">
             <h2 className="text-2xl font-bold text-stone-900 mb-6 border-b border-stone-100 pb-4">
-              Rénovation de l'école de Kergrist-Moëlou : valorisons les études engagées vers un projet maîtrisé
+              Rénovation de l'école de Kergrist-Moëlou : valorisons les études
+              engagées vers un projet maîtrisé
             </h2>
             <div className="prose prose-stone max-w-none text-stone-700 space-y-6">
               <p className="text-lg font-medium text-stone-800 leading-relaxed border-l-4 border-emerald-500 pl-4 bg-emerald-50 py-3 pr-4 rounded-r-xl">
-                Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation déjà engagé, afin d'aboutir à une solution économe (retour à l'enveloppe initiale de 550 000 € HT) et adaptée aux capacités de la commune, plutôt qu'à un blocage ou un abandon qui contraindrait à repartir de zéro.
+                Nous demandons la poursuite et la réévaluation à la baisse du
+                dossier de rénovation déjà engagé, afin d'aboutir à une solution
+                économe (retour à l'enveloppe initiale de 550 000 € HT) et
+                adaptée aux capacités de la commune, plutôt qu'à un blocage ou
+                un abandon qui contraindrait à repartir de zéro.
               </p>
-              
+
               <ul className="space-y-6 mt-8 list-none pl-0">
                 <li className="flex gap-4">
-                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
+                  <CheckCircle2
+                    className="text-emerald-600 shrink-0 mt-1"
+                    size={24}
+                  />
                   <div>
-                    <strong className="text-stone-900 block mb-1">Un projet déjà mature :</strong>
-                    L'état d'avancement des études, des plans et des diagnostics techniques permet de démarrer les travaux sans repartir d'une page blanche. L'objectif est d'optimiser ce qui existe pour tenir le budget, pas de tout recommencer.
-                  </div>
-                </li>
-                
-                <li className="flex gap-4">
-                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
-                  <div>
-                    <strong className="text-stone-900 block mb-1">La préservation de l'argent public :</strong>
-                    Sur l'enveloppe globale d'ingénierie budgétée par la mairie, au minimum 70 000 € de prestations ont déjà été effectivement réalisées à ce jour (plans d'architectes, assistance à maîtrise d'ouvrage, diagnostics obligatoires). La commune est légalement tenue de les payer (règle du "service fait"). Refuser de voter l'ajustement de 2 170 € nécessaire pour faire baisser le coût des travaux conduit à bloquer le projet et transforme ces montants d'argent public en perte sèche immédiate.
-                  </div>
-                </li>
-
-                <li className="flex gap-4">
-                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
-                  <div>
-                    <strong className="text-stone-900 block mb-1">Le risque critique sur les subventions :</strong>
-                    Le dossier actuel permet de sécuriser 340 000 € d'aides (État, Région, Département). Ces financements exigent strictement un projet global assurant 40 % d'économie d'énergie et sont soumis à des calendriers très serrés (date butoir en décembre 2026 pour l'État). Un abandon ou de petits "travaux rustines" nous feraient perdre définitivement cette manne financière. La mairie devrait alors payer les futurs travaux à 100 %.
+                    <strong className="text-stone-900 block mb-1">
+                      Un projet déjà mature :
+                    </strong>
+                    L'état d'avancement des études, des plans et des diagnostics
+                    techniques permet de démarrer les travaux sans repartir
+                    d'une page blanche. L'objectif est d'optimiser ce qui existe
+                    pour tenir le budget, pas de tout recommencer.
                   </div>
                 </li>
 
                 <li className="flex gap-4">
-                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
+                  <CheckCircle2
+                    className="text-emerald-600 shrink-0 mt-1"
+                    size={24}
+                  />
                   <div>
-                    <strong className="text-stone-900 block mb-1">L'urgence du calendrier des travaux :</strong>
-                    Différer la réhabilitation repousse la livraison de plusieurs années (avec l'inflation inévitable des coûts de la construction) et fragilise durablement les conditions d'apprentissage et l'accueil de nos enfants.
+                    <strong className="text-stone-900 block mb-1">
+                      La préservation de l'argent public :
+                    </strong>
+                    Sur l'enveloppe globale d'ingénierie budgétée par la mairie,
+                    au minimum 70 000 € de prestations ont déjà été
+                    effectivement réalisées à ce jour (plans d'architectes,
+                    assistance à maîtrise d'ouvrage, diagnostics obligatoires).
+                    La commune est légalement tenue de les payer (règle du
+                    "service fait"). Refuser de voter l'ajustement de 2 170 €
+                    nécessaire pour faire baisser le coût des travaux conduit à
+                    bloquer le projet et transforme ces montants d'argent public
+                    en perte sèche immédiate.
                   </div>
                 </li>
 
                 <li className="flex gap-4">
-                  <CheckCircle2 className="text-emerald-600 shrink-0 mt-1" size={24} />
+                  <CheckCircle2
+                    className="text-emerald-600 shrink-0 mt-1"
+                    size={24}
+                  />
                   <div>
-                    <strong className="text-stone-900 block mb-1">Les contraintes réglementaires et sanitaires :</strong>
-                    Les diagnostics réalisés imposent des travaux incontournables et urgents : gestion du radon, désamiantage du préau, remise aux normes de l'électricité, isolation d'un bâtiment très énergivore, réfection des sanitaires et mise en conformité de l'accessibilité PMR.
+                    <strong className="text-stone-900 block mb-1">
+                      Le risque critique sur les subventions :
+                    </strong>
+                    Le dossier actuel permet de sécuriser 340 000 € d'aides
+                    (État, Région, Département). Ces financements exigent
+                    strictement un projet global assurant 40 % d'économie
+                    d'énergie et sont soumis à des calendriers très serrés (date
+                    butoir en décembre 2026 pour l'État). Un abandon ou de
+                    petits "travaux rustines" nous feraient perdre
+                    définitivement cette manne financière. La mairie devrait
+                    alors payer les futurs travaux à 100 %.
+                  </div>
+                </li>
+
+                <li className="flex gap-4">
+                  <CheckCircle2
+                    className="text-emerald-600 shrink-0 mt-1"
+                    size={24}
+                  />
+                  <div>
+                    <strong className="text-stone-900 block mb-1">
+                      L'urgence du calendrier des travaux :
+                    </strong>
+                    Différer la réhabilitation repousse la livraison de
+                    plusieurs années (avec l'inflation inévitable des coûts de
+                    la construction) et fragilise durablement les conditions
+                    d'apprentissage et l'accueil de nos enfants.
+                  </div>
+                </li>
+
+                <li className="flex gap-4">
+                  <CheckCircle2
+                    className="text-emerald-600 shrink-0 mt-1"
+                    size={24}
+                  />
+                  <div>
+                    <strong className="text-stone-900 block mb-1">
+                      Les contraintes réglementaires et sanitaires :
+                    </strong>
+                    Les diagnostics réalisés imposent des travaux
+                    incontournables et urgents : gestion du radon, désamiantage
+                    du préau, remise aux normes de l'électricité, isolation d'un
+                    bâtiment très énergivore, réfection des sanitaires et mise
+                    en conformité de l'accessibilité PMR.
                   </div>
                 </li>
               </ul>
-              
+
               <div className="bg-amber-50 border border-amber-200 p-6 rounded-xl text-amber-900 my-8 shadow-sm">
                 <p className="font-medium text-center">
-                  Repartir de zéro ou geler le projet repousserait dangereusement le traitement de ces impératifs prioritaires pour la santé et la sécurité des enfants.
+                  Repartir de zéro ou geler le projet repousserait
+                  dangereusement le traitement de ces impératifs prioritaires
+                  pour la santé et la sécurité des enfants.
                 </p>
               </div>
 
               <div className="mt-8 pt-8 border-t border-stone-100 flex flex-col sm:flex-row items-center gap-4 justify-between">
                 <p className="text-sm text-stone-500 italic">
-                  Pour comprendre en détail les enjeux financiers, consultez notre dossier de synthèse :
+                  Pour comprendre en détail les enjeux financiers, consultez
+                  notre dossier de synthèse :
                 </p>
-                <Link href="/historique" className="btn-secondary whitespace-nowrap text-sm flex items-center gap-2">
+                <Link
+                  href="/historique"
+                  className="btn-secondary whitespace-nowrap text-sm flex items-center gap-2"
+                >
                   <FileText size={16} /> Lire l'historique complet
                 </Link>
               </div>
 
-
               <div className="mt-8 bg-stone-50 border border-stone-200 rounded-2xl p-6 md:p-8">
                 <h4 className="text-lg font-bold text-stone-900 mb-4 flex items-center gap-2">
-                  <span>📌</span> Addendum : Note de transparence aux premiers signataires
+                  <span>📌</span> Addendum : Note de transparence aux premiers
+                  signataires
                 </h4>
                 <div className="space-y-4 text-sm text-stone-700">
                   <p>
-                    Dans les premières heures du lancement de cette pétition, nous indiquions que l'abandon du projet transformerait "127 110 € d'études en pure perte". Notre collectif ayant depuis décortiqué les contrats administratifs précis (actes d'engagement des prestataires), nous avons tenu à affiner ce chiffre pour être d'une rigueur absolue.
+                    Dans les premières heures du lancement de cette pétition,
+                    nous indiquions que l'abandon du projet transformerait "127
+                    110 € d'études en pure perte". Notre collectif ayant depuis
+                    décortiqué les contrats administratifs précis (actes
+                    d'engagement des prestataires), nous avons tenu à affiner ce
+                    chiffre pour être d'une rigueur absolue.
                   </p>
                   <p>
-                    <strong className="text-stone-900">Pourquoi ce changement ?</strong> 127 110 € est bien l'enveloppe globale et historique budgétée par la mairie pour les études. En revanche, si le projet est annulé demain, la somme que la commune devra débourser immédiatement de sa poche (pour le travail effectivement déjà réalisé à ce jour) est évaluée à au minimum 70 000 €.
+                    <strong className="text-stone-900">
+                      Pourquoi ce changement ?
+                    </strong>{" "}
+                    127 110 € est bien l'enveloppe globale et historique
+                    budgétée par la mairie pour les études. En revanche, si le
+                    projet est annulé demain, la somme que la commune devra
+                    débourser immédiatement de sa poche (pour le travail
+                    effectivement déjà réalisé à ce jour) est évaluée à au
+                    minimum 70 000 €.
                   </p>
                   <p>
-                    <strong className="text-stone-900">Est-ce que cela change notre diagnostic ? Absolument pas.</strong> Le fond du problème reste exactement le même. Qu'il s'agisse de l'enveloppe globale ou de la perte sèche immédiate d'au moins 70 000 €, jeter des dizaines de milliers d'euros de nos impôts par les fenêtres pour n'avoir aucun travaux à la fin reste une aberration financière inacceptable. De plus, le risque de perdre les 340 000 € de subventions reste, lui, totalement inchangé.
+                    <strong className="text-stone-900">
+                      Est-ce que cela change notre diagnostic ? Absolument pas.
+                    </strong>{" "}
+                    Le fond du problème reste exactement le même. Qu'il s'agisse
+                    de l'enveloppe globale ou de la perte sèche immédiate d'au
+                    moins 70 000 €, jeter des dizaines de milliers d'euros de
+                    nos impôts par les fenêtres pour n'avoir aucun travaux à la
+                    fin reste une aberration financière inacceptable. De plus,
+                    le risque de perdre les 340 000 € de subventions reste, lui,
+                    totalement inchangé.
                   </p>
                   <p className="font-medium text-stone-900 bg-stone-100 p-3 rounded-lg border border-stone-200">
-                    Votre signature initiale est donc plus que jamais légitime, justifiée et fondée. En 4 jours, notre collectif a fait le choix de la transparence totale : nous ajustons nos textes au fur et à mesure que nous accédons aux documents officiels pour vous garantir l'information la plus juste possible.
+                    Votre signature initiale est donc plus que jamais légitime,
+                    justifiée et fondée. En 4 jours, notre collectif a fait le
+                    choix de la transparence totale : nous ajustons nos textes
+                    au fur et à mesure que nous accédons aux documents officiels
+                    pour vous garantir l'information la plus juste possible.
                   </p>
                 </div>
               </div>
@@ -238,7 +370,6 @@ export default function PetitionPage() {
 
           {/* Sidebar (Form & Stats) */}
           <div className="w-full lg:w-[400px] flex flex-col gap-6 shrink-0">
-            
             {/* Stats Card */}
             <div className="bg-emerald-900 text-white p-8 rounded-3xl shadow-lg border border-emerald-800 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
@@ -255,33 +386,41 @@ export default function PetitionPage() {
                 <div className="text-emerald-100 font-medium mb-6">
                   citoyens ont déjà signé la pétition.
                 </div>
-                
+
                 {stats.breakdown && (
                   <div className="space-y-3 mt-6 pt-6 border-t border-emerald-800/50">
-                    <h4 className="text-sm font-bold text-emerald-300 uppercase tracking-wider mb-4">Profil des signataires</h4>
-                    
+                    <h4 className="text-sm font-bold text-emerald-300 uppercase tracking-wider mb-4">
+                      Profil des signataires
+                    </h4>
+
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-emerald-100 flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
                         Habitants de Kergrist
                       </span>
-                      <span className="font-bold text-white">{stats.breakdown.habitantsKergrist}</span>
+                      <span className="font-bold text-white">
+                        {stats.breakdown.habitantsKergrist}
+                      </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-emerald-100 flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-blue-400"></div>
                         Parents d'élèves
                       </span>
-                      <span className="font-bold text-white">{stats.breakdown.parentsEleves}</span>
+                      <span className="font-bold text-white">
+                        {stats.breakdown.parentsEleves}
+                      </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-emerald-100 flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-amber-400"></div>
                         Communes voisines
                       </span>
-                      <span className="font-bold text-white">{stats.breakdown.communesVoisines}</span>
+                      <span className="font-bold text-white">
+                        {stats.breakdown.communesVoisines}
+                      </span>
                     </div>
 
                     {stats.breakdown.autres > 0 && (
@@ -290,7 +429,9 @@ export default function PetitionPage() {
                           <div className="w-2 h-2 rounded-full bg-stone-400"></div>
                           Anciens élèves / Autres
                         </span>
-                        <span className="font-bold text-white">{stats.breakdown.autres}</span>
+                        <span className="font-bold text-white">
+                          {stats.breakdown.autres}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -305,39 +446,55 @@ export default function PetitionPage() {
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full mb-4">
                     <CheckCircle2 size={32} />
                   </div>
-                  <h3 className="text-2xl font-bold text-stone-900 mb-2">Merci pour votre signature !</h3>
-                  <p className="text-stone-600 mb-8">Votre voix compte pour l'avenir de l'école.</p>
-                  
+                  <h3 className="text-2xl font-bold text-stone-900 mb-2">
+                    Merci pour votre signature !
+                  </h3>
+                  <p className="text-stone-600 mb-8">
+                    Votre voix compte pour l'avenir de l'école.
+                  </p>
+
                   <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
-                    <h4 className="font-bold text-emerald-900 mb-3">La mobilisation continue !</h4>
-                    <p className="text-sm text-emerald-800 mb-6">Partagez la pétition autour de vous pour donner plus de poids à notre demande.</p>
-                    <ShareButton 
-                      url="https://collectif-ecole-km.web.app/petition" 
-                      title="Pétition : Sauvons le projet de rénovation de l'école de Kergrist-Moëlou" 
-                      text="Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation engagé, afin d'aboutir à une solution économe plutôt qu'à un abandon." 
-                      variant="primary" 
+                    <h4 className="font-bold text-emerald-900 mb-3">
+                      La mobilisation continue !
+                    </h4>
+                    <p className="text-sm text-emerald-800 mb-6">
+                      Partagez la pétition autour de vous pour donner plus de
+                      poids à notre demande.
+                    </p>
+                    <ShareButton
+                      url="https://collectif-ecole-km.web.app/petition"
+                      title="Pétition : Sauvons le projet de rénovation de l'école de Kergrist-Moëlou"
+                      text="Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation engagé, afin d'aboutir à une solution économe plutôt qu'à un abandon."
+                      variant="primary"
                       className="w-full justify-center inline-flex items-center gap-2 font-bold px-6 py-4 rounded-2xl transition-all text-base border"
                     />
                   </div>
                 </div>
               ) : (
                 <>
-                  <h3 className="text-xl font-bold text-stone-900 mb-6">Je signe la pétition</h3>
+                  <h3 className="text-xl font-bold text-stone-900 mb-6">
+                    Je signe la pétition
+                  </h3>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Honeypot Field */}
-                    <div className="absolute left-[-9999px] top-[-9999px]" aria-hidden="true">
+                    <div
+                      className="absolute left-[-9999px] top-[-9999px]"
+                      aria-hidden="true"
+                    >
                       <label htmlFor="a_t_h_n_y_p_t"></label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         id="a_t_h_n_y_p_t"
                         name="a_t_h_n_y_p_t"
                         tabIndex={-1}
                         autoComplete="off"
-                        value={formData.honeypot} 
-                        onChange={e => setFormData({...formData, honeypot: e.target.value})}
+                        value={formData.honeypot}
+                        onChange={(e) =>
+                          setFormData({ ...formData, honeypot: e.target.value })
+                        }
                       />
                     </div>
-                    
+
                     {isMember && (
                       <div className="bg-emerald-50 text-emerald-800 p-3 rounded-xl border border-emerald-200 text-sm flex items-center gap-2 mb-2">
                         <CheckCircle2 size={16} />
@@ -348,96 +505,155 @@ export default function PetitionPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="input-label">Prénom</label>
-                        <input 
-                          type="text" required 
-                          value={formData.prenom} onChange={e => setFormData({...formData, prenom: e.target.value})}
-                          className={`input-base ${isMember ? 'bg-stone-50 text-stone-500 cursor-not-allowed' : ''}`} placeholder="Jean"
+                        <input
+                          type="text"
+                          required
+                          value={formData.prenom}
+                          onChange={(e) =>
+                            setFormData({ ...formData, prenom: e.target.value })
+                          }
+                          className={`input-base ${isMember ? "bg-stone-50 text-stone-500 cursor-not-allowed" : ""}`}
+                          placeholder="Jean"
                           readOnly={isMember && !!formData.prenom}
                         />
                       </div>
                       <div>
                         <label className="input-label">Nom</label>
-                        <input 
-                          type="text" required 
-                          value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})}
-                          className={`input-base ${isMember ? 'bg-stone-50 text-stone-500 cursor-not-allowed' : ''}`} placeholder="Dupont"
+                        <input
+                          type="text"
+                          required
+                          value={formData.nom}
+                          onChange={(e) =>
+                            setFormData({ ...formData, nom: e.target.value })
+                          }
+                          className={`input-base ${isMember ? "bg-stone-50 text-stone-500 cursor-not-allowed" : ""}`}
+                          placeholder="Dupont"
                           readOnly={isMember && !!formData.nom}
                         />
                       </div>
                     </div>
                     <div>
                       <label className="input-label">Adresse e-mail</label>
-                      <input 
-                        type="email" required 
-                        value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
-                        className={`input-base ${isMember ? 'bg-stone-50 text-stone-500 cursor-not-allowed' : ''}`} placeholder="jean.dupont@email.com"
+                      <input
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        className={`input-base ${isMember ? "bg-stone-50 text-stone-500 cursor-not-allowed" : ""}`}
+                        placeholder="jean.dupont@email.com"
                         readOnly={isMember && !!formData.email}
                       />
                     </div>
                     <div>
                       <label className="input-label">
                         Commune de résidence
-                        <span className="block text-xs text-stone-500 font-normal mt-0.5">Très important pour prouver la proximité géographique.</span>
+                        <span className="block text-xs text-stone-500 font-normal mt-0.5">
+                          Très important pour prouver la proximité géographique.
+                        </span>
                       </label>
-                      <select 
+                      <select
                         required
-                        value={formData.ville} 
-                        onChange={e => setFormData({...formData, ville: e.target.value})}
+                        value={formData.ville}
+                        onChange={(e) =>
+                          setFormData({ ...formData, ville: e.target.value })
+                        }
                         className="input-base"
                       >
-                        <option value="" disabled>Sélectionnez une option</option>
+                        <option value="" disabled>
+                          Sélectionnez une option
+                        </option>
                         <option value="Kergrist-Moëlou">Kergrist-Moëlou</option>
                         <option value="Autre">Autre commune (précisez)</option>
                       </select>
-                      
+
                       {formData.ville === "Autre" && (
                         <div className="mt-3">
-                          <input 
-                            type="text" required
+                          <input
+                            type="text"
+                            required
                             value={formData.villeAutre}
-                            onChange={e => setFormData({...formData, villeAutre: e.target.value})}
-                            className="input-base" placeholder="Précisez votre commune..."
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                villeAutre: e.target.value,
+                              })
+                            }
+                            className="input-base"
+                            placeholder="Précisez votre commune..."
                           />
                         </div>
                       )}
                     </div>
                     <div>
-                      <label className="input-label">Votre lien avec l'école</label>
-                      <select 
+                      <label className="input-label">
+                        Votre lien avec l'école
+                      </label>
+                      <select
                         required
-                        value={formData.qualite === "Autre" ? "Autre" : formData.qualite} 
-                        onChange={e => setFormData({...formData, qualite: e.target.value})}
+                        value={
+                          formData.qualite === "Autre"
+                            ? "Autre"
+                            : formData.qualite
+                        }
+                        onChange={(e) =>
+                          setFormData({ ...formData, qualite: e.target.value })
+                        }
                         className="input-base"
                       >
-                        <option value="" disabled>Sélectionnez une option</option>
-                        <option value="Habitant(e) de Kergrist-Moëlou">Habitant(e) de Kergrist-Moëlou</option>
-                        <option value="Parent d'élève (actuel ou futur)">Parent d'élève (actuel ou futur)</option>
-                        <option value="Ancien(ne) élève">Ancien(ne) élève</option>
-                        <option value="Ancien membre de l'équipe éducative ou du personnel">Ancien membre de l'équipe éducative ou du personnel</option>
-                        <option value="Habitant(e) d'une commune voisine">Habitant(e) d'une commune voisine (1/3 des élèves sont extérieurs)</option>
+                        <option value="" disabled>
+                          Sélectionnez une option
+                        </option>
+                        <option value="Habitant(e) de Kergrist-Moëlou">
+                          Habitant(e) de Kergrist-Moëlou
+                        </option>
+                        <option value="Parent d'élève (actuel ou futur)">
+                          Parent d'élève (actuel ou futur)
+                        </option>
+                        <option value="Ancien(ne) élève">
+                          Ancien(ne) élève
+                        </option>
+                        <option value="Ancien membre de l'équipe éducative ou du personnel">
+                          Ancien membre de l'équipe éducative ou du personnel
+                        </option>
+                        <option value="Habitant(e) d'une commune voisine">
+                          Habitant(e) d'une commune voisine (1/3 des élèves sont
+                          extérieurs)
+                        </option>
                         <option value="Autre">Autre (précisez)</option>
                       </select>
-                      
+
                       {formData.qualite === "Autre" && (
                         <div className="mt-3">
-                          <input 
-                            type="text" required
-                            onChange={e => setFormData({...formData, qualiteAutre: e.target.value})}
-                            className="input-base" placeholder="Précisez votre lien..."
+                          <input
+                            type="text"
+                            required
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                qualiteAutre: e.target.value,
+                              })
+                            }
+                            className="input-base"
+                            placeholder="Précisez votre lien..."
                           />
                         </div>
                       )}
                     </div>
-                    
-                    <button 
-                      type="submit" 
+
+                    <button
+                      type="submit"
                       disabled={status === "submitting"}
                       className="btn-primary w-full justify-center mt-2 py-4 text-lg"
                     >
-                      {status === "submitting" ? "Enregistrement..." : "Signer la pétition"}
+                      {status === "submitting"
+                        ? "Enregistrement..."
+                        : "Signer la pétition"}
                     </button>
                     <p className="text-xs text-stone-400 text-center mt-4">
-                      Vos données ne seront pas revendues. Elles servent uniquement à valider l'authenticité des signatures.
+                      Vos données ne seront pas revendues. Elles servent
+                      uniquement à valider l'authenticité des signatures.
                     </p>
                   </form>
                 </>
@@ -447,10 +663,15 @@ export default function PetitionPage() {
             {/* Recent Signers */}
             {stats.recent.length > 0 && (
               <div className="bg-white p-6 rounded-3xl border border-stone-200">
-                <h4 className="text-sm font-bold text-stone-900 mb-4 uppercase tracking-wider">Derniers signataires</h4>
+                <h4 className="text-sm font-bold text-stone-900 mb-4 uppercase tracking-wider">
+                  Derniers signataires
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {stats.recent.map((name, i) => (
-                    <span key={i} className="inline-flex items-center px-3 py-1 bg-stone-100 text-stone-600 rounded-full text-sm font-medium">
+                    <span
+                      key={i}
+                      className="inline-flex items-center px-3 py-1 bg-stone-100 text-stone-600 rounded-full text-sm font-medium"
+                    >
                       {name}
                     </span>
                   ))}
@@ -458,7 +679,6 @@ export default function PetitionPage() {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
