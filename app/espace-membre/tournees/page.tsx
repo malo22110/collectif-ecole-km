@@ -3,12 +3,12 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, Compass, Heart, Loader2, MapPinned, Plus, Search } from "lucide-react";
+import { Compass, Heart, Loader2, MapPinned, Plus, Search } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type { TourLieuDit } from "@/lib/tourneeGeo";
 import MemberPlacePreferences from "@/app/espace-membre/components/MemberPlacePreferences";
-import TractationPanel from "@/app/espace-membre/components/TractationPanel";
+import TractationPanel, { type CampaignMapState } from "@/app/espace-membre/components/TractationPanel";
 
 const OpenStreetMap = dynamic(() => import("./OpenStreetMap"), {
 	ssr: false,
@@ -25,16 +25,6 @@ interface GeocodeSuggestion {
 	nearest: NearbyPlace[];
 }
 
-function navigationUrl(place: NearbyPlace, origin: GeocodeSuggestion["origin"]) {
-	const query = new URLSearchParams({
-		api: "1",
-		origin: `${origin.lat},${origin.lon}`,
-		destination: `${place.lat},${place.lon}`,
-		travelmode: "driving"
-	});
-	return `https://www.google.com/maps/dir/?${query.toString()}`;
-}
-
 function formatDistance(km: number) {
 	return km < 1 ? `${Math.round(km * 1000)} m à vol d'oiseau` : `${km.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km à vol d'oiseau`;
 }
@@ -45,6 +35,7 @@ export default function TourneesPage() {
 	const [search, setSearch] = useState("");
 	const [suggestion, setSuggestion] = useState<GeocodeSuggestion | null>(null);
 	const [selectedPlace, setSelectedPlace] = useState<TourLieuDit | null>(null);
+	const [campaignMap, setCampaignMap] = useState<CampaignMapState | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [geocoding, setGeocoding] = useState(false);
 	const [error, setError] = useState("");
@@ -84,11 +75,19 @@ export default function TourneesPage() {
 	const unlocated = useMemo(() => locations.filter(place => place.geocodeStatus !== "located"), [locations]);
 	const zeroHouseholds = useMemo(() => locations.filter(place => place.foyers === 0).length, [locations]);
 	const householdTotal = useMemo(() => locations.reduce((total, place) => total + place.foyers, 0), [locations]);
+	const mapLocations = useMemo(() => {
+		if (!campaignMap) return locations;
+		const includedIds = new Set(campaignMap.placeIds);
+		return locations.filter(place => includedIds.has(place.id));
+	}, [campaignMap, locations]);
 	const filtered = useMemo(() => {
 		const query = search.trim().toLocaleLowerCase("fr");
-		return locations.filter(place => !query || place.nom.toLocaleLowerCase("fr").includes(query))
+		return mapLocations.filter(place => !query || place.nom.toLocaleLowerCase("fr").includes(query))
 			.sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
-	}, [locations, search]);
+	}, [mapLocations, search]);
+	const mapAssignments = campaignMap?.assignmentStatuses || {};
+	const mapRoutePlaceIds = campaignMap?.routePlaceIds || [];
+	const handleCampaignMapChange = useCallback((state: CampaignMapState | null) => setCampaignMap(state), []);
 
 	const findNearby = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -171,7 +170,6 @@ export default function TourneesPage() {
 					</button>
 				</form>
 				{error && <p role="alert" className="border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{error}</p>}
-
 				{showStatistics && <details className="border-b border-stone-200 pb-2">
 					<summary className="min-h-10 cursor-pointer py-2 text-sm font-semibold text-stone-600">Statistiques des secteurs</summary>
 					<div className="grid grid-cols-2 gap-3 pb-3 md:grid-cols-4" aria-label="Statistiques des secteurs">
@@ -182,13 +180,14 @@ export default function TourneesPage() {
 					</div>
 				</details>}
 
-				<section className="grid gap-4 border-b border-stone-200 pb-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+				<section id="places-map-section" className="grid scroll-mt-4 gap-4 border-b border-stone-200 pb-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
 					<div className="min-w-0 space-y-3">
 						{mapError ? <p role="alert" className="border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{mapError}</p>
 							: loading ? <div role="status" className="flex h-[48vh] min-h-[320px] items-center justify-center gap-3 bg-stone-100 text-stone-600 md:h-[68vh] md:min-h-[400px]"><Loader2 className="animate-spin" /> Chargement de la carte…</div>
-							: <OpenStreetMap locations={locations} origin={suggestion?.origin} favoritePlaceIds={favoritePlaceIds} onToggleFavorite={toggleFavorite} showHouseholdCounts={showStatistics} selectedPlace={selectedPlace} />}
+							: <OpenStreetMap locations={mapLocations} origin={campaignMap ? campaignMap.origin : suggestion?.origin} originLabel={campaignMap?.origin ? "Position GPS utilisée pour la tournée de campagne" : "Adresse utilisée pour cette recherche"} favoritePlaceIds={favoritePlaceIds} onToggleFavorite={toggleFavorite} routePlaceIds={mapRoutePlaceIds} assignmentStatuses={mapAssignments} campaignMode={Boolean(campaignMap)} showHouseholdCounts={showStatistics} selectedPlace={selectedPlace} />}
 						<div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-stone-600">
 							{showStatistics && <><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-emerald-800 bg-emerald-500" /> Foyers recensés</span><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-stone-600 bg-stone-400" /> 0 foyer recensé</span></>}
+							{campaignMap && <><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-stone-600 bg-stone-300" /> Disponible</span><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-amber-700 bg-amber-400" /> Pris</span><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-emerald-700 bg-emerald-400" /> Fait</span></>}
 							<span className="inline-flex items-center gap-2"><Heart size={13} className="fill-amber-300 text-amber-800" /> Mes favoris</span>
 							{suggestion && <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-blue-800 bg-blue-400" /> Votre adresse</span>}
 						</div>
@@ -196,10 +195,11 @@ export default function TourneesPage() {
 					</div>
 
 					<aside className="min-w-0 border-t border-stone-200 pt-3 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
-						{suggestion && <div className="mb-3 border-b border-stone-200 pb-3"><p className="mb-2 text-xs font-semibold uppercase text-stone-500">Près de {suggestion.matchedAddress}</p>{suggestion.nearest.map((place, index) => <div key={place.id} className="flex items-center gap-2 py-2"><button type="button" onClick={() => void toggleFavorite(place.id)} aria-pressed={favoriteSet.has(place.id)} aria-label={`${favoriteSet.has(place.id) ? "Retirer des" : "Ajouter aux"} favoris : ${place.nom}`} className={`grid size-10 shrink-0 place-items-center rounded-full border ${favoriteSet.has(place.id) ? "border-amber-300 bg-amber-100 text-amber-800" : "border-stone-200 text-stone-500 hover:bg-stone-100"}`}><Heart size={17} className={favoriteSet.has(place.id) ? "fill-amber-400" : ""} /></button><button type="button" onClick={() => setSelectedPlace(place)} className="min-w-0 flex-1 text-left"><p className="truncate text-sm font-semibold text-stone-800">{index + 1}. {place.nom}</p><p className="text-xs text-stone-500">{formatDistance(place.distanceKm)}{showStatistics ? ` · ${place.foyers} foyers` : ""}</p></button><a href={navigationUrl(place, suggestion.origin)} target="_blank" rel="noreferrer" aria-label={`Itinéraire vers ${place.nom}`} className="grid size-10 shrink-0 place-items-center rounded-full text-emerald-800 hover:bg-emerald-50"><ArrowUpRight size={17} /></a></div>)}</div>}
+						{campaignMap && <div className="mb-3 border-b border-stone-200 pb-3"><p className="truncate text-sm font-semibold text-stone-800">Campagne : {campaignMap.title}</p><p className="mt-1 text-xs text-stone-500">La carte n’affiche que les lieux ciblés par cette campagne.</p></div>}
+						{suggestion && !campaignMap && <div className="mb-3 border-b border-stone-200 pb-3"><p className="mb-2 text-xs font-semibold uppercase text-stone-500">Près de {suggestion.matchedAddress}</p>{suggestion.nearest.map((place, index) => <div key={place.id} className="flex items-center gap-2 py-2"><button type="button" onClick={() => void toggleFavorite(place.id)} aria-pressed={favoriteSet.has(place.id)} aria-label={`${favoriteSet.has(place.id) ? "Retirer des" : "Ajouter aux"} favoris : ${place.nom}`} className={`grid size-10 shrink-0 place-items-center rounded-full border ${favoriteSet.has(place.id) ? "border-amber-300 bg-amber-100 text-amber-800" : "border-stone-200 text-stone-500 hover:bg-stone-100"}`}><Heart size={17} className={favoriteSet.has(place.id) ? "fill-amber-400" : ""} /></button><button type="button" onClick={() => setSelectedPlace(place)} className="min-w-0 flex-1 text-left"><p className="truncate text-sm font-semibold text-stone-800">{index + 1}. {place.nom}</p><p className="text-xs text-stone-500">{formatDistance(place.distanceKm)}{showStatistics ? ` · ${place.foyers} foyers` : ""}</p></button></div>)}</div>}
 						<details className="mt-2 border-y border-stone-200">
 							<summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm font-semibold text-stone-800">
-								Tous les lieux-dits
+									{campaignMap ? "Lieux de la campagne" : "Tous les lieux-dits"}
 								<span className="text-xs font-normal text-stone-500">Rechercher, voir la liste ou ajouter des favoris</span>
 							</summary>
 							<div className="space-y-2 pb-3">
@@ -215,8 +215,8 @@ export default function TourneesPage() {
 				</section>
 
 				<p className="text-xs leading-relaxed text-stone-500">L’adresse saisie sert à cette recherche uniquement. Elle n’est pas enregistrée sans votre accord.</p>
-				<MemberPlacePreferences places={locations.map(({ id, nom }) => ({ id, nom }))} favoritePlaceIds={favoritePlaceIds} onFavoritesChange={handleMemberFavoriteChange} />
-				<TractationPanel onCanCreateChange={handleCanCreateChange} onStatisticsVisibleChange={handleStatisticsVisibleChange} />
+						<MemberPlacePreferences places={locations.map(({ id, nom }) => ({ id, nom }))} favoritePlaceIds={favoritePlaceIds} onFavoritesChange={handleMemberFavoriteChange} />
+						<TractationPanel favoritePlaceIds={favoritePlaceIds} suggestionOrigin={suggestion?.origin || null} onCanCreateChange={handleCanCreateChange} onStatisticsVisibleChange={handleStatisticsVisibleChange} onCampaignMapChange={handleCampaignMapChange} />
 				<p className="text-xs text-stone-500">Carte © OpenStreetMap contributors. Les points sont des repères indicatifs issus du géocodage des lieux-dits.</p>
 			</div>
 		</main>

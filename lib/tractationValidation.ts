@@ -12,6 +12,17 @@ export const campaignInputSchema = z.object({
 
 export const visitInputSchema = z.object({ visited: z.boolean() }).strict();
 
+// [SPEC-TRACTATION-04] Shared place claims transition through an explicit bounded action set.
+export const placeAssignmentInputSchema = z.object({
+  action: z.enum(["claim", "complete", "release"])
+}).strict();
+
+// [SPEC-TRACTATION-05] A member claims one ordered campaign route as a unique bounded set of places.
+export const campaignRouteInputSchema = z.object({
+  lieuDitIds: z.array(campaignIdSchema).min(1).max(200)
+    .refine(ids => new Set(ids).size === ids.length, "Les étapes de la tournée ne doivent pas être répétées.")
+}).strict();
+
 // [SPEC-TOURNEE-04] Home address is optional; favorites are bounded IDs, never public profile data.
 export const memberPlacePreferencesSchema = z.object({
   favoritePlaceIds: z.array(campaignIdSchema).max(20)

@@ -31,3 +31,31 @@ export function nearestLocatedPlaces<T extends TourLieuDit>(origin: GeoPoint, pl
     .sort((first, second) => first.distanceKm - second.distanceKm)
     .slice(0, limit);
 }
+
+export interface TourRouteSegment<T extends GeoPoint> {
+  origin: GeoPoint;
+  destination: T;
+  waypoints: T[];
+}
+
+// [SPEC-TOURNEE-05] Keep Google Maps links short enough for mobile by splitting long tours into ordered segments.
+export function buildTourRouteSegments<T extends GeoPoint>(origin: GeoPoint, stops: T[], stopsPerSegment = 4): TourRouteSegment<T>[] {
+  if (!Number.isInteger(stopsPerSegment) || stopsPerSegment < 1 || stopsPerSegment > 4) {
+    throw new RangeError("Une étape d’itinéraire doit contenir entre 1 et 4 lieux.");
+  }
+
+  const segments: TourRouteSegment<T>[] = [];
+  let segmentOrigin: GeoPoint = origin;
+  for (let offset = 0; offset < stops.length; offset += stopsPerSegment) {
+    const segmentStops = stops.slice(offset, offset + stopsPerSegment);
+    const destination = segmentStops[segmentStops.length - 1];
+    if (!destination) continue;
+    segments.push({
+      origin: segmentOrigin,
+      destination,
+      waypoints: segmentStops.slice(0, -1)
+    });
+    segmentOrigin = { lat: destination.lat, lon: destination.lon };
+  }
+  return segments;
+}

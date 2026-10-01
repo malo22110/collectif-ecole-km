@@ -9,8 +9,12 @@ import type { TourLieuDit } from "@/lib/tourneeGeo";
 interface OpenStreetMapProps {
 	locations: TourLieuDit[];
 	origin?: { lat: number; lon: number } | null;
+	originLabel?: string;
 	favoritePlaceIds?: string[];
 	onToggleFavorite?: (placeId: string) => void;
+	routePlaceIds?: string[];
+	assignmentStatuses?: Record<string, "claimed" | "completed">;
+	campaignMode?: boolean;
 	showHouseholdCounts?: boolean;
 	selectedPlace?: TourLieuDit | null;
 }
@@ -43,11 +47,13 @@ function directionsUrl(destination: TourLieuDit, origin?: OpenStreetMapProps["or
 	return `https://www.google.com/maps/dir/?${parameters.toString()}`;
 }
 
-export default function OpenStreetMap({ locations, origin = null, favoritePlaceIds = [], onToggleFavorite, showHouseholdCounts = true, selectedPlace = null }: OpenStreetMapProps) {
+export default function OpenStreetMap({ locations, origin = null, originLabel = "Adresse utilisée pour cette recherche", favoritePlaceIds = [], onToggleFavorite, routePlaceIds = [], assignmentStatuses = {}, campaignMode = false, showHouseholdCounts = true, selectedPlace = null }: OpenStreetMapProps) {
 	const located = useMemo(() => locations.filter(location =>
 		Number.isFinite(location.lat) && Number.isFinite(location.lon)
 	), [locations]);
 	const favorites = useMemo(() => new Set(favoritePlaceIds), [favoritePlaceIds]);
+	const routeOrder = useMemo(() => new Map(routePlaceIds.map((id, index) => [id, index + 1])), [routePlaceIds]);
+	const assignments = useMemo(() => new Map(Object.entries(assignmentStatuses)), [assignmentStatuses]);
 	const bounds = useMemo<LatLngBoundsExpression | null>(() => {
 		const points: LatLngExpression[] = located.map(location => [location.lat, location.lon]);
 		if (origin) points.push([origin.lat, origin.lon]);
@@ -66,33 +72,36 @@ export default function OpenStreetMap({ locations, origin = null, favoritePlaceI
 				{located.map(location => {
 					const zeroHouseholds = location.foyers === 0;
 					const isFavorite = favorites.has(location.id);
-					const radius = (zeroHouseholds ? 6 : Math.min(15, 6 + Math.sqrt(location.foyers))) + (isFavorite ? 2 : 0);
+					const routeStep = routeOrder.get(location.id);
+					const assignmentStatus = assignments.get(location.id);
+					const radius = (zeroHouseholds ? 6 : Math.min(15, 6 + Math.sqrt(location.foyers))) + (isFavorite || routeStep ? 2 : 0);
 					return (
 						<CircleMarker
 							key={location.id}
 							center={[location.lat, location.lon]}
 							radius={radius}
 							pathOptions={{
-								color: isFavorite ? "#92400e" : zeroHouseholds ? "#57534e" : "#065f46",
-								fillColor: isFavorite ? "#fbbf24" : zeroHouseholds ? "#a8a29e" : "#10b981",
+								color: assignmentStatus === "completed" ? "#047857" : routeStep ? "#1e40af" : assignmentStatus === "claimed" ? "#b45309" : isFavorite ? "#92400e" : zeroHouseholds ? "#57534e" : "#065f46",
+								fillColor: assignmentStatus === "completed" ? "#34d399" : routeStep ? "#60a5fa" : assignmentStatus === "claimed" ? "#fbbf24" : isFavorite ? "#fbbf24" : zeroHouseholds ? "#a8a29e" : "#10b981",
 								fillOpacity: 0.82,
 								weight: 2
 							}}
 						>
 							<Popup>
 								<div className="min-w-40 space-y-1 text-sm">
-									<strong className="flex items-center gap-1.5 text-stone-900">{isFavorite && <Heart size={14} className="fill-amber-300 text-amber-800" aria-label="Lieu favori" />}{location.nom}</strong>
+									<strong className="flex items-center gap-1.5 text-stone-900">{routeStep && <span className="grid size-5 place-items-center rounded-full bg-blue-800 text-[10px] text-white">{routeStep}</span>}{isFavorite && <Heart size={14} className="fill-amber-300 text-amber-800" aria-label="Lieu favori" />}{location.nom}</strong>
+										{campaignMode && <span className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold ${assignmentStatus === "completed" ? "bg-emerald-100 text-emerald-900" : assignmentStatus === "claimed" ? "bg-amber-100 text-amber-900" : "bg-stone-100 text-stone-700"}`}>{assignmentStatus === "completed" ? "Fait" : assignmentStatus === "claimed" ? routeStep ? "Dans votre tournée" : "Pris par un membre" : "Disponible"}</span>}
 									{!showHouseholdCounts ? null : zeroHouseholds
 										? <span className="inline-flex rounded border border-stone-300 bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-700">0 foyer recensé</span>
 										: <p>{location.foyers} foyers recensés</p>}
 										{onToggleFavorite && <button type="button" aria-pressed={isFavorite} onClick={() => onToggleFavorite(location.id)} className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-md border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-800 hover:bg-amber-50"><Heart size={15} className={isFavorite ? "fill-amber-400 text-amber-800" : ""} />{isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}</button>}
-									<a className="block pt-1 font-semibold text-emerald-800 underline" href={directionsUrl(location, origin || undefined)} target="_blank" rel="noreferrer">Ouvrir l'itinéraire</a>
+										{origin && !campaignMode && <a className="block pt-1 font-semibold text-emerald-800 underline" href={directionsUrl(location, origin)} target="_blank" rel="noreferrer">Ouvrir l'itinéraire direct</a>}
 								</div>
 							</Popup>
 						</CircleMarker>
 					);
 				})}
-				{origin && <CircleMarker center={[origin.lat, origin.lon]} radius={9} pathOptions={{ color: "#1d4ed8", fillColor: "#60a5fa", fillOpacity: 0.95, weight: 3 }}><Popup><strong>Adresse utilisée pour cette recherche</strong></Popup></CircleMarker>}
+				{origin && <CircleMarker center={[origin.lat, origin.lon]} radius={9} pathOptions={{ color: "#1d4ed8", fillColor: "#60a5fa", fillOpacity: 0.95, weight: 3 }}><Popup><strong>{originLabel}</strong></Popup></CircleMarker>}
 			</MapContainer>
 		</div>
 	);

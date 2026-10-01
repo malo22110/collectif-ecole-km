@@ -4,10 +4,12 @@ import {
   campaignInputSchema,
   campaignIdSchema,
   canCreateCampaign,
+  campaignRouteInputSchema,
   detectCampaignDocumentType,
   getMemberRoles,
   isValidatedMember,
   memberPlacePreferencesSchema,
+  placeAssignmentInputSchema,
   sanitizeCampaignFileName,
   visitInputSchema
 } from "../lib/tractationValidation.ts";
@@ -20,6 +22,23 @@ test("valide les champs de campagne et refuse les lieux répétés", () => {
   assert.equal(campaignInputSchema.safeParse({ ...valid, lieuDitIds: ["lieu-1/visits/other"] }).success, false);
   assert.equal(campaignInputSchema.safeParse({ ...valid, message: "" }).success, false);
   assert.equal(campaignIdSchema.safeParse("lieu-1").success, true);
+});
+
+// [SPEC-TRACTATION-04] Only explicit claim, complete, and release transitions are accepted.
+test("valide les actions d’une réservation partagée de lieu", () => {
+  for (const action of ["claim", "complete", "release"]) {
+    assert.equal(placeAssignmentInputSchema.safeParse({ action }).success, true);
+  }
+  assert.equal(placeAssignmentInputSchema.safeParse({ action: "delete" }).success, false);
+  assert.equal(placeAssignmentInputSchema.safeParse({ action: "claim", uid: "another-member" }).success, false);
+});
+
+// [SPEC-TRACTATION-05] Campaign route reservations are ordered, unique, bounded, and nonempty.
+test("valide la tournée d’un participant dans une campagne", () => {
+  assert.equal(campaignRouteInputSchema.safeParse({ lieuDitIds: ["place-1", "place-2"] }).success, true);
+  assert.equal(campaignRouteInputSchema.safeParse({ lieuDitIds: [] }).success, false);
+  assert.equal(campaignRouteInputSchema.safeParse({ lieuDitIds: ["place-1", "place-1"] }).success, false);
+  assert.equal(campaignRouteInputSchema.safeParse({ lieuDitIds: Array.from({ length: 201 }, (_, i) => `place-${i}`) }).success, false);
 });
 
 // [SPEC-TOURNEE-04] Favorite places are private bounded IDs; saved address requires explicit non-empty input.

@@ -20,7 +20,7 @@ function toIsoString(value: unknown) {
   return null;
 }
 
-// [SPEC-TRACTATION-01] Only validated members can list active campaigns and their own visits.
+// [SPEC-TRACTATION-01] Validated members see active campaigns and shared taken/completed place states.
 export async function GET(request: Request) {
   const authorization = await authorizeTractationMember(request);
   if (!authorization.member) return authorization.response;
@@ -46,15 +46,27 @@ export async function GET(request: Request) {
     if (placesSnapshot.size > MAX_PLACES) {
       return Response.json({ error: "La liste des lieux-dits dépasse la limite de chargement." }, { status: 413 });
     }
+    const placeDataById = new Map(placesSnapshot.docs.map(place => [place.id, place.data()]));
 
     const pageDocuments = campaignSnapshot.docs.slice(0, PAGE_SIZE);
     const campaignData = await Promise.all(pageDocuments.map(async document => {
       const data = document.data();
       const participantRef = document.ref.collection("participants").doc(authorization.member.uid);
-      const participant = await participantRef.get();
-      const visits = participant.exists
-        ? await participantRef.collection("visits").select("lieuDitId").limit(200).get()
-        : null;
+      const [participant, assignmentSnapshot] = await Promise.all([
+        participantRef.get(),
+        document.ref.collection("placeAssignments").limit(201).get()
+      ]);
+      if (assignmentSnapshot.size > 200) {
+        throw new Error("Le nombre de lieux réservés dépasse la limite autorisée.");
+      }
+      const assignedPlaces = Object.fromEntries(assignmentSnapshot.docs.flatMap(assignmentDocument => {
+        const assignment = assignmentDocument.data();
+        if (assignment.status !== "claimed" && assignment.status !== "completed") return [];
+        return [[assignmentDocument.id, {
+          status: assignment.status,
+          isMine: assignment.claimedByUid === authorization.member.uid
+        }]];
+      }));
 
       return {
         id: document.id,
@@ -62,7 +74,22 @@ export async function GET(request: Request) {
         message: String(data.message || ""),
         createdByName: String(data.createdByName || "Membre"),
         createdAt: toIsoString(data.createdAt),
-        lieuDits: Array.isArray(data.lieuDits) ? data.lieuDits : [],
+        lieuDits: Array.isArray(data.lieuDits) ? data.lieuDits.flatMap((place: unknown) => {
+          if (!place || typeof place !== "object") return [];
+          const campaignPlace = place as Record<string, unknown>;
+          if (typeof campaignPlace.id !== "string") return [];
+          const placeData = placeDataById.get(campaignPlace.id);
+          const lat = placeData?.lat;
+          const lon = placeData?.lon;
+          return [{
+            id: campaignPlace.id,
+            nom: String(placeData?.nom || campaignPlace.nom || "Lieu-dit"),
+            foyers: Number.isInteger(placeData?.foyers) ? placeData!.foyers as number : 0,
+            lat: Number.isFinite(lat) ? lat as number : null,
+            lon: Number.isFinite(lon) ? lon as number : null,
+            hasCoordinates: Number.isFinite(lat) && Number.isFinite(lon)
+          }];
+        }) : [],
         attachment: data.attachment && typeof data.attachment === "object"
           ? {
               fileName: String(data.attachment.fileName || "document"),
@@ -71,7 +98,10 @@ export async function GET(request: Request) {
             }
           : null,
         joined: participant.exists,
-        visitedIds: visits?.docs.map(visit => visit.id) || []
+        assignedPlaces,
+        myRoutePlaceIds: Array.isArray(participant.data()?.routePlaceIds)
+          ? participant.data()!.routePlaceIds.filter((id: unknown): id is string => typeof id === "string")
+          : []
       };
     }));
 
@@ -81,7 +111,9 @@ export async function GET(request: Request) {
         id: document.id,
         nom: String(data.nom || ""),
         foyers: Number.isInteger(data.foyers) ? data.foyers : 0,
-        hasCoordinates: Number.isFinite(data.lat) && Number.isFinite(data.lon)
+        hasCoordinates: Number.isFinite(data.lat) && Number.isFinite(data.lon),
+        lat: Number.isFinite(data.lat) ? data.lat as number : null,
+        lon: Number.isFinite(data.lon) ? data.lon as number : null
       };
     }).sort((first, second) => first.nom.localeCompare(second.nom, "fr"));
 
