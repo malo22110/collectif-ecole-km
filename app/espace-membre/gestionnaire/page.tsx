@@ -29,6 +29,7 @@ const ROLE_LABELS: Record<string, string> = {
   faq: "Éditeur FAQ",
   presse: "Responsable Presse",
   correcteur: "Correcteur Pétition",
+  tractation: "Responsable des campagnes de tractation",
 };
 
 export default function GestionnairePage() {

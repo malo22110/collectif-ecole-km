@@ -5,8 +5,8 @@
 
 import React, { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { ShieldAlert, Users, Shield } from "lucide-react";
+import { arrayUnion, doc, getDoc, collection, getDocs, query, updateDoc, where } from "firebase/firestore";
+import { ShieldAlert, Users, Shield, Check, Loader2, UserRoundPlus } from "lucide-react";
 
 interface MembrePublic {
   id: string;
@@ -24,11 +24,17 @@ const ALL_ROLES = [
   { key: "faq", label: "Éditeurs FAQ", icon: "💬", color: "bg-sky-50 border-sky-200 text-sky-800" },
   { key: "presse", label: "Responsables Presse", icon: "📰", color: "bg-amber-50 border-amber-200 text-amber-800" },
   { key: "correcteur", label: "Correcteurs Pétition", icon: "🖊️", color: "bg-emerald-50 border-emerald-200 text-emerald-800" },
+  { key: "tractation", label: "Responsables tractation", icon: "📣", color: "bg-teal-50 border-teal-200 text-teal-800" },
 ];
 
 export default function EquipePage() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [membres, setMembres] = useState<MembrePublic[]>([]);
+  const [myRoles, setMyRoles] = useState<string[]>([]);
+  const [myRoleRequests, setMyRoleRequests] = useState<string[]>([]);
+  const [requestingRole, setRequestingRole] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState("");
+  const [requestNotice, setRequestNotice] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +46,11 @@ export default function EquipePage() {
         // Vérifier que l'utilisateur est un membre validé
         const snap = await getDoc(doc(db, "membres", email));
         if (snap.exists() && snap.data().status === "validated") {
+          const profile = snap.data();
+          const roles = Array.isArray(profile.roles) ? profile.roles : (profile.role ? [profile.role] : []);
+          const requests = Array.isArray(profile.roleRequests) ? profile.roleRequests : (profile.roleRequest ? [profile.roleRequest] : []);
+          setMyRoles(roles);
+          setMyRoleRequests(requests);
           setHasAccess(true);
           // Charger tous les membres validés
           const q = query(collection(db, "membres"), where("status", "==", "validated"));
@@ -62,6 +73,27 @@ export default function EquipePage() {
     };
     init();
   }, []);
+
+  const requestRole = async (role: string) => {
+    const email = auth.currentUser?.email;
+    if (!email || myRoles.includes(role) || myRoleRequests.includes(role)) return;
+    setRequestingRole(role);
+    setRequestError("");
+    setRequestNotice("");
+    try {
+      await updateDoc(doc(db, "membres", email), {
+        roleRequests: arrayUnion(role),
+        roleRequest: role
+      });
+      setMyRoleRequests(current => Array.from(new Set([...current, role])));
+      setRequestNotice("Votre demande a été envoyée aux responsables.");
+    } catch (error) {
+      console.error("Erreur lors de la demande de rôle:", error);
+      setRequestError("Impossible d’envoyer votre demande pour le moment.");
+    } finally {
+      setRequestingRole(null);
+    }
+  };
 
   const getMembresForRole = (roleKey: string) =>
     membres.filter(m => {
@@ -100,15 +132,20 @@ export default function EquipePage() {
         Membres du collectif et leurs rôles — {membres.length} membre(s) en tout.
       </p>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      {requestError && <p role="alert" className="mb-4 border-l-4 border-rose-600 bg-rose-50 px-4 py-3 text-sm text-rose-800">{requestError}</p>}
+      {requestNotice && <p role="status" aria-live="polite" className="mb-4 border-l-4 border-emerald-600 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{requestNotice}</p>}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {ALL_ROLES.map(({ key, label, icon, color }) => {
           const membresRole = getMembresForRole(key);
-          if (membresRole.length === 0) return null;
+          const isMemberOfRole = myRoles.includes(key);
+          const hasPendingRequest = myRoleRequests.includes(key);
+          const isRequestable = key !== "admin";
           return (
-            <div key={key} className={`rounded-2xl border p-5 ${color.replace("text-", "border-").replace("bg-", "bg-")} bg-white border-stone-200`}>
+            <section key={key} className="flex min-h-56 flex-col rounded-lg border border-stone-200 bg-white p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-xl" aria-hidden="true">{icon}</span>
-                <h2 className="font-bold text-stone-800 text-sm uppercase tracking-wider">{label}</h2>
+                <h2 className="font-bold text-stone-800 text-sm">{label}</h2>
                 <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${color}`}>
                   {membresRole.length}
                 </span>
@@ -123,7 +160,16 @@ export default function EquipePage() {
                   </li>
                 ))}
               </ul>
-            </div>
+              {membresRole.length === 0 && <p className="mb-3 text-sm text-stone-500">Aucun membre dans cette équipe pour le moment.</p>}
+              <div className="mt-auto border-t border-stone-100 pt-3">
+                {isMemberOfRole ? <p className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-emerald-800"><Check size={16} aria-hidden="true" />Vous faites partie de cette équipe</p>
+                  : hasPendingRequest ? <p className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-amber-800"><Loader2 size={15} aria-hidden="true" />Demande en attente</p>
+                    : isRequestable && <button type="button" onClick={() => void requestRole(key)} disabled={requestingRole === key} className="btn-secondary min-h-10 w-full justify-center px-3 py-2 text-sm">
+                      {requestingRole === key ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <UserRoundPlus size={16} aria-hidden="true" />}
+                      Demander à rejoindre
+                    </button>}
+              </div>
+            </section>
           );
         })}
       </div>

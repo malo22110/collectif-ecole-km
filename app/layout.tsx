@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://collectif-ecole-km.fr'),
+  metadataBase: new URL("https://collectif-ecole-km.fr"),
   title: "Un nid tout neuf pour nos écureuils | École de Kergrist-Moëlou",
-  description: "Collectif citoyen pour la rénovation concertée, responsable et durable de l'école de Kergrist-Moëlou (22110).",
+  description:
+    "Collectif citoyen pour la rénovation concertée, responsable et durable de l'école de Kergrist-Moëlou (22110).",
   openGraph: {
     title: "Un nid tout neuf pour nos écureuils | École de Kergrist-Moëlou",
-    description: "Collectif citoyen pour la rénovation concertée, responsable et durable de l'école de Kergrist-Moëlou (22110).",
+    description:
+      "Collectif citoyen pour la rénovation concertée, responsable et durable de l'école de Kergrist-Moëlou (22110).",
     images: [
       {
         url: "/images/hero.jpg",
@@ -18,7 +21,7 @@ export const metadata: Metadata = {
     ],
     locale: "fr_FR",
     type: "website",
-  }
+  },
 };
 
 export default function RootLayout({
@@ -28,9 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className="scroll-smooth">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

@@ -77,6 +77,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // [SPEC-TOURNEE-04] Address and favorite preferences are accessible only through authenticated server routes.
+    match /memberPrivate/{uid} {
+      allow read, write: if false;
+    }
+
     
     // PETITION: Tout le monde peut signer, seuls les admins (ou l'API server) peuvent lire la collection complète
     match /signatures/{sigId} {

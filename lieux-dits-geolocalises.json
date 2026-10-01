@@ -1,0 +1,638 @@
+[
+  {
+    "nom": "Goasven",
+    "foyers": 2,
+    "lat": 48.266268,
+    "lon": -3.31224
+  },
+  {
+    "nom": "Kerver",
+    "foyers": 2,
+    "lat": 48.259755,
+    "lon": -3.308783
+  },
+  {
+    "nom": "coad trenk",
+    "foyers": 1,
+    "lat": 48.255391,
+    "lon": -3.323758
+  },
+  {
+    "nom": "Kergreis",
+    "foyers": 1,
+    "lat": 48.258783,
+    "lon": -3.328439
+  },
+  {
+    "nom": "Kerfloc'h an dreff",
+    "foyers": 3,
+    "lat": 48.262649,
+    "lon": -3.332037
+  },
+  {
+    "nom": "Coat an bars",
+    "foyers": 2,
+    "lat": 48.262105,
+    "lon": -3.337231
+  },
+  {
+    "nom": "Minez du",
+    "foyers": 2,
+    "lat": null,
+    "lon": null
+  },
+  {
+    "nom": "Kerbriou",
+    "foyers": 1,
+    "lat": 48.260814,
+    "lon": -3.346772
+  },
+  {
+    "nom": "Kerjoly",
+    "foyers": 1,
+    "lat": 48.257552,
+    "lon": -3.348359
+  },
+  {
+    "nom": "Kerberry",
+    "foyers": 0,
+    "lat": 48.255967,
+    "lon": -3.349004
+  },
+  {
+    "nom": "toulazen",
+    "foyers": 2,
+    "lat": 48.251386,
+    "lon": -3.357901
+  },
+  {
+    "nom": "Park quiminal",
+    "foyers": 5,
+    "lat": 48.258995,
+    "lon": -3.357046
+  },
+  {
+    "nom": "Languiniou",
+    "foyers": 1,
+    "lat": null,
+    "lon": null
+  },
+  {
+    "nom": "La croix madeleine",
+    "foyers": 1,
+    "lat": 48.265998,
+    "lon": -3.36259
+  },
+  {
+    "nom": "Le croasty",
+    "foyers": 6,
+    "lat": 48.26134,
+    "lon": -3.368279
+  },
+  {
+    "nom": "Menez vadel",
+    "foyers": 2,
+    "lat": 48.266485,
+    "lon": -3.359825
+  },
+  {
+    "nom": "Kerdourc'h",
+    "foyers": 9,
+    "lat": 48.271809,
+    "lon": -3.358392
+  },
+  {
+    "nom": "Noguellou",
+    "foyers": 3,
+    "lat": 48.282599,
+    "lon": -3.366218
+  },
+  {
+    "nom": "L'isle",
+    "foyers": 2,
+    "lat": 48.279659,
+    "lon": -3.364469
+  },
+  {
+    "nom": "Moustermeur",
+    "foyers": 13,
+    "lat": 48.284046,
+    "lon": -3.351746
+  },
+  {
+    "nom": "Lan vras",
+    "foyers": 0,
+    "lat": 48.28135,
+    "lon": -3.338421
+  },
+  {
+    "nom": "Parcou yeod",
+    "foyers": 1,
+    "lat": 48.279022,
+    "lon": -3.355388
+  },
+  {
+    "nom": "Scuberiou",
+    "foyers": 4,
+    "lat": 48.274316,
+    "lon": -3.35223
+  },
+  {
+    "nom": "Rescostiou",
+    "foyers": 8,
+    "lat": 48.272508,
+    "lon": -3.336825
+  },
+  {
+    "nom": "St Lubin",
+    "foyers": 28,
+    "lat": 48.272206,
+    "lon": -3.317041
+  },
+  {
+    "nom": "Kermellec",
+    "foyers": 1,
+    "lat": 48.273597,
+    "lon": -3.307383
+  },
+  {
+    "nom": "Lustruyen",
+    "foyers": 6,
+    "lat": 48.278207,
+    "lon": -3.301861
+  },
+  {
+    "nom": "Keranglas",
+    "foyers": 0,
+    "lat": 48.281046,
+    "lon": -3.299984
+  },
+  {
+    "nom": "Kermarcel yves",
+    "foyers": 1,
+    "lat": 48.279499,
+    "lon": -3.311895
+  },
+  {
+    "nom": "Pen ar groas",
+    "foyers": 1,
+    "lat": 48.281722,
+    "lon": -3.308392
+  },
+  {
+    "nom": "Baroder",
+    "foyers": 2,
+    "lat": 48.285971,
+    "lon": -3.30619
+  },
+  {
+    "nom": "Lostiteau",
+    "foyers": 1,
+    "lat": 48.287753,
+    "lon": -3.31312
+  },
+  {
+    "nom": "St coudan",
+    "foyers": 3,
+    "lat": 48.291901,
+    "lon": -3.306944
+  },
+  {
+    "nom": "Vergus",
+    "foyers": 1,
+    "lat": 48.295392,
+    "lon": -3.317744
+  },
+  {
+    "nom": "Kermabeven",
+    "foyers": 2,
+    "lat": 48.297583,
+    "lon": -3.321938
+  },
+  {
+    "nom": "Prat gestin",
+    "foyers": 2,
+    "lat": 48.29505,
+    "lon": -3.291331
+  },
+  {
+    "nom": "Kermarec",
+    "foyers": 4,
+    "lat": 48.29631,
+    "lon": -3.302253
+  },
+  {
+    "nom": "Kerodou",
+    "foyers": 3,
+    "lat": 48.301886,
+    "lon": -3.300192
+  },
+  {
+    "nom": "La garenne blanche",
+    "foyers": 2,
+    "lat": 48.300042,
+    "lon": -3.310404
+  },
+  {
+    "nom": "Kermablouze",
+    "foyers": 2,
+    "lat": 48.299779,
+    "lon": -3.316795
+  },
+  {
+    "nom": "Ker avel",
+    "foyers": 1,
+    "lat": 48.303687,
+    "lon": -3.321701
+  },
+  {
+    "nom": "crec'h naon",
+    "foyers": 1,
+    "lat": 48.306697,
+    "lon": -3.3202
+  },
+  {
+    "nom": "Garz en ogel",
+    "foyers": 1,
+    "lat": null,
+    "lon": null
+  },
+  {
+    "nom": "Kerguiffiou vras",
+    "foyers": 2,
+    "lat": 48.319863,
+    "lon": -3.313604
+  },
+  {
+    "nom": "Kerfrezour",
+    "foyers": 5,
+    "lat": 48.328087,
+    "lon": -3.310413
+  },
+  {
+    "nom": "Pouloupry",
+    "foyers": 1,
+    "lat": 48.324954,
+    "lon": -3.300703
+  },
+  {
+    "nom": "Kernevez an argoat",
+    "foyers": 2,
+    "lat": 48.327971,
+    "lon": -3.319115
+  },
+  {
+    "nom": "Kervezegan",
+    "foyers": 1,
+    "lat": 48.332696,
+    "lon": -3.33371
+  },
+  {
+    "nom": "La salle",
+    "foyers": 2,
+    "lat": 48.32256,
+    "lon": -3.332972
+  },
+  {
+    "nom": "Kernon an argoat",
+    "foyers": 1,
+    "lat": 48.326407,
+    "lon": -3.329022
+  },
+  {
+    "nom": "garzuel",
+    "foyers": 1,
+    "lat": 48.331882,
+    "lon": -3.308482
+  },
+  {
+    "nom": "kervran",
+    "foyers": 2,
+    "lat": 48.336925,
+    "lon": -3.300919
+  },
+  {
+    "nom": "Penhoat vihan",
+    "foyers": 2,
+    "lat": 48.332938,
+    "lon": -3.297165
+  },
+  {
+    "nom": "Kerstephan",
+    "foyers": 1,
+    "lat": 48.332183,
+    "lon": -3.311587
+  },
+  {
+    "nom": "Kerbanel an argoat",
+    "foyers": 2,
+    "lat": 48.331997,
+    "lon": -3.318289
+  },
+  {
+    "nom": "Kervoulouzen",
+    "foyers": 1,
+    "lat": 48.334813,
+    "lon": -3.310022
+  },
+  {
+    "nom": "Le golven",
+    "foyers": 2,
+    "lat": 48.318976,
+    "lon": -3.318585
+  },
+  {
+    "nom": "Penker",
+    "foyers": 1,
+    "lat": null,
+    "lon": null
+  },
+  {
+    "nom": "Coat moelou",
+    "foyers": 3,
+    "lat": 48.312582,
+    "lon": -3.3444
+  },
+  {
+    "nom": "La civiere",
+    "foyers": 1,
+    "lat": 48.316105,
+    "lon": -3.345312
+  },
+  {
+    "nom": "Le moulin de la civiere",
+    "foyers": 1,
+    "lat": 48.317452,
+    "lon": -3.3479
+  },
+  {
+    "nom": "Route de rostrenen guillaume le caroff",
+    "foyers": 9,
+    "lat": 48.308025,
+    "lon": -3.315696
+  },
+  {
+    "nom": "Rue de l'eglise",
+    "foyers": 4,
+    "lat": 48.310029,
+    "lon": -3.31767
+  },
+  {
+    "nom": "Route de l'argoat",
+    "foyers": 2,
+    "lat": 48.310973,
+    "lon": -3.318609
+  },
+  {
+    "nom": "Rue traversière",
+    "foyers": 3,
+    "lat": 48.309425,
+    "lon": -3.318407
+  },
+  {
+    "nom": "Rue etienne le meur",
+    "foyers": 17,
+    "lat": 48.308809,
+    "lon": -3.319947
+  },
+  {
+    "nom": "Lotissement helene le chevalier",
+    "foyers": 8,
+    "lat": 48.309568,
+    "lon": -3.319194
+  },
+  {
+    "nom": "Rue des anciens combattants",
+    "foyers": 4,
+    "lat": 48.30924,
+    "lon": -3.317735
+  },
+  {
+    "nom": "Route de tremargat",
+    "foyers": 7,
+    "lat": 48.309566,
+    "lon": -3.315147
+  },
+  {
+    "nom": "rue du lavoir",
+    "foyers": 3,
+    "lat": 48.310405,
+    "lon": -3.315673
+  },
+  {
+    "nom": "rue du capitaine le gloan",
+    "foyers": 3,
+    "lat": null,
+    "lon": null
+  },
+  {
+    "nom": "rue du chêne",
+    "foyers": 5,
+    "lat": 48.31086,
+    "lon": -3.318051
+  },
+  {
+    "nom": "rue de l'ecole",
+    "foyers": 5,
+    "lat": 48.311069,
+    "lon": -3.31713
+  },
+  {
+    "nom": "route des quatres vents",
+    "foyers": 9,
+    "lat": 48.311707,
+    "lon": -3.313689
+  },
+  {
+    "nom": "les isles",
+    "foyers": 2,
+    "lat": 48.308933,
+    "lon": -3.307086
+  },
+  {
+    "nom": "crec'h moelou",
+    "foyers": 1,
+    "lat": 48.305237,
+    "lon": -3.295423
+  },
+  {
+    "nom": "le coat",
+    "foyers": 1,
+    "lat": 48.309804,
+    "lon": -3.292306
+  },
+  {
+    "nom": "bel air",
+    "foyers": 1,
+    "lat": 48.310731,
+    "lon": -3.285034
+  },
+  {
+    "nom": "coat ar pan",
+    "foyers": 1,
+    "lat": 48.314828,
+    "lon": -3.303657
+  },
+  {
+    "nom": "kerlopin",
+    "foyers": 1,
+    "lat": 48.315097,
+    "lon": -3.299781
+  },
+  {
+    "nom": "kervillou",
+    "foyers": 1,
+    "lat": 48.315497,
+    "lon": -3.291854
+  },
+  {
+    "nom": "beauval",
+    "foyers": 1,
+    "lat": null,
+    "lon": null
+  },
+  {
+    "nom": "toul roc'h",
+    "foyers": 1,
+    "lat": 48.313135,
+    "lon": -3.278473
+  },
+  {
+    "nom": "pen ar ster",
+    "foyers": 1,
+    "lat": null,
+    "lon": null
+  },
+  {
+    "nom": "ponton mein",
+    "foyers": 1,
+    "lat": 48.314251,
+    "lon": -3.268065
+  },
+  {
+    "nom": "le vuch",
+    "foyers": 2,
+    "lat": 48.318985,
+    "lon": -3.30274
+  },
+  {
+    "nom": "kerguiffiou vihan",
+    "foyers": 1,
+    "lat": 48.316179,
+    "lon": -3.31187
+  },
+  {
+    "nom": "Quinquis leurou",
+    "foyers": 2,
+    "lat": 48.307802,
+    "lon": -3.331084
+  },
+  {
+    "nom": "Petit paris",
+    "foyers": 5,
+    "lat": 48.304499,
+    "lon": -3.346144
+  },
+  {
+    "nom": "Kermorou",
+    "foyers": 3,
+    "lat": 48.302275,
+    "lon": -3.344954
+  },
+  {
+    "nom": "Kerguelezen",
+    "foyers": 2,
+    "lat": 48.308153,
+    "lon": -3.348153
+  },
+  {
+    "nom": "Kervenal",
+    "foyers": 3,
+    "lat": 48.305742,
+    "lon": -3.360725
+  },
+  {
+    "nom": "St guillaume",
+    "foyers": 3,
+    "lat": 48.307964,
+    "lon": -3.364675
+  },
+  {
+    "nom": "Kermorvan",
+    "foyers": 2,
+    "lat": 48.313264,
+    "lon": -3.362394
+  },
+  {
+    "nom": "Moulin de kermorvan",
+    "foyers": 1,
+    "lat": 48.313264,
+    "lon": -3.362394
+  },
+  {
+    "nom": "Kerhenry",
+    "foyers": 0,
+    "lat": 48.302303,
+    "lon": -3.334786
+  },
+  {
+    "nom": "Pempoulrot",
+    "foyers": 4,
+    "lat": 48.300412,
+    "lon": -3.332017
+  },
+  {
+    "nom": "Kerfloc'h an dour",
+    "foyers": 2,
+    "lat": 48.295256,
+    "lon": -3.351366
+  },
+  {
+    "nom": "Crec'h an guel",
+    "foyers": 1,
+    "lat": 48.296282,
+    "lon": -3.354004
+  },
+  {
+    "nom": "Pouligou",
+    "foyers": 2,
+    "lat": 48.297956,
+    "lon": -3.354183
+  },
+  {
+    "nom": "Kerscaven",
+    "foyers": 1,
+    "lat": 48.296472,
+    "lon": -3.340543
+  },
+  {
+    "nom": "gouledic",
+    "foyers": 3,
+    "lat": 48.290801,
+    "lon": -3.350776
+  },
+  {
+    "nom": "quinquiziou",
+    "foyers": 1,
+    "lat": 48.29265,
+    "lon": -3.364146
+  },
+  {
+    "nom": "Kerbiquet",
+    "foyers": 4,
+    "lat": 48.290419,
+    "lon": -3.335618
+  },
+  {
+    "nom": "Toul ar soudard",
+    "foyers": 1,
+    "lat": 48.286589,
+    "lon": -3.327075
+  },
+  {
+    "nom": "Kernévez-Lann",
+    "foyers": 2,
+    "lat": 48.283336,
+    "lon": -3.322235
+  }
+]

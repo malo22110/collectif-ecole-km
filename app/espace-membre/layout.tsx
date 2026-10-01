@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { ShieldAlert, LayoutDashboard, Users, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings, HelpCircle, Newspaper, PenLine, Shield, UserCircle2, ScanLine, UserRoundX } from "lucide-react";
+import { ShieldAlert, LayoutDashboard, LogOut, ArrowLeft, Menu, X, FileText, Mail, Settings, Newspaper, Shield, UserCircle2, MapPinned } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserAvatar from "../components/UserAvatar";
@@ -67,11 +67,17 @@ export default function EspaceMembreLayout({ children }: { children: React.React
   }
 
   return (
-    <div className="h-screen bg-stone-50 flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen bg-stone-50 flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between bg-stone-900 text-white p-4 print:hidden sticky top-0 z-40">
-        <div className="flex items-center gap-2 font-bold text-lg">
-          <ShieldAlert size={20} className="text-emerald-500" /> Espace Membre
+        <div className="flex min-w-0 items-center gap-3">
+          {pathname !== "/espace-membre" && <>
+            <Link href="/espace-membre" aria-label="Retour au tableau de bord" className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-lg pr-2 text-sm font-semibold text-stone-200 hover:bg-stone-800 hover:text-white">
+              <ArrowLeft size={19} aria-hidden="true" /> <span>Tableau de bord</span>
+            </Link>
+            <span className="h-6 w-px shrink-0 bg-stone-700" aria-hidden="true" />
+          </>}
+          <span className="truncate text-sm font-bold text-stone-400">Espace membre</span>
         </div>
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
@@ -90,7 +96,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
       )}
 
       {/* Sidebar / Drawer */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-stone-900 text-stone-300 flex flex-col h-full transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:h-screen md:w-64 md:transform-none shrink-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-stone-900 text-stone-300 flex flex-col h-full transform transition-transform duration-300 ease-in-out md:fixed md:top-0 md:left-0 md:h-screen md:w-64 md:transform-none shrink-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6 border-b border-stone-800 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -113,33 +119,26 @@ export default function EspaceMembreLayout({ children }: { children: React.React
           >
             <LayoutDashboard size={20} /> <span>Tableau de bord</span>
           </Link>
-          <Link 
-            href="/espace-membre/signataires"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/signataires" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+          <Link
+            href="/espace-membre/tournees"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/tournees" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
-            <Users size={20} /> <span>Signataires</span>
+            <MapPinned size={20} /> <span>Carte & campagnes</span>
           </Link>
 
           <Link
-            href="/espace-membre/non-signataires"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/non-signataires" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+            href="/espace-membre/petition"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname.startsWith("/espace-membre/petition") || ["/espace-membre/signataires", "/espace-membre/non-signataires", "/espace-membre/correcteur", "/espace-membre/numeriser-petition"].includes(pathname) ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
-            <UserRoundX size={20} /> <span>Membres n'ayant pas signé</span>
-          </Link>
-
-          <Link
-            href="/espace-membre/numeriser-petition"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/numeriser-petition" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
-          >
-            <ScanLine size={20} /> <span>Numériser une pétition</span>
+            <FileText size={20} /> <span>Pétition</span>
           </Link>
           
-          {(userRoles.includes('admin') || userRoles.includes('redacteur')) && (
-            <Link 
-              href="/espace-membre/articles"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
+          {(userRoles.includes('admin') || userRoles.some(role => ['redacteur', 'faq', 'presse'].includes(role))) && (
+            <Link
+              href="/espace-membre/redaction"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname.startsWith("/espace-membre/redaction") || ["/espace-membre/articles", "/espace-membre/faq", "/espace-membre/presse"].includes(pathname) ? "bg-emerald-600 text-white" : "hover:bg-stone-800 text-emerald-400"}`}
             >
-              <FileText size={20} /> <span>Rédiger des articles</span>
+              <Newspaper size={20} /> <span>Pôle rédaction</span>
             </Link>
           )}
 
@@ -152,15 +151,6 @@ export default function EspaceMembreLayout({ children }: { children: React.React
             </Link>
           )}
           
-          {(userRoles.includes('admin') || userRoles.includes('faq')) && (
-            <Link 
-              href="/espace-membre/faq"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
-            >
-              <HelpCircle size={20} /> <span>Gérer la FAQ</span>
-            </Link>
-          )}
-
           <Link 
             href="/espace-membre/equipe"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/equipe" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
@@ -168,30 +158,12 @@ export default function EspaceMembreLayout({ children }: { children: React.React
             <UserCircle2 size={20} /> <span>L'équipe</span>
           </Link>
 
-          {(userRoles.includes('admin') || userRoles.includes('correcteur')) && (
-            <Link 
-              href="/espace-membre/correcteur"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
-            >
-              <PenLine size={20} /> <span>Corriger la Pétition</span>
-            </Link>
-          )}
-
           {(userRoles.includes('admin') || userRoles.includes('gestionnaire')) && (
             <Link 
               href="/espace-membre/gestionnaire"
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
             >
               <Shield size={20} /> <span>Demandes de rôles</span>
-            </Link>
-          )}
-
-          {(userRoles.includes('admin') || userRoles.includes('presse')) && (
-            <Link 
-              href="/espace-membre/presse"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"
-            >
-              <Newspaper size={20} /> <span>Gérer la Presse</span>
             </Link>
           )}
 
@@ -216,7 +188,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto max-w-full">
+      <div className="min-w-0 flex-1 max-w-full md:ml-64">
         {children}
       </div>
     </div>
