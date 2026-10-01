@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
-import { ArrowLeft, Calendar, User, Clock, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, User, Clock, Paperclip, Download } from "lucide-react";
 import ShareButton from "@/app/components/ShareButton";
 
 interface Props {
@@ -92,6 +92,19 @@ export default function ArticlePageClient({ id }: Props) {
           dangerouslySetInnerHTML={{ __html: article.content || "" }}
           className="prose prose-stone prose-lg md:prose-xl max-w-none prose-a:text-emerald-600 hover:prose-a:text-emerald-700 prose-headings:font-bold prose-img:rounded-xl"
         />
+
+        {Array.isArray(article.attachments) && article.attachments.length > 0 && <section className="mt-10 border-y border-stone-200 py-6" aria-labelledby="article-attachments-heading">
+          <h2 id="article-attachments-heading" className="flex items-center gap-2 text-lg font-bold text-stone-900"><Paperclip size={19} aria-hidden="true" />Documents joints</h2>
+          <ul className="mt-3 divide-y divide-stone-200">
+            {article.attachments.map((attachment: { id: string; fileName: string; size: number }) => <li key={attachment.id}>
+              <a href={`/api/articles/${encodeURIComponent(article.id)}/attachments?attachmentId=${encodeURIComponent(attachment.id)}`} className="flex min-h-12 items-center gap-3 py-2 text-sm font-medium text-emerald-900 hover:text-emerald-700">
+                <Download size={17} className="shrink-0" aria-hidden="true" />
+                <span className="min-w-0 flex-1 break-words">{attachment.fileName}</span>
+                <span className="shrink-0 text-xs font-normal text-stone-500">{Math.ceil(attachment.size / 1024)} Ko</span>
+              </a>
+            </li>)}
+          </ul>
+        </section>}
 
         <div className="mt-12 pt-8 border-t border-stone-200 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-stone-500 font-medium">Cet article vous a intéressé ? Partagez-le autour de vous :</p>

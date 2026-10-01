@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:petition-scan": "node --experimental-strip-types --test tests/petition*.test.mjs",
+    "test:article-attachments": "node --experimental-strip-types --test tests/articleAttachments.test.mjs",
     "test:tractation": "node --experimental-strip-types --test tests/tractation.test.mjs"
   },
   "dependencies": {

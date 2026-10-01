@@ -52,6 +52,7 @@ Accessible via la route `/admin`, cet espace est protégé par mot de passe et r
 * **[SPEC-EQUIPE-02] Demandes de rôles depuis les équipes :** Le tableau de bord propose un seul accès à l'annuaire des équipes. Chaque équipe, y compris vide, apparaît dans une carte avec ses membres et l'action de demande correspondante. Un membre qui possède déjà le rôle ne voit pas de bouton de demande; une demande en attente est indiquée sans permettre un doublon. Les rôles restent attribués par le circuit d'approbation existant.
 * **[SPEC-PET-HUB-02] Ressources terrain :** L'impression de la pétition papier, les consignes de collecte et l'argumentaire vérifié sont regroupés dans le hub Pétition; le tableau de bord conserve uniquement son point d'entrée vers ce hub.
 * **[SPEC-REDACTION-HUB-01] Pôle rédaction :** Le tableau de bord et le menu membre proposent un accès unique aux outils Articles, FAQ et Presse. Le hub n’affiche à chaque membre que les outils accordés par ses rôles `redacteur`, `faq`, `presse` ou `admin`; les pages outils conservent leurs contrôles d’accès propres.
+* **[SPEC-ARTICLE-ATTACHMENTS-01] Pièces jointes d’article :** Les rédacteurs et administrateurs peuvent joindre jusqu’à 10 fichiers PDF/JPEG/PNG/WebP de 10 Mio chacun. Le serveur contrôle le rôle, l’auteur des brouillons, la taille et la signature réelle du fichier; les fichiers restent sans URL publique permanente. Ils sont téléchargeables par tous depuis un article publié, et les brouillons restent réservés à leur rédacteur ou aux administrateurs.
 
 ### Phase 2 : Gestion de Contenu (À venir)
 * **Actualités / News :** Interface pour publier des petites brèves ou des articles sur l'avancée des négociations.
@@ -69,7 +70,7 @@ Accessible via la route `/admin`, cet espace est protégé par mot de passe et r
   * `to` (string)
   * `message` (object : subject, html)
 * **Collection `articles` (Phase 2) :**
-  * `titre` (string), `contenu` (string), `date` (timestamp), `auteur` (string).
+  * Contenu existant de l’article (`title`, `slug`, `content`, `publishedAt`, `status`, `authorEmail`); `attachments` est une liste de métadonnées (`id`, `fileName`, `contentType`, `extension`, `size`) sans chemin Storage ni jeton de téléchargement.
 * **Collection `tractationCampaigns` :**
   * `title`, `message`, `createdByUid`, `createdByName`, `status`, `createdAt`, `updatedAt`.
   * `lieuDits` : liste figée des lieux ciblés (`id`, `nom`, `foyers`). `attachment` contient les métadonnées et le chemin privé Storage, ou `null`.
