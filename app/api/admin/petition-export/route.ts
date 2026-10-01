@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebaseAdmin";
+import { groupPetitionSigners, type PetitionSigner } from "@/lib/petitionSignerGroups";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ function htmlResponse(html: string, status = 200) {
 }
 
 export async function GET(request: Request) {
-  // [SPEC-PET-EXPORT-01] L'export nominatif est réservé aux admins et reprend le filtre public Kergrist.
+  // [SPEC-PET-EXPORT-01] L'export nominatif est réservé aux admins et inclut les signatures papier et en ligne.
   try {
     const authorization = request.headers.get("Authorization");
     const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
@@ -62,31 +63,21 @@ export async function GET(request: Request) {
       .select("prenom", "nom", "email", "ville", "qualite", "source", "potentialDuplicate")
       .get();
 
-    const signers = signaturesSnapshot.docs
-      .map(document => {
+    const signers: PetitionSigner[] = signaturesSnapshot.docs.map(document => {
         const data = document.data();
-        const quality = String(data.qualite || "");
-        const city = String(data.ville || "");
-        const qualityLower = quality.toLowerCase();
-        const cityLower = city.toLowerCase();
-
-        if (!qualityLower.includes("habitant(e) de kergrist") && !cityLower.includes("kergrist")) {
-          return null;
-        }
-
         return {
           prenom: String(data.prenom || ""),
           nom: String(data.nom || ""),
-          ville: city,
-          qualite: quality,
+          ville: String(data.ville || ""),
+          qualite: String(data.qualite || ""),
           signature: data.source === "papier"
             ? String(data.email || "Signature recueillie sur papier")
             : String(data.email || document.id),
           potentialDuplicate: data.potentialDuplicate === true
         };
-      })
-      .filter((signer): signer is NonNullable<typeof signer> => signer !== null)
-      .sort((first, second) => first.nom.localeCompare(second.nom, "fr") || first.prenom.localeCompare(second.prenom, "fr"));
+      });
+    const signerGroups = groupPetitionSigners(signers);
+    const signerCount = signerGroups.reduce((total, group) => total + group.signers.length, 0);
 
     const extractedAt = new Intl.DateTimeFormat("fr-FR", {
       dateStyle: "long",
@@ -94,16 +85,24 @@ export async function GET(request: Request) {
       timeZone: "Europe/Paris"
     }).format(capturedAt);
 
-    const rows = signers.map((signer, index) => `
+    let signerIndex = 0;
+    const rows = signerGroups.map(group => {
+      const sectionHeader = `<tr class="section-heading"><th colspan="7">${escapeHtml(group.title)} (${group.signers.length})</th></tr>`;
+      const groupRows = group.signers.map(signer => {
+        signerIndex += 1;
+        return `
       <tr>
-        <td class="number">${index + 1}</td>
+        <td class="number">${signerIndex}</td>
         <td>${escapeHtml(signer.prenom)}</td>
         <td>${escapeHtml(signer.nom)}</td>
         <td>${escapeHtml(signer.ville)}</td>
         <td>${escapeHtml(signer.qualite)}</td>
         <td>${escapeHtml(signer.signature)}</td>
         <td>${signer.potentialDuplicate ? "Potentiel doublon" : ""}</td>
-      </tr>`).join("");
+      </tr>`;
+      }).join("");
+      return group.signers.length ? sectionHeader + groupRows : "";
+    }).join("");
 
     const html = `<!doctype html>
 <html lang="fr">
@@ -126,6 +125,7 @@ export async function GET(request: Request) {
     thead { display: table-header-group; }
     tr { break-inside: avoid; }
     .number { text-align: right; width: 7mm; }
+    .section-heading th { background: #e7e5e4; break-after: avoid; font-size: 10px; padding-top: 7px; padding-bottom: 7px; }
     th:nth-child(2), td:nth-child(2) { width: 16%; }
     th:nth-child(3), td:nth-child(3) { width: 13%; }
     th:nth-child(4), td:nth-child(4) { width: 14%; }
@@ -139,14 +139,14 @@ export async function GET(request: Request) {
 </head>
 <body>
   <h1>Pétition citoyenne pour la sauvegarde de l'école</h1>
-  <h2>Signataires ayant déclaré habiter à Kergrist-Moëlou</h2>
-  <p class="meta">Extraction du ${escapeHtml(extractedAt)} - ${signers.length} signataire(s)</p>
-  <p class="notice">Pour les signatures en ligne, le courriel déclaré est reproduit dans la colonne correspondante. Les signatures papier sont identifiées séparément. Les entrées signalées comme doublons potentiels restent distinctes. Document confidentiel.</p>
+  <h2>Liste consolidée des signataires de la pétition</h2>
+  <p class="meta">Extraction du ${escapeHtml(extractedAt)} - ${signerCount} signataire(s)</p>
+  <p class="notice">Les signataires sont classés par groupe : habitants de Kergrist-Moëlou, parents d’élèves, puis autres signataires. Les signatures papier et en ligne sont réunies. Pour les signatures en ligne, le courriel déclaré est reproduit dans la colonne correspondante. Les entrées signalées comme doublons potentiels restent distinctes. Document confidentiel.</p>
   <table>
     <thead><tr><th class="number">N°</th><th>Prénom</th><th>Nom</th><th>Commune</th><th>Lien avec l'école</th><th>Signature / courriel fourni</th><th>Vérification</th></tr></thead>
-    <tbody>${rows || '<tr><td colspan="7">Aucune signature ne correspond au critère.</td></tr>'}</tbody>
+    <tbody>${rows || '<tr><td colspan="7">Aucun signataire trouvé.</td></tr>'}</tbody>
   </table>
-  <p class="footer">Le classement reprend le critère de la statistique publique : commune contenant « Kergrist » ou lien déclaré « habitant(e) de Kergrist ».</p>
+  <p class="footer">Le classement Kergrist utilise la commune ou le lien déclaré. Les parents qui ne sont pas déjà classés habitants de Kergrist figurent dans le groupe « Parents d’élèves ».</p>
 </body>
 </html>`;
 

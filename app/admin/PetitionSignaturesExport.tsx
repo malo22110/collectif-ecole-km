@@ -60,9 +60,9 @@ export default function PetitionSignaturesExport() {
   return (
     <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h3 className="font-bold text-stone-900 text-lg">Feuille de signatures de la pétition</h3>
+        <h3 className="font-bold text-stone-900 text-lg">Liste consolidée des signataires</h3>
         <p className="mt-1 text-sm text-stone-600">
-          Génère une extraction horodatée des signataires classés habitants de Kergrist, avec leur courriel dans la colonne signature.
+          Génère une extraction horodatée de toutes les signatures papier et en ligne, classées Kergrist, parents, puis autres.
         </p>
         <p className="mt-2 text-xs text-stone-500">Le document contient des données personnelles. Dans la fenêtre d'impression, choisissez une imprimante ou « Enregistrer en PDF ».</p>
         {error && <p role="alert" className="mt-3 flex items-center gap-2 text-sm font-medium text-red-700"><AlertCircle size={16} />{error}</p>}
