@@ -2,7 +2,7 @@
 
 // [SPEC-DASHBOARD-01] Keep the member dashboard focused on the main hubs.
 import Link from "next/link";
-import { ArrowRight, ClipboardList, UserRoundCog, Newspaper } from "lucide-react";
+import { ArrowRight, ClipboardList, UserRoundCog, Newspaper, MapPinned } from "lucide-react";
 
 export default function EspaceMembreDashboard() {
 	return (
@@ -12,12 +12,25 @@ export default function EspaceMembreDashboard() {
 				<p className="text-base text-stone-600 md:text-lg">Votre quartier général pour la mobilisation sur le terrain.</p>
 			</header>
 
+			<section className="flex flex-col gap-4 border-y border-stone-200 py-5 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="map-campaigns-title">
+				<div className="flex items-start gap-3">
+					<span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-900"><MapPinned size={20} aria-hidden="true" /></span>
+					<div>
+						<h2 id="map-campaigns-title" className="font-bold text-stone-900">Carte & campagnes</h2>
+						<p className="mt-1 text-sm text-stone-600">Explorez les lieux-dits, choisissez vos favoris et rejoignez une campagne.</p>
+					</div>
+				</div>
+				<Link href="/espace-membre/tournees" className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto">
+					Ouvrir la carte <ArrowRight size={17} aria-hidden="true" />
+				</Link>
+			</section>
+
 			<section className="flex flex-col gap-4 border-y border-stone-200 py-5 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="petition-hub-title">
 				<div className="flex items-start gap-3">
 					<span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-900"><ClipboardList size={20} aria-hidden="true" /></span>
 					<div>
 						<h2 id="petition-hub-title" className="font-bold text-stone-900">La pétition</h2>
-						<p className="mt-1 text-sm text-stone-600">Signataires, membres à relancer et outils de pétition.</p>
+						<p className="mt-1 text-sm text-stone-600">Signataires, membres à relancer, numérisation et outils de pétition.</p>
 					</div>
 				</div>
 				<Link href="/espace-membre/petition" className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto">
