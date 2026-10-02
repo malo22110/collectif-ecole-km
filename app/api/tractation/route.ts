@@ -1,5 +1,5 @@
 import { FieldValue } from "firebase-admin/firestore";
-import { campaignInputSchema, campaignIdSchema } from "@/lib/tractationValidation";
+import { campaignInputSchema, campaignIdSchema, hasEligibleHouseholds } from "@/lib/tractationValidation";
 import {
   authorizeTractationMember,
   errorResponse,
@@ -59,9 +59,16 @@ export async function GET(request: Request) {
       if (assignmentSnapshot.size > 200) {
         throw new Error("Le nombre de lieux réservés dépasse la limite autorisée.");
       }
+      const visiblePlaceIds = new Set(Array.isArray(data.lieuDits) ? data.lieuDits.flatMap((place: unknown) => {
+        if (!place || typeof place !== "object") return [];
+        const id = (place as Record<string, unknown>).id;
+        if (typeof id !== "string") return [];
+        const sourcePlace = placeDataById.get(id);
+        return hasEligibleHouseholds(sourcePlace?.foyers) ? [id] : [];
+      }) : []);
       const assignedPlaces = Object.fromEntries(assignmentSnapshot.docs.flatMap(assignmentDocument => {
         const assignment = assignmentDocument.data();
-        if (assignment.status !== "claimed" && assignment.status !== "completed") return [];
+        if (!visiblePlaceIds.has(assignmentDocument.id) || (assignment.status !== "claimed" && assignment.status !== "completed")) return [];
         return [[assignmentDocument.id, {
           status: assignment.status,
           isMine: assignment.claimedByUid === authorization.member.uid
@@ -79,12 +86,14 @@ export async function GET(request: Request) {
           const campaignPlace = place as Record<string, unknown>;
           if (typeof campaignPlace.id !== "string") return [];
           const placeData = placeDataById.get(campaignPlace.id);
+          const foyers = Number.isInteger(placeData?.foyers) ? Number(placeData!.foyers) : 0;
+          if (!hasEligibleHouseholds(foyers)) return [];
           const lat = placeData?.lat;
           const lon = placeData?.lon;
           return [{
             id: campaignPlace.id,
             nom: String(placeData?.nom || campaignPlace.nom || "Lieu-dit"),
-            foyers: Number.isInteger(placeData?.foyers) ? placeData!.foyers as number : 0,
+            foyers,
             lat: Number.isFinite(lat) ? lat as number : null,
             lon: Number.isFinite(lon) ? lon as number : null,
             hasCoordinates: Number.isFinite(lat) && Number.isFinite(lon)
@@ -100,7 +109,7 @@ export async function GET(request: Request) {
         joined: participant.exists,
         assignedPlaces,
         myRoutePlaceIds: Array.isArray(participant.data()?.routePlaceIds)
-          ? participant.data()!.routePlaceIds.filter((id: unknown): id is string => typeof id === "string")
+          ? participant.data()!.routePlaceIds.filter((id: unknown): id is string => typeof id === "string" && visiblePlaceIds.has(id))
           : []
       };
     }));
@@ -115,7 +124,8 @@ export async function GET(request: Request) {
         lat: Number.isFinite(data.lat) ? data.lat as number : null,
         lon: Number.isFinite(data.lon) ? data.lon as number : null
       };
-    }).sort((first, second) => first.nom.localeCompare(second.nom, "fr"));
+    }).filter(place => hasEligibleHouseholds(place.foyers))
+      .sort((first, second) => first.nom.localeCompare(second.nom, "fr"));
 
     return Response.json({
       campaigns: campaignData,
@@ -144,6 +154,9 @@ export async function POST(request: Request) {
     const placeSnapshots = await Promise.all(placeRefs.map(reference => reference.get()));
     if (placeSnapshots.some(snapshot => !snapshot.exists)) {
       return Response.json({ error: "Un ou plusieurs lieux-dits ne sont plus disponibles." }, { status: 400 });
+    }
+    if (placeSnapshots.some(snapshot => !hasEligibleHouseholds(snapshot.get("foyers")))) {
+      return Response.json({ error: "Les lieux ciblés doivent avoir au moins un foyer recensé." }, { status: 400 });
     }
 
     const lieuDits = placeSnapshots.map(snapshot => {

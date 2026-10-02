@@ -11,6 +11,22 @@ export const campaignInputSchema = z.object({
     .refine(ids => new Set(ids).size === ids.length, "Les lieux-dits ne doivent pas être répétés.")
 }).strict();
 
+// [SPEC-TRACTATION-07] Campaign edits must retain every place that already has a shared assignment.
+export function canUpdateCampaignPlaces(assignedPlaceIds: string[], requestedPlaceIds: string[]) {
+  const requested = new Set(requestedPlaceIds);
+  return assignedPlaceIds.every(placeId => requested.has(placeId));
+}
+
+// [SPEC-TRACTATION-08] A place is mobilizable only when it has at least one known household.
+export function hasEligibleHouseholds(value: unknown) {
+  return Number.isInteger(value) && Number(value) > 0;
+}
+
+// [SPEC-TRACTATION-09] A participant can replace an existing route only after every eligible assignment is completed.
+export function canStartAnotherRoute(assignmentStatuses: unknown[]) {
+  return assignmentStatuses.every(status => status === "completed");
+}
+
 export const visitInputSchema = z.object({ visited: z.boolean() }).strict();
 
 // [SPEC-TRACTATION-04] Shared place claims transition through an explicit bounded action set.

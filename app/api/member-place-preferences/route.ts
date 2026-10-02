@@ -1,6 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
-import { memberPlacePreferencesSchema } from "@/lib/tractationValidation";
+import { hasEligibleHouseholds, memberPlacePreferencesSchema } from "@/lib/tractationValidation";
 import { errorResponse, readJsonBody } from "@/lib/tractationServer";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { verifyValidatedMember } from "@/lib/validatedMemberAccess";
@@ -18,10 +18,13 @@ export async function GET(request: Request) {
   try {
     const snapshot = await adminDb.collection(PRIVATE_COLLECTION).doc(access.uid).get();
     const data = snapshot.data();
+    const storedFavoriteIds = Array.isArray(data?.favoritePlaceIds)
+      ? data.favoritePlaceIds.filter((value): value is string => typeof value === "string")
+      : [];
+    const favoriteSnapshots = await Promise.all(storedFavoriteIds.map(id => adminDb.collection("lieuxDits").doc(id).get()));
+    const favoritePlaceIds = storedFavoriteIds.filter((_, index) => hasEligibleHouseholds(favoriteSnapshots[index]?.get("foyers")));
     return NextResponse.json({
-      favoritePlaceIds: Array.isArray(data?.favoritePlaceIds)
-        ? data.favoritePlaceIds.filter((value): value is string => typeof value === "string")
-        : [],
+      favoritePlaceIds,
       setupComplete: data?.placePreferencesSetupComplete === true,
       savedAddress: typeof data?.homeAddress === "string" ? data.homeAddress : null
     }, { headers: { "Cache-Control": "private, no-store, max-age=0" } });
@@ -52,6 +55,9 @@ export async function PUT(request: Request) {
     ));
     if (placeSnapshots.some(snapshot => !snapshot.exists)) {
       return NextResponse.json({ error: "Un lieu favori sélectionné n'existe plus." }, { status: 400 });
+    }
+    if (placeSnapshots.some(snapshot => !hasEligibleHouseholds(snapshot.get("foyers")))) {
+      return NextResponse.json({ error: "Les lieux favoris doivent avoir au moins un foyer recensé." }, { status: 400 });
     }
 
     const memberPrivateRef = adminDb.collection(PRIVATE_COLLECTION).doc(access.uid);

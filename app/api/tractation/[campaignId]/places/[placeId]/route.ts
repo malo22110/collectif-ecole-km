@@ -1,5 +1,5 @@
 import { FieldValue } from "firebase-admin/firestore";
-import { campaignIdSchema, placeAssignmentInputSchema } from "@/lib/tractationValidation";
+import { campaignIdSchema, hasEligibleHouseholds, placeAssignmentInputSchema } from "@/lib/tractationValidation";
 import {
   authorizeTractationMember,
   errorResponse,
@@ -39,12 +39,16 @@ export async function PUT(
     const campaignRef = tractationDb.collection("tractationCampaigns").doc(campaignId);
     const participantRef = campaignRef.collection("participants").doc(authorization.member.uid);
     const assignmentRef = campaignRef.collection("placeAssignments").doc(placeId);
+    const sourcePlaceRef = tractationDb.collection("lieuxDits").doc(placeId);
     let result: { status: "claimed" | "completed" | null; isMine: boolean } = { status: null, isMine: false };
 
     await tractationDb.runTransaction(async transaction => {
-      const campaign = await transaction.get(campaignRef);
-      const participant = await transaction.get(participantRef);
-      const assignment = await transaction.get(assignmentRef);
+      const [campaign, participant, assignment, sourcePlace] = await Promise.all([
+        transaction.get(campaignRef),
+        transaction.get(participantRef),
+        transaction.get(assignmentRef),
+        transaction.get(sourcePlaceRef)
+      ]);
 
       if (!campaign.exists) throw new PlaceAssignmentError(404, "Campagne introuvable.");
       if (campaign.get("status") !== "active") throw new PlaceAssignmentError(409, "Cette campagne n'est plus ouverte.");
@@ -59,6 +63,9 @@ export async function PUT(
       const current = assignment.data();
       const action = parsed.data.action;
       if (action === "claim") {
+        if (!hasEligibleHouseholds(sourcePlace.get("foyers")) || !hasEligibleHouseholds((selectedPlace as Record<string, unknown>).foyers)) {
+          throw new PlaceAssignmentError(400, "Ce secteur n'a aucun foyer recensé et ne peut pas être réservé.");
+        }
         if (assignment.exists && current?.claimedByUid !== authorization.member.uid) {
           throw new PlaceAssignmentError(409, "Ce lieu a déjà été pris par un autre membre.");
         }

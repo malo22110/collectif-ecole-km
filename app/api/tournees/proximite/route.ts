@@ -3,6 +3,7 @@ import { z } from "zod";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { nearestLocatedPlaces, type TourLieuDit } from "@/lib/tourneeGeo";
 import { verifyValidatedMember } from "@/lib/validatedMemberAccess";
+import { hasEligibleHouseholds } from "@/lib/tractationValidation";
 
 export const dynamic = "force-dynamic";
 
@@ -69,8 +70,8 @@ export async function POST(request: Request) {
 
 		const places: TourLieuDit[] = snapshot.docs.flatMap(document => {
 			const data = document.data();
-			if (!Number.isFinite(data.lat) || !Number.isFinite(data.lon)) return [];
 			const foyers = Number.isInteger(data.foyers) && data.foyers >= 0 ? data.foyers : 0;
+			if (!Number.isFinite(data.lat) || !Number.isFinite(data.lon) || !hasEligibleHouseholds(foyers)) return [];
 			return [{
 				id: document.id,
 				nom: String(data.nom || "Lieu sans nom"),

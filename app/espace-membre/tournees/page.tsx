@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Compass, Heart, Loader2, MapPinned, Plus, Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Heart, Loader2, MapPinned, Plus, Settings2 } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type { TourLieuDit } from "@/lib/tourneeGeo";
@@ -11,214 +11,258 @@ import MemberPlacePreferences from "@/app/espace-membre/components/MemberPlacePr
 import TractationPanel, { type CampaignMapState } from "@/app/espace-membre/components/TractationPanel";
 
 const OpenStreetMap = dynamic(() => import("./OpenStreetMap"), {
-	ssr: false,
-	loading: () => <div className="flex h-[55vh] min-h-[400px] items-center justify-center bg-stone-100 text-sm text-stone-500">Chargement de la carte…</div>
+  ssr: false,
+  loading: () => <div className="flex h-[70dvh] min-h-[440px] items-center justify-center bg-stone-100 text-sm text-stone-500">Chargement de la carte…</div>
 });
 
-interface NearbyPlace extends TourLieuDit {
-	distanceKm: number;
-}
-
-interface GeocodeSuggestion {
-	matchedAddress: string;
-	origin: { lat: number; lon: number };
-	nearest: NearbyPlace[];
-}
-
-function formatDistance(km: number) {
-	return km < 1 ? `${Math.round(km * 1000)} m à vol d'oiseau` : `${km.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km à vol d'oiseau`;
-}
+type HubView = "loading" | "setup" | "campaigns" | "campaign" | "preferences";
+type PrivatePreferences = { favoritePlaceIds: string[]; setupComplete: boolean };
+type RoadRoute = { geometry: Array<[number, number]>; distanceMeters: number; durationSeconds: number };
 
 export default function TourneesPage() {
-	const [locations, setLocations] = useState<TourLieuDit[]>([]);
-	const [address, setAddress] = useState("");
-	const [search, setSearch] = useState("");
-	const [suggestion, setSuggestion] = useState<GeocodeSuggestion | null>(null);
-	const [selectedPlace, setSelectedPlace] = useState<TourLieuDit | null>(null);
-	const [campaignMap, setCampaignMap] = useState<CampaignMapState | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [geocoding, setGeocoding] = useState(false);
-	const [error, setError] = useState("");
-	const [mapError, setMapError] = useState("");
-	const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>([]);
-	const [currentUser, setCurrentUser] = useState<User | null>(null);
-	const [canCreateCampaign, setCanCreateCampaign] = useState(false);
-	const [showStatistics, setShowStatistics] = useState(false);
-	const handleCanCreateChange = useCallback((allowed: boolean) => setCanCreateCampaign(allowed), []);
-	const handleStatisticsVisibleChange = useCallback((visible: boolean) => setShowStatistics(visible), []);
+  const [locations, setLocations] = useState<TourLieuDit[]>([]);
+  const [campaignMap, setCampaignMap] = useState<CampaignMapState | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<TourLieuDit | null>(null);
+  const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [view, setView] = useState<HubView>("loading");
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const mapPlaceAdder = useRef<((placeId: string) => void) | null>(null);
+  const [canCreateCampaign, setCanCreateCampaign] = useState(false);
+  const [showStatistics, setShowStatistics] = useState(false);
+  const [roadRoute, setRoadRoute] = useState<RoadRoute | null>(null);
+  const [roadRouteLoading, setRoadRouteLoading] = useState(false);
+  const [roadRouteError, setRoadRouteError] = useState("");
+  const [roadRouteRetry, setRoadRouteRetry] = useState(0);
+  const [pageError, setPageError] = useState("");
 
-	useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, async user => {
-			setCurrentUser(user);
-			if (!user) {
-				setMapError("Connectez-vous avec un compte membre validé pour consulter la carte.");
-				setLoading(false);
-				return;
-			}
-			try {
-				const response = await fetch("/api/tournees", {
-					headers: { Authorization: `Bearer ${await user.getIdToken()}` },
-					cache: "no-store"
-				});
-				const data = await response.json();
-				if (!response.ok) throw new Error(data.error || "Impossible de charger les lieux-dits.");
-				setLocations(data.locations);
-			} catch (loadError) {
-				setMapError(loadError instanceof Error ? loadError.message : "Erreur de connexion.");
-			} finally {
-				setLoading(false);
-			}
-		});
-		return () => unsubscribe();
-	}, []);
+  useEffect(() => {
+    let active = true;
+    const unsubscribe = onAuthStateChanged(auth, async user => {
+      setCurrentUser(user);
+      if (!user) {
+        setPageError("Connectez-vous avec un compte membre validé pour consulter les campagnes.");
+        setView("campaigns");
+        return;
+      }
+      try {
+        const token = await user.getIdToken();
+        const headers = { Authorization: `Bearer ${token}` };
+        const [placesResponse, preferencesResponse] = await Promise.all([
+          fetch("/api/tournees", { headers, cache: "no-store" }),
+          fetch("/api/member-place-preferences", { headers, cache: "no-store" })
+        ]);
+        const [placesData, preferencesData] = await Promise.all([
+          placesResponse.json(), preferencesResponse.json()
+        ]);
+        if (!placesResponse.ok) throw new Error(placesData.error || "Impossible de charger la carte.");
+        if (!preferencesResponse.ok) throw new Error(preferencesData.error || "Impossible de charger vos préférences.");
+        if (!active) return;
+        setLocations(placesData.locations || []);
+        const preferences = preferencesData as PrivatePreferences;
+        setFavoritePlaceIds(preferences.favoritePlaceIds || []);
+        setView(preferences.setupComplete ? "campaigns" : "setup");
+      } catch (loadError) {
+        if (!active) return;
+        setPageError(loadError instanceof Error ? loadError.message : "Impossible de charger l’espace campagnes.");
+        setView("campaigns");
+      }
+    });
+    return () => { active = false; unsubscribe(); };
+  }, []);
 
-	const unlocated = useMemo(() => locations.filter(place => place.geocodeStatus !== "located"), [locations]);
-	const zeroHouseholds = useMemo(() => locations.filter(place => place.foyers === 0).length, [locations]);
-	const householdTotal = useMemo(() => locations.reduce((total, place) => total + place.foyers, 0), [locations]);
-	const mapLocations = useMemo(() => {
-		if (!campaignMap) return locations;
-		const includedIds = new Set(campaignMap.placeIds);
-		return locations.filter(place => includedIds.has(place.id));
-	}, [campaignMap, locations]);
-	const filtered = useMemo(() => {
-		const query = search.trim().toLocaleLowerCase("fr");
-		return mapLocations.filter(place => !query || place.nom.toLocaleLowerCase("fr").includes(query))
-			.sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
-	}, [mapLocations, search]);
-	const mapAssignments = campaignMap?.assignmentStatuses || {};
-	const mapRoutePlaceIds = campaignMap?.routePlaceIds || [];
-	const handleCampaignMapChange = useCallback((state: CampaignMapState | null) => setCampaignMap(state), []);
+  const mapLocations = useMemo(() => {
+    if (!campaignMap) return [];
+    const includedIds = new Set(campaignMap.placeIds);
+    return locations.filter(place => includedIds.has(place.id));
+  }, [campaignMap, locations]);
+  const favoriteSet = useMemo(() => new Set(favoritePlaceIds), [favoritePlaceIds]);
+  const routePlaceKey = campaignMap?.routePlaceIds.join("|") || "";
 
-	const findNearby = async (event: React.FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		setError("");
-		setSuggestion(null);
-		const user = auth.currentUser;
-		if (!user) {
-			setError("Votre session a expiré. Reconnectez-vous.");
-			return;
-		}
-		setGeocoding(true);
-		try {
-			const response = await fetch("/api/tournees/proximite", {
-				method: "POST",
-				headers: { Authorization: `Bearer ${await user.getIdToken()}`, "Content-Type": "application/json" },
-				cache: "no-store",
-				body: JSON.stringify({ address })
-			});
-			const data = await response.json();
-			if (!response.ok) throw new Error(data.error || "Adresse non trouvée.");
-			setSuggestion(data);
-		} catch (lookupError) {
-			setError(lookupError instanceof Error ? lookupError.message : "Impossible de géocoder cette adresse.");
-		} finally {
-			setGeocoding(false);
-		}
-	};
+  useEffect(() => {
+    if (view !== "campaign" || !currentUser || !campaignMap?.origin || !routePlaceKey) {
+      setRoadRoute(null);
+      setRoadRouteError("");
+      setRoadRouteLoading(false);
+      return;
+    }
 
-	const toggleFavorite = useCallback(async (placeId: string) => {
-		if (!currentUser) return;
-		const headers = { Authorization: `Bearer ${await currentUser.getIdToken()}` };
-		try {
-			const currentResponse = await fetch("/api/member-place-preferences", { headers, cache: "no-store" });
-			if (!currentResponse.ok) throw new Error("Impossible de charger vos favoris.");
-			const current = await currentResponse.json();
-			const favorites: string[] = Array.isArray(current.favoritePlaceIds) ? current.favoritePlaceIds : [];
-			const nextFavorites = favorites.includes(placeId)
-				? favorites.filter(id => id !== placeId)
-				: favorites.length < 20 ? [...favorites, placeId] : favorites;
-			if (nextFavorites.length === favorites.length && !favorites.includes(placeId)) {
-				setError("Vous pouvez enregistrer jusqu'à 20 lieux favoris.");
-				return;
-			}
-			const saveResponse = await fetch("/api/member-place-preferences", {
-				method: "PUT",
-				headers: { ...headers, "Content-Type": "application/json" },
-				cache: "no-store",
-				body: JSON.stringify({ favoritePlaceIds: nextFavorites, setupComplete: true, savedAddress: current.savedAddress || null })
-			});
-			if (!saveResponse.ok) throw new Error("Impossible d'enregistrer ce favori.");
-			setFavoritePlaceIds(nextFavorites);
-			setError("");
-		} catch (favoriteError) {
-			setError(favoriteError instanceof Error ? favoriteError.message : "Impossible d'enregistrer ce favori.");
-		}
-	}, [currentUser]);
+    const controller = new AbortController();
+    let active = true;
+    setRoadRoute(null);
+    setRoadRouteError("");
+    setRoadRouteLoading(true);
 
-	const favoriteSet = useMemo(() => new Set(favoritePlaceIds), [favoritePlaceIds]);
-	const handleMemberFavoriteChange = useCallback((ids: string[]) => setFavoritePlaceIds(ids), []);
+    void (async () => {
+      try {
+        const response = await fetch(`/api/tractation/${encodeURIComponent(campaignMap.campaignId)}/directions`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${await currentUser.getIdToken()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ origin: campaignMap.origin }),
+          cache: "no-store",
+          signal: controller.signal
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(result?.error || "Impossible de calculer l’itinéraire routier.");
+        if (!Array.isArray(result?.geometry) || !result.geometry.every((point: unknown) => Array.isArray(point) && point.length === 2 && point.every(Number.isFinite))) {
+          throw new Error("Le service routier a renvoyé un tracé invalide.");
+        }
+        if (active) setRoadRoute({
+          geometry: result.geometry as Array<[number, number]>,
+          distanceMeters: Number(result.distanceMeters) || 0,
+          durationSeconds: Number(result.durationSeconds) || 0
+        });
+      } catch (routeError) {
+        if (active && !(routeError instanceof DOMException && routeError.name === "AbortError")) {
+          setRoadRouteError(routeError instanceof Error ? routeError.message : "Impossible de calculer l’itinéraire routier.");
+        }
+      } finally {
+        if (active) setRoadRouteLoading(false);
+      }
+    })();
 
-	return (
-		<main className="min-h-full overflow-y-auto bg-stone-50 p-3 sm:p-4 md:p-8">
-			<div className="mx-auto max-w-7xl space-y-4 md:space-y-6">
-				<header className="flex flex-col gap-3 border-b border-stone-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
-					<div>
-						<h1 className="flex items-center gap-3 text-2xl font-black text-stone-900 md:text-3xl"><MapPinned className="text-emerald-700" size={30} /> Carte & campagnes</h1>
-						<p className="mt-2 max-w-3xl text-sm text-stone-600">Trouvez un lieu-dit, enregistrez vos favoris et rejoignez une campagne près de chez vous.</p>
-					</div>
-					{canCreateCampaign && <Link href="/espace-membre/tournees/nouvelle-campagne" className="btn-primary min-h-11 w-full px-4 py-2 sm:w-auto"><Plus size={18} aria-hidden="true" />Créer une campagne</Link>}
-				</header>
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [view, currentUser, campaignMap?.campaignId, campaignMap?.origin?.lat, campaignMap?.origin?.lon, routePlaceKey, roadRouteRetry]);
 
-				<form onSubmit={findNearby} className="flex flex-col gap-2 sm:flex-row sm:items-end" aria-label="Rechercher les lieux-dits proches">
-					<label className="relative block min-w-0 flex-1 text-sm font-medium text-stone-700">
-						<span className="sr-only">Rechercher une adresse</span>
-						<Search size={18} aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-						<input type="text" required minLength={5} maxLength={180} autoComplete="street-address" value={address} onChange={event => setAddress(event.target.value)} placeholder="Adresse ou commune près de chez vous" className="input-base min-h-12 pl-10" />
-					</label>
-					<button type="submit" disabled={geocoding || !address.trim()} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-5 font-semibold text-white hover:bg-emerald-900 disabled:cursor-wait disabled:opacity-50">
-						{geocoding ? <Loader2 className="animate-spin" size={18} /> : <Compass size={18} />}{geocoding ? "Recherche…" : "Rechercher"}
-					</button>
-				</form>
-				{error && <p role="alert" className="border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{error}</p>}
-				{showStatistics && <details className="border-b border-stone-200 pb-2">
-					<summary className="min-h-10 cursor-pointer py-2 text-sm font-semibold text-stone-600">Statistiques des secteurs</summary>
-					<div className="grid grid-cols-2 gap-3 pb-3 md:grid-cols-4" aria-label="Statistiques des secteurs">
-						<div><p className="text-xs font-semibold uppercase text-stone-500">Lieux-dits</p><p className="mt-1 text-lg font-bold text-stone-900">{loading ? "…" : locations.length}</p></div>
-						<div><p className="text-xs font-semibold uppercase text-stone-500">Foyers recensés</p><p className="mt-1 text-lg font-bold text-stone-900">{loading ? "…" : householdTotal}</p></div>
-						<div><p className="text-xs font-semibold uppercase text-stone-500">Sans foyer recensé</p><p className="mt-1 text-lg font-bold text-stone-700">{loading ? "…" : zeroHouseholds}</p></div>
-						<div><p className="text-xs font-semibold uppercase text-stone-500">À localiser</p><p className="mt-1 text-lg font-bold text-amber-800">{loading ? "…" : unlocated.length}</p></div>
-					</div>
-				</details>}
+  const toggleFavorite = useCallback(async (placeId: string) => {
+    if (!currentUser) return;
+    try {
+      const headers = { Authorization: `Bearer ${await currentUser.getIdToken()}` };
+      const currentResponse = await fetch("/api/member-place-preferences", { headers, cache: "no-store" });
+      if (!currentResponse.ok) throw new Error("Impossible de charger vos favoris.");
+      const current = await currentResponse.json();
+      const favorites: string[] = Array.isArray(current.favoritePlaceIds) ? current.favoritePlaceIds : [];
+      const nextFavorites = favorites.includes(placeId)
+        ? favorites.filter(id => id !== placeId)
+        : favorites.length < 20 ? [...favorites, placeId] : favorites;
+      if (nextFavorites.length === favorites.length && !favorites.includes(placeId)) throw new Error("Vous pouvez enregistrer jusqu’à 20 lieux favoris.");
+      const saveResponse = await fetch("/api/member-place-preferences", {
+        method: "PUT",
+        headers: { ...headers, "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ favoritePlaceIds: nextFavorites, setupComplete: true, savedAddress: current.savedAddress || null })
+      });
+      if (!saveResponse.ok) throw new Error("Impossible d’enregistrer ce favori.");
+      setFavoritePlaceIds(nextFavorites);
+      setPageError("");
+    } catch (favoriteError) {
+      setPageError(favoriteError instanceof Error ? favoriteError.message : "Impossible d’enregistrer ce favori.");
+    }
+  }, [currentUser]);
 
-				<section id="places-map-section" className="grid scroll-mt-4 gap-4 border-b border-stone-200 pb-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-					<div className="min-w-0 space-y-3">
-						{mapError ? <p role="alert" className="border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{mapError}</p>
-							: loading ? <div role="status" className="flex h-[48vh] min-h-[320px] items-center justify-center gap-3 bg-stone-100 text-stone-600 md:h-[68vh] md:min-h-[400px]"><Loader2 className="animate-spin" /> Chargement de la carte…</div>
-							: <OpenStreetMap locations={mapLocations} origin={campaignMap ? campaignMap.origin : suggestion?.origin} originLabel={campaignMap?.origin ? "Position GPS utilisée pour la tournée de campagne" : "Adresse utilisée pour cette recherche"} favoritePlaceIds={favoritePlaceIds} onToggleFavorite={toggleFavorite} routePlaceIds={mapRoutePlaceIds} assignmentStatuses={mapAssignments} campaignMode={Boolean(campaignMap)} showHouseholdCounts={showStatistics} selectedPlace={selectedPlace} />}
-						<div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-stone-600">
-							{showStatistics && <><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-emerald-800 bg-emerald-500" /> Foyers recensés</span><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-stone-600 bg-stone-400" /> 0 foyer recensé</span></>}
-							{campaignMap && <><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-stone-600 bg-stone-300" /> Disponible</span><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-amber-700 bg-amber-400" /> Pris</span><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-emerald-700 bg-emerald-400" /> Fait</span></>}
-							<span className="inline-flex items-center gap-2"><Heart size={13} className="fill-amber-300 text-amber-800" /> Mes favoris</span>
-							{suggestion && <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full border-2 border-blue-800 bg-blue-400" /> Votre adresse</span>}
-						</div>
-						<p className="text-xs text-stone-500">Touchez un repère pour l’ajouter à vos favoris. Les marqueurs indiquent des lieux-dits, pas des domiciles.</p>
-					</div>
+  const handleCanCreateChange = useCallback((allowed: boolean) => setCanCreateCampaign(allowed), []);
+  const handleStatisticsVisibleChange = useCallback((visible: boolean) => setShowStatistics(visible), []);
+  const handleCampaignMapChange = useCallback((state: CampaignMapState | null) => setCampaignMap(state), []);
+  const registerMapPlaceAdder = useCallback((handler: (placeId: string) => void) => { mapPlaceAdder.current = handler; }, []);
+  const handleFavoritesChange = useCallback((ids: string[]) => setFavoritePlaceIds(ids), []);
+  const completeSetup = useCallback(() => setView("campaigns"), []);
+  const openCampaign = useCallback((campaignId: string) => {
+    setSelectedCampaignId(campaignId);
+    setCampaignMap(null);
+    setView("campaign");
+    setSelectedPlace(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+  const backToCampaigns = useCallback(() => {
+    setSelectedCampaignId(null);
+    setCampaignMap(null);
+    setSelectedPlace(null);
+    setView("campaigns");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
-					<aside className="min-w-0 border-t border-stone-200 pt-3 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
-						{campaignMap && <div className="mb-3 border-b border-stone-200 pb-3"><p className="truncate text-sm font-semibold text-stone-800">Campagne : {campaignMap.title}</p><p className="mt-1 text-xs text-stone-500">La carte n’affiche que les lieux ciblés par cette campagne.</p></div>}
-						{suggestion && !campaignMap && <div className="mb-3 border-b border-stone-200 pb-3"><p className="mb-2 text-xs font-semibold uppercase text-stone-500">Près de {suggestion.matchedAddress}</p>{suggestion.nearest.map((place, index) => <div key={place.id} className="flex items-center gap-2 py-2"><button type="button" onClick={() => void toggleFavorite(place.id)} aria-pressed={favoriteSet.has(place.id)} aria-label={`${favoriteSet.has(place.id) ? "Retirer des" : "Ajouter aux"} favoris : ${place.nom}`} className={`grid size-10 shrink-0 place-items-center rounded-full border ${favoriteSet.has(place.id) ? "border-amber-300 bg-amber-100 text-amber-800" : "border-stone-200 text-stone-500 hover:bg-stone-100"}`}><Heart size={17} className={favoriteSet.has(place.id) ? "fill-amber-400" : ""} /></button><button type="button" onClick={() => setSelectedPlace(place)} className="min-w-0 flex-1 text-left"><p className="truncate text-sm font-semibold text-stone-800">{index + 1}. {place.nom}</p><p className="text-xs text-stone-500">{formatDistance(place.distanceKm)}{showStatistics ? ` · ${place.foyers} foyers` : ""}</p></button></div>)}</div>}
-						<details className="mt-2 border-y border-stone-200">
-							<summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm font-semibold text-stone-800">
-									{campaignMap ? "Lieux de la campagne" : "Tous les lieux-dits"}
-								<span className="text-xs font-normal text-stone-500">Rechercher, voir la liste ou ajouter des favoris</span>
-							</summary>
-							<div className="space-y-2 pb-3">
-								<label className="relative block"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} aria-hidden="true" /><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Chercher un lieu-dit" aria-label="Chercher un lieu-dit" className="input-base py-2 pl-9 text-sm" /></label>
-								{showStatistics && <p className="text-xs font-semibold uppercase text-stone-500">{filtered.length} lieux-dits</p>}
-								<ul className="max-h-64 divide-y divide-stone-200 overflow-y-auto border-y border-stone-200 bg-white sm:max-h-80 lg:max-h-[68vh]">
-									{filtered.map(place => <li key={place.id} className="flex items-center gap-2 px-2 py-1"><button type="button" onClick={() => void toggleFavorite(place.id)} aria-pressed={favoriteSet.has(place.id)} aria-label={`${favoriteSet.has(place.id) ? "Retirer des" : "Ajouter aux"} favoris : ${place.nom}`} className={`grid size-10 shrink-0 place-items-center rounded-full border ${favoriteSet.has(place.id) ? "border-amber-300 bg-amber-100 text-amber-800" : "border-transparent text-stone-400 hover:bg-stone-100"}`}><Heart size={17} className={favoriteSet.has(place.id) ? "fill-amber-400" : ""} /></button><button type="button" onClick={() => setSelectedPlace(place)} className="min-w-0 flex-1 truncate py-2 text-left text-sm font-medium text-stone-800">{place.nom}</button>{showStatistics && <span className="shrink-0 text-xs text-stone-500">{place.foyers} foy.</span>}</li>)}
-								</ul>
-							</div>
-						</details>
-						{showStatistics && unlocated.length > 0 && <details className="mt-3 text-sm text-stone-600"><summary className="cursor-pointer font-semibold">Lieux sans coordonnées ({unlocated.length})</summary><ul className="mt-2 space-y-1 pl-4">{unlocated.map(place => <li key={place.id}>{place.nom} — {place.foyers} foyer(s)</li>)}</ul></details>}
-					</aside>
-				</section>
+  const title = view === "campaign" ? campaignMap?.title || "Campagne" : view === "preferences" ? "Mes lieux favoris" : "Campagnes en cours";
 
-				<p className="text-xs leading-relaxed text-stone-500">L’adresse saisie sert à cette recherche uniquement. Elle n’est pas enregistrée sans votre accord.</p>
-						<MemberPlacePreferences places={locations.map(({ id, nom }) => ({ id, nom }))} favoritePlaceIds={favoritePlaceIds} onFavoritesChange={handleMemberFavoriteChange} />
-						<TractationPanel favoritePlaceIds={favoritePlaceIds} suggestionOrigin={suggestion?.origin || null} onCanCreateChange={handleCanCreateChange} onStatisticsVisibleChange={handleStatisticsVisibleChange} onCampaignMapChange={handleCampaignMapChange} />
-				<p className="text-xs text-stone-500">Carte © OpenStreetMap contributors. Les points sont des repères indicatifs issus du géocodage des lieux-dits.</p>
-			</div>
-		</main>
-	);
+  return (
+    <main className="min-h-full bg-stone-50 p-4 pb-[max(2rem,env(safe-area-inset-bottom))] sm:p-5 md:p-8">
+      <div className={`mx-auto w-full ${view === "campaign" ? "max-w-7xl space-y-4" : "max-w-4xl space-y-5"}`}>
+        {view === "loading" ? <div role="status" className="flex min-h-[55vh] items-center justify-center gap-3 text-sm text-stone-600"><Loader2 size={20} className="animate-spin" />Préparation de votre espace…</div>
+          : view === "setup" ? <MemberPlacePreferences
+            places={locations.map(({ id, nom }) => ({ id, nom }))}
+            favoritePlaceIds={favoritePlaceIds}
+            onFavoritesChange={handleFavoritesChange}
+            onboarding
+            onSetupComplete={completeSetup}
+          />
+          : <>
+            <header className="flex min-h-14 items-center gap-3 border-b border-stone-200 pb-3">
+              {view !== "campaigns" && <button type="button" onClick={() => view === "campaign" ? backToCampaigns() : setView("campaigns")} aria-label={view === "campaign" ? "Retour aux campagnes" : "Retour aux campagnes en cours"} className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700"><ArrowLeft size={19} aria-hidden="true" /></button>}
+              <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-800"><MapPinned size={21} aria-hidden="true" /></span>
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-xl font-black text-stone-900 sm:text-2xl">{title}</h1>
+                <p className="mt-0.5 text-xs text-stone-600">{view === "campaign" ? "Carte et actions de cette campagne" : view === "preferences" ? "Sélection privée, modifiable à tout moment" : "Choisissez une action près de chez vous"}</p>
+              </div>
+              {view === "campaigns" && canCreateCampaign && <Link href="/espace-membre/tournees/nouvelle-campagne" aria-label="Créer une campagne" className="grid size-11 shrink-0 place-items-center rounded-lg bg-emerald-800 text-white"><Plus size={21} aria-hidden="true" /></Link>}
+              {view === "campaigns" && <button type="button" onClick={() => setView("preferences")} aria-label="Modifier mes lieux favoris" className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700"><Settings2 size={19} aria-hidden="true" /></button>}
+            </header>
+
+            {pageError && <p role="alert" className="border-l-4 border-rose-600 bg-rose-50 px-3 py-2 text-sm text-rose-800">{pageError}</p>}
+
+            {view === "campaigns" && <section className="space-y-4" aria-label="Campagnes disponibles">
+              <div className="flex items-center justify-between gap-3">
+                <div><p className="text-sm font-semibold text-stone-800">Vos lieux favoris</p><p className="mt-1 text-xs text-stone-500">{favoritePlaceIds.length ? `${favoritePlaceIds.length} lieu(x) enregistré(s)` : "Aucun favori pour le moment"}</p></div>
+                <button type="button" onClick={() => setView("preferences")} className="min-h-11 shrink-0 px-3 text-sm font-semibold text-emerald-900 underline underline-offset-2"><Heart size={15} aria-hidden="true" className="mr-1 inline" />Modifier</button>
+              </div>
+              <TractationPanel favoritePlaceIds={favoritePlaceIds} onCanCreateChange={handleCanCreateChange} onStatisticsVisibleChange={handleStatisticsVisibleChange} onCampaignSelect={openCampaign} />
+            </section>}
+
+            {view === "preferences" && <MemberPlacePreferences
+              places={locations.map(({ id, nom }) => ({ id, nom }))}
+              favoritePlaceIds={favoritePlaceIds}
+              onFavoritesChange={handleFavoritesChange}
+            />}
+
+            {view === "campaign" && <>
+              <section id="places-map-section" className="scroll-mt-3 space-y-3">
+                {campaignMap && <p className="text-xs text-stone-600">La carte est limitée aux secteurs de cette campagne. Les marqueurs représentent des lieux-dits, pas des domiciles. Le calcul routier transmet le départ et les étapes au service de routage configuré, dans l’ordre de votre tournée.</p>}
+                {campaignMap?.routePlaceIds.length ? <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-blue-700 bg-blue-50 px-3 py-2 text-sm text-blue-950" role="status" aria-live="polite">
+                  {roadRouteLoading ? <><Loader2 size={16} className="animate-spin" aria-hidden="true" />Calcul de l’itinéraire dans l’ordre de votre tournée…</>
+                    : roadRoute ? <><MapPinned size={16} aria-hidden="true" /><strong>{(roadRoute.distanceMeters / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km</strong><span>·</span><strong>{Math.round(roadRoute.durationSeconds / 60)} min</strong><span className="text-xs">· ordre de la tournée respecté</span></>
+                    : roadRouteError ? <><span>{roadRouteError}</span><button type="button" onClick={() => setRoadRouteRetry(value => value + 1)} className="font-semibold underline underline-offset-2">Réessayer</button></>
+                      : !campaignMap.origin ? <span>Définissez votre position de départ pour tracer la route. L’ordre des étapes restera celui de votre tournée.</span> : null}
+                </div> : null}
+                {!campaignMap ? <div role="status" className="flex h-[70dvh] min-h-[440px] items-center justify-center gap-3 rounded-lg bg-stone-100 text-sm text-stone-500"><Loader2 size={19} className="animate-spin" />Chargement des secteurs…</div>
+                  : <OpenStreetMap
+                    locations={mapLocations}
+                    origin={campaignMap.origin}
+                    originLabel="Départ de votre tournée"
+                    favoritePlaceIds={favoritePlaceIds}
+                    routePlaceIds={campaignMap.routePlaceIds}
+                    assignmentStatuses={campaignMap.assignmentStatuses}
+                    campaignMode
+                    campaignJoined={campaignMap.joined}
+                    onAddToRoute={placeId => mapPlaceAdder.current?.(placeId)}
+                    routeGeometry={roadRoute?.geometry}
+                    showHouseholdCounts={showStatistics}
+                    selectedPlace={selectedPlace}
+                    onSelectPlace={setSelectedPlace}
+                  />}
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-stone-600" aria-label="Légende de la carte">
+                  <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full border-2 border-blue-800 bg-blue-400" />Disponible</span>
+                  <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full border-2 border-stone-600 bg-stone-300" />Pris</span>
+                  <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full border-2 border-emerald-700 bg-emerald-400" />Terminé</span>
+                  {showStatistics && <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full border-2 border-amber-800 bg-amber-300" />Favori</span>}
+                </div>
+              </section>
+              <TractationPanel
+                favoritePlaceIds={favoritePlaceIds}
+                onCanCreateChange={handleCanCreateChange}
+                onStatisticsVisibleChange={handleStatisticsVisibleChange}
+                onCampaignMapChange={handleCampaignMapChange}
+                selectedMapPlace={selectedPlace}
+                selectedCampaignId={selectedCampaignId}
+                onCampaignSelect={openCampaign}
+                onRegisterMapPlaceAdder={registerMapPlaceAdder}
+              />
+            </>}
+          </>}
+      </div>
+    </main>
+  );
 }

@@ -3,16 +3,20 @@ import test from "node:test";
 import {
   campaignInputSchema,
   campaignIdSchema,
+  canUpdateCampaignPlaces,
   canCreateCampaign,
+  canStartAnotherRoute,
   campaignRouteInputSchema,
   detectCampaignDocumentType,
   getMemberRoles,
+  hasEligibleHouseholds,
   isValidatedMember,
   memberPlacePreferencesSchema,
   placeAssignmentInputSchema,
   sanitizeCampaignFileName,
   visitInputSchema
 } from "../lib/tractationValidation.ts";
+import { chunkOrderedRoutePoints } from "../lib/tourneeGeo.ts";
 
 // [SPEC-TRACTATION-01] Campaign creation rejects empty, oversized, or duplicate location selections.
 test("valide les champs de campagne et refuse les lieux répétés", () => {
@@ -22,6 +26,48 @@ test("valide les champs de campagne et refuse les lieux répétés", () => {
   assert.equal(campaignInputSchema.safeParse({ ...valid, lieuDitIds: ["lieu-1/visits/other"] }).success, false);
   assert.equal(campaignInputSchema.safeParse({ ...valid, message: "" }).success, false);
   assert.equal(campaignIdSchema.safeParse("lieu-1").success, true);
+});
+
+// [SPEC-TRACTATION-07] A campaign edit can change unclaimed places but never detach an assigned place.
+test("protège les secteurs déjà pris lors de la modification d’une campagne", () => {
+  assert.equal(canUpdateCampaignPlaces(["place-1", "place-2"], ["place-1", "place-2", "place-3"]), true);
+  assert.equal(canUpdateCampaignPlaces(["place-1", "place-2"], ["place-2", "place-3"]), false);
+  assert.equal(canUpdateCampaignPlaces([], ["place-3"]), true);
+});
+
+// [SPEC-TRACTATION-08] Zero-household and unknown-count places are not campaign or route options.
+test("exclut les lieux sans foyer des possibilités de mobilisation", () => {
+  assert.equal(hasEligibleHouseholds(1), true);
+  assert.equal(hasEligibleHouseholds(24), true);
+  assert.equal(hasEligibleHouseholds(0), false);
+  assert.equal(hasEligibleHouseholds(undefined), false);
+  assert.equal(hasEligibleHouseholds(1.5), false);
+});
+
+// [SPEC-TRACTATION-09] A participant may take another route after completing every previous assignment.
+test("autorise une nouvelle tournée seulement après la fin de la précédente", () => {
+  assert.equal(canStartAnotherRoute([]), true);
+  assert.equal(canStartAnotherRoute(["completed", "completed"]), true);
+  assert.equal(canStartAnotherRoute(["completed", "claimed"]), false);
+  assert.equal(canStartAnotherRoute([undefined]), false);
+});
+
+// [SPEC-TRACTATION-10] Routing chunks preserve the exact chosen order and join at the previous endpoint.
+test("découpe les requêtes routières sans changer l’ordre des étapes", () => {
+  const stops = Array.from({ length: 5 }, (_, index) => ({ lat: 48 + index / 100, lon: -3 - index / 100 }));
+  const chunks = chunkOrderedRoutePoints({ lat: 47.9, lon: -3.1 }, stops, 3);
+  assert.deepEqual(chunks, [
+    [{ lat: 47.9, lon: -3.1 }, stops[0], stops[1]],
+    [stops[1], stops[2], stops[3]],
+    [stops[3], stops[4]]
+  ]);
+  assert.throws(() => chunkOrderedRoutePoints({ lat: 0, lon: 0 }, stops, 1), RangeError);
+
+  const longStops = Array.from({ length: 200 }, (_, index) => ({ lat: 48 + index / 10000, lon: -3 - index / 10000 }));
+  const longChunks = chunkOrderedRoutePoints({ lat: 47.9, lon: -3.1 }, longStops);
+  assert.ok(longChunks.every(chunk => chunk.length <= 100));
+  assert.equal(longChunks.flatMap((chunk, index) => index ? chunk.slice(1) : chunk).length, 201);
+  assert.deepEqual(longChunks.flatMap((chunk, index) => index ? chunk.slice(1) : chunk).slice(1), longStops);
 });
 
 // [SPEC-TRACTATION-04] Only explicit claim, complete, and release transitions are accepted.

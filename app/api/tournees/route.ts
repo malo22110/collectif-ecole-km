@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { verifyValidatedMember } from "@/lib/validatedMemberAccess";
+import { hasEligibleHouseholds } from "@/lib/tractationValidation";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,8 @@ export async function GET(request: Request) {
 				geocodeStatus: located ? "located" : "unlocated",
 				householdStatus: foyers === 0 ? "zero" : "positive"
 			};
-		}).sort((first, second) => first.nom.localeCompare(second.nom, "fr"));
+		}).filter(location => hasEligibleHouseholds(location.foyers))
+			.sort((first, second) => first.nom.localeCompare(second.nom, "fr"));
 
 		return NextResponse.json({ locations }, {
 			headers: { "Cache-Control": "private, no-store, max-age=0" }

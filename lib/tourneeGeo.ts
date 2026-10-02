@@ -38,6 +38,23 @@ export interface TourRouteSegment<T extends GeoPoint> {
   waypoints: T[];
 }
 
+// [SPEC-TRACTATION-10] Routing chunks preserve the selected order and chain through each previous endpoint.
+export function chunkOrderedRoutePoints<T extends GeoPoint>(origin: GeoPoint, stops: T[], maxCoordinates = 100): GeoPoint[][] {
+  if (!Number.isInteger(maxCoordinates) || maxCoordinates < 2 || maxCoordinates > 100) {
+    throw new RangeError("Une requête de routage doit contenir de 2 à 100 coordonnées.");
+  }
+
+  const chunks: GeoPoint[][] = [];
+  let segmentOrigin: GeoPoint = origin;
+  for (let offset = 0; offset < stops.length; offset += maxCoordinates - 1) {
+    const segmentStops = stops.slice(offset, offset + maxCoordinates - 1);
+    const points = [segmentOrigin, ...segmentStops];
+    if (points.length > 1) chunks.push(points);
+    segmentOrigin = points[points.length - 1];
+  }
+  return chunks;
+}
+
 // [SPEC-TOURNEE-05] Keep Google Maps links short enough for mobile by splitting long tours into ordered segments.
 export function buildTourRouteSegments<T extends GeoPoint>(origin: GeoPoint, stops: T[], stopsPerSegment = 4): TourRouteSegment<T>[] {
   if (!Number.isInteger(stopsPerSegment) || stopsPerSegment < 1 || stopsPerSegment > 4) {

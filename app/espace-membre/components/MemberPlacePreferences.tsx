@@ -14,6 +14,8 @@ interface MemberPlacePreferencesProps {
   places: PlaceOption[];
   onFavoritesChange?: (favoriteIds: string[]) => void;
   favoritePlaceIds?: string[];
+  onboarding?: boolean;
+  onSetupComplete?: () => void;
 }
 
 async function authorizedFetch(user: User, url: string, init: RequestInit = {}) {
@@ -25,7 +27,7 @@ async function authorizedFetch(user: User, url: string, init: RequestInit = {}) 
   return data;
 }
 
-export default function MemberPlacePreferences({ places, onFavoritesChange, favoritePlaceIds: externalFavoritePlaceIds }: MemberPlacePreferencesProps) {
+export default function MemberPlacePreferences({ places, onFavoritesChange, favoritePlaceIds: externalFavoritePlaceIds, onboarding = false, onSetupComplete }: MemberPlacePreferencesProps) {
   const [user, setUser] = useState<User | null>(null);
   const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>([]);
   const [selectedPlaceIds, setSelectedPlaceIds] = useState<string[]>([]);
@@ -58,7 +60,7 @@ export default function MemberPlacePreferences({ places, onFavoritesChange, favo
         setAddress(data.savedAddress || "");
         setSaveAddress(Boolean(data.savedAddress));
         onFavoritesChange?.(data.favoritePlaceIds);
-        setOpen(!data.setupComplete);
+        setOpen(onboarding || !data.setupComplete);
       } catch (loadError) {
         if (active) setError(loadError instanceof Error ? loadError.message : "Impossible de charger vos favoris.");
       } finally {
@@ -69,7 +71,7 @@ export default function MemberPlacePreferences({ places, onFavoritesChange, favo
       active = false;
       unsubscribe();
     };
-  }, [onFavoritesChange]);
+  }, [onFavoritesChange, onboarding]);
 
   useEffect(() => {
     if (!externalFavoritePlaceIds) return;
@@ -122,6 +124,10 @@ export default function MemberPlacePreferences({ places, onFavoritesChange, favo
     setNotice("");
     setSaving(true);
     try {
+      if (onboarding && !confirmedAddress) {
+        setError("Saisissez et recherchez d’abord votre adresse pour proposer les lieux-dits proches.");
+        return;
+      }
       if (saveAddress && !confirmedAddress) {
         setError("Recherchez d'abord cette adresse pour confirmer qu'elle est dans la commune.");
         return;
@@ -139,6 +145,7 @@ export default function MemberPlacePreferences({ places, onFavoritesChange, favo
       onFavoritesChange?.(data.favoritePlaceIds);
       setOpen(false);
       setNotice("Vos lieux favoris ont été enregistrés.");
+      onSetupComplete?.();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Impossible d'enregistrer vos favoris.");
     } finally {
@@ -157,6 +164,7 @@ export default function MemberPlacePreferences({ places, onFavoritesChange, favo
         body: JSON.stringify({ favoritePlaceIds, setupComplete: true, savedAddress: saveAddress ? confirmedAddress || null : null })
       });
       setOpen(false);
+      onSetupComplete?.();
     } catch (skipError) {
       setError(skipError instanceof Error ? skipError.message : "Impossible d'enregistrer ce choix.");
     } finally {
@@ -165,6 +173,42 @@ export default function MemberPlacePreferences({ places, onFavoritesChange, favo
   };
 
   if (!loaded || !user) return null;
+
+  if (onboarding) return (
+    <div className="min-h-full bg-stone-50 p-1 pb-[max(2rem,env(safe-area-inset-bottom))] sm:p-2">
+      <section className="mx-auto max-w-2xl space-y-5" aria-labelledby="member-favorites-title">
+        <header className="border-b border-stone-200 pb-4">
+          <p className="text-xs font-bold uppercase text-emerald-800">Première visite · 1 sur 1</p>
+          <h1 id="member-favorites-title" className="mt-2 text-2xl font-black text-stone-900">Où habitez-vous ?</h1>
+          <p className="mt-2 text-sm leading-6 text-stone-600">Votre adresse nous sert à repérer les lieux-dits proches, puis vous choisissez vos favoris avant d’accéder aux campagnes.</p>
+        </header>
+        {notice && <p role="status" aria-live="polite" className="text-sm font-medium text-emerald-800">{notice}</p>}
+        {error && <p role="alert" className="border-l-4 border-rose-600 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800">{error}</p>}
+        <form onSubmit={handleSave} className="space-y-5">
+          <div className="space-y-2">
+            <label htmlFor="favorite-home-address" className="block text-sm font-semibold text-stone-800">Adresse de votre domicile<input id="favorite-home-address" type="text" required minLength={5} maxLength={180} autoComplete="street-address" value={address} onChange={event => { setAddress(event.target.value); setMatchedAddress(""); setConfirmedAddress(""); setSuggestedPlaces([]); }} placeholder="Adresse et commune" className="input-base mt-1 min-h-12" /></label>
+            <button type="button" onClick={() => void handleFindNearest()} disabled={geocoding || address.trim().length < 5} className="btn-secondary min-h-12 w-full justify-center sm:w-auto">{geocoding ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <MapPin size={18} aria-hidden="true" />}{geocoding ? "Recherche des lieux proches…" : "Rechercher les lieux-dits proches"}</button>
+            {matchedAddress && <p role="status" className="text-sm text-stone-700">Adresse reconnue : <strong>{matchedAddress}</strong></p>}
+          </div>
+          {confirmedAddress && <>
+            <fieldset>
+              <legend className="text-sm font-semibold text-stone-800">Choisissez vos lieux favoris <span className="font-normal text-stone-500">({selectedPlaceIds.length}/20)</span></legend>
+              {suggestedPlaces.length > 0 ? <div className="mt-2 divide-y divide-stone-200 border-y border-stone-200 bg-white">
+                {suggestedPlaces.map(place => <label key={place.id} className="flex min-h-14 cursor-pointer items-center gap-3 px-3 py-2 hover:bg-stone-50"><input type="checkbox" checked={selectedPlaceIds.includes(place.id)} onChange={() => togglePlace(place.id)} className="size-5 accent-emerald-700" /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-stone-900">{place.nom}</span><span className="text-xs text-stone-500">{place.distanceKm < 1 ? `${Math.round(place.distanceKm * 1000)} m` : `${place.distanceKm.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km`}</span></span><Heart size={17} aria-hidden="true" className={selectedPlaceIds.includes(place.id) ? "fill-rose-400 text-rose-700" : "text-stone-400"} /></label>)}
+              </div> : <p className="mt-2 text-sm text-stone-600">Pas de suggestion proche; vous pouvez choisir vos lieux manuellement.</p>}
+            </fieldset>
+            <div className="space-y-2">
+              <label htmlFor="favorite-place-search" className="relative block"><Search size={16} aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input id="favorite-place-search" type="search" value={manualSearch} onChange={event => setManualSearch(event.target.value)} className="input-base min-h-11 pl-9" placeholder="Chercher un autre lieu-dit" /></label>
+              {manualSearch.trim().length >= 2 && <div className="max-h-44 divide-y divide-stone-200 overflow-y-auto border border-stone-200 bg-white">{manualMatches.map(place => <label key={place.id} className="flex min-h-12 cursor-pointer items-center gap-3 px-3"><input type="checkbox" checked={selectedPlaceIds.includes(place.id)} onChange={() => togglePlace(place.id)} className="size-5 accent-emerald-700" /><span className="text-sm font-medium text-stone-800">{place.nom}</span></label>)}</div>}
+            </div>
+            <label className="flex items-start gap-2 text-sm text-stone-700"><input type="checkbox" checked={saveAddress} onChange={event => setSaveAddress(event.currentTarget.checked)} className="mt-0.5 size-4 accent-emerald-700" /><span className="flex items-start gap-1.5"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-emerald-800" aria-hidden="true" />Mémoriser cette adresse dans mon espace privé. Sinon, elle ne servira qu’à cette recherche.</span></label>
+          </>}
+          <button type="submit" disabled={saving || !confirmedAddress || selectedPlaceIds.length > 20} className="btn-primary min-h-14 w-full justify-center text-base">{saving ? <Loader2 size={19} className="animate-spin" aria-hidden="true" /> : <Heart size={19} aria-hidden="true" />}{saving ? "Enregistrement…" : `Enregistrer et voir les campagnes${selectedPlaceIds.length ? ` · ${selectedPlaceIds.length} favoris` : ""}`}</button>
+          <p className="text-xs leading-5 text-stone-500">L’adresse n’est conservée que si vous cochez l’option. Vous pourrez modifier vos favoris ensuite.</p>
+        </form>
+      </section>
+    </div>
+  );
 
   return (
     <section className="border-b border-stone-200 pb-5" aria-labelledby="member-favorites-title">
