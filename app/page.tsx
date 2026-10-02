@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, addDoc, setDoc, query, where, getDocs, doc, onSnapshot, getCountFromServer } from "firebase/firestore";
+import { collection, setDoc, query, where, getDocs, doc, onSnapshot, getCountFromServer } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
 import {
@@ -22,7 +22,6 @@ import {
   BookOpen
 } from "lucide-react";
 import UserAvatar from "./components/UserAvatar";
-import ShareButton from "./components/ShareButton";
 
 export default function LandingPage() {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success">("idle");
@@ -215,14 +214,13 @@ export default function LandingPage() {
         {isMenuOpen && (
           <div className="lg:hidden absolute top-16 left-0 w-full bg-white border-b border-stone-200 shadow-xl flex flex-col p-4 gap-4 z-50">
             <a onClick={() => setIsMenuOpen(false)} href="/petition" className="flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-800 font-bold rounded-xl border border-emerald-200">
-              <FileSignature size={18} /> Signer la pétition
+              <FileSignature size={18} /> Pétition close
             </a>
             <a onClick={() => setIsMenuOpen(false)} href="/historique" className="flex items-center gap-3 px-4 py-3 bg-amber-50 text-amber-800 font-bold rounded-xl border border-amber-200">
               <Search size={18} /> Historique & Analyse Financière
             </a>
             <a onClick={() => setIsMenuOpen(false)} href="/faq" className="px-4 py-2 text-stone-700 font-medium hover:bg-stone-50 rounded-lg">Foire Aux Questions (FAQ)</a>
             <a onClick={() => setIsMenuOpen(false)} href="#charte" className="px-4 py-2 text-stone-700 font-medium hover:bg-stone-50 rounded-lg">Notre Charte</a>
-            <a onClick={() => setIsMenuOpen(false)} href="/petition" className="flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-800 font-bold rounded-xl border border-emerald-200"><FileSignature size={18}/> Signer la pétition</a>
           </div>
         )}
       </header>
@@ -244,8 +242,7 @@ export default function LandingPage() {
               Un nid tout neuf pour <span className="text-amber-600">nos écureuils</span>
             </h1>
             <p className="text-lg md:text-xl text-stone-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Le projet de rénovation est aujourd'hui à l'arrêt suite au conseil municipal. 
-              Mobilisons-nous de manière collective, constructive et apolitique pour l'avenir de notre école.
+              Après le vote du conseil municipal, le dossier retourne chez l’architecte pour être ajusté à l’enveloppe prévue. Nous suivons cette étape avec la municipalité, pour l’avenir de notre école.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -255,7 +252,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-stone-200 text-sm font-medium text-stone-700">
                 <Clock size={16} className="text-blue-600" />
-                Prochain conseil municipal : 13 octobre
+                Prochaine étape : reprise du dossier par l’architecte
               </div>
             </div>
 
@@ -268,15 +265,15 @@ export default function LandingPage() {
               <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                 <div>
                   <div className="inline-flex items-center gap-2 bg-emerald-700/60 text-emerald-200 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 border border-emerald-600/50">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Pétition citoyenne en ligne
+                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    Pétition citoyenne close
                   </div>
                   <div className="text-4xl md:text-5xl font-black tracking-tight text-white flex items-baseline gap-3 mb-1">
                     <span>{petitionCount !== null ? petitionCount : "..."}</span>
                     <span className="text-emerald-200 text-base md:text-xl font-medium">signatures citoyennes</span>
                   </div>
                   <p className="text-xs md:text-sm text-emerald-100/80 leading-snug">
-                    Pour exiger la réévaluation budgétaire et sauver 340 000 € de subventions.
+                    Merci à toutes celles et ceux qui ont soutenu la démarche. Le dossier entre dans une nouvelle phase de travail.
                   </p>
                 </div>
 
@@ -286,15 +283,8 @@ export default function LandingPage() {
                     className="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-emerald-50 text-emerald-950 font-extrabold px-6 py-4 rounded-2xl shadow-lg hover:shadow-2xl transition-all text-base hover:scale-105 active:scale-95 border border-emerald-100"
                   >
                     <FileSignature size={20} className="text-emerald-700" />
-                    Signer la pétition
+                    Voir le bilan de la pétition
                   </a>
-                  <ShareButton 
-                    url="https://collectif-ecole-km.web.app/petition" 
-                    title="Pétition : Sauvons le projet de rénovation de l'école de Kergrist-Moëlou" 
-                    text="Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation engagé, afin d'aboutir à une solution économe plutôt qu'à un abandon." 
-                    variant="outline" 
-                    className="w-full inline-flex items-center justify-center gap-2 font-bold px-6 py-3 rounded-2xl transition-all text-sm border"
-                  />
                 </div>
               </div>
             </div>
@@ -449,7 +439,7 @@ export default function LandingPage() {
                     Nous avons retracé l'intégralité de la chronologie du projet d'école à travers les procès-verbaux officiels du conseil municipal (de 2022 à 2026).
                   </p>
                   <p className="text-lg text-stone-600 mb-8 leading-relaxed">
-                    Découvrez en toute transparence les <strong>coûts réels, les subventions menacées</strong>, et le <strong>Stress Test</strong> comparant l'option d'une reprise du projet face à l'option d'un abandon définitif.
+                    Retrouvez les éléments de contexte et suivez la reprise du dossier par l’architecte. Les coûts et le calendrier devront être précisés à l’issue de cette étape.
                   </p>
                   <a href="/historique" className="inline-flex items-center gap-2 bg-stone-900 hover:bg-stone-800 text-white px-6 py-3.5 rounded-xl font-medium transition-all hover:-translate-y-0.5 shadow-lg shadow-stone-900/20">
                     <BookOpen size={20} />
@@ -468,14 +458,14 @@ export default function LandingPage() {
 
         {/* Actualités Section */}
 
-        {/* Arguments Grid (Pétition focus) */}
+        {/* [SPEC-PET-CLOSE-01] La mobilisation est archivée après le vote; plus aucun appel à signer. */}
         <section className="py-20 bg-white px-4" id="petition">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <span className="text-amber-600 font-bold uppercase tracking-wider text-sm mb-2 block">Pétition citoyenne</span>
-              <h2 className="text-3xl font-bold text-stone-900 mb-4">Valorisons les études engagées vers un projet maîtrisé</h2>
+              <span className="text-amber-600 font-bold uppercase tracking-wider text-sm mb-2 block">Après le vote</span>
+              <h2 className="text-3xl font-bold text-stone-900 mb-4">Un dossier retravaillé avec l’architecte</h2>
               <p className="text-stone-600 max-w-3xl mx-auto">
-                Nous demandons la réévaluation technique et budgétaire du dossier de rénovation engagé, afin d'aboutir à une solution économe et adaptée aux capacités de la commune, plutôt qu'à un abandon qui contraindrait à repartir de zéro.
+                La pétition est close. Le dossier retourne chez l’architecte pour être ajusté à l’enveloppe prévue. Nous resterons attentifs aux prochaines informations communiquées sur le projet.
               </p>
             </div>
             
@@ -484,9 +474,9 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4">
                   <CheckCircle2 size={24} />
                 </div>
-                <h3 className="font-semibold text-lg text-stone-900 mb-2">Un projet déjà mature</h3>
+                <h3 className="font-semibold text-lg text-stone-900 mb-2">Études existantes</h3>
                 <p className="text-stone-600 text-sm leading-relaxed">
-                  L'état d'avancement des études et des diagnostics techniques permet de démarrer sans repartir de zéro.
+                  Les études et diagnostics déjà réalisés constituent une base pour la reprise du dossier.
                 </p>
               </div>
 
@@ -495,9 +485,7 @@ export default function LandingPage() {
                   <Scale size={24} />
                 </div>
                 <h3 className="font-semibold text-lg text-stone-900 mb-2">Finances publiques</h3>
-                <p className="text-stone-600 text-sm leading-relaxed">
-                  Entre 100 000 et 160 000 € ont déjà été engagés. Abandonner le projet actuel transformerait ces investissements en pure perte.
-                </p>
+                <p className="text-stone-600 text-sm leading-relaxed">L’architecte retravaille le dossier pour respecter l’enveloppe prévue. Les montants actualisés restent à préciser.</p>
               </div>
 
               <div className="bg-stone-50 border border-stone-100 p-6 rounded-2xl hover:shadow-md transition-shadow">
@@ -505,9 +493,7 @@ export default function LandingPage() {
                   <Clock size={24} />
                 </div>
                 <h3 className="font-semibold text-lg text-stone-900 mb-2">Subventions & Calendrier</h3>
-                <p className="text-stone-600 text-sm leading-relaxed">
-                  Les délais d'aides sont stricts. Différer la réhabilitation fait perdre les financements et fragilise l'accueil des enfants.
-                </p>
+                <p className="text-stone-600 text-sm leading-relaxed">Les prochaines échéances et conditions de financement seront à confirmer au fil de l’avancement du dossier.</p>
               </div>
 
               <div className="bg-stone-50 border border-stone-100 p-6 rounded-2xl hover:shadow-md transition-shadow">
@@ -515,15 +501,13 @@ export default function LandingPage() {
                   <ShieldCheck size={24} />
                 </div>
                 <h3 className="font-semibold text-lg text-stone-900 mb-2">Urgences sanitaires</h3>
-                <p className="text-stone-600 text-sm leading-relaxed">
-                  Radon, amiante, électricité, sanitaires, PMR. Repartir de zéro repousserait le traitement de ces impératifs prioritaires de sécurité.
-                </p>
+                <p className="text-stone-600 text-sm leading-relaxed">La santé, la sécurité et les conditions d’accueil des enfants restent au cœur du projet.</p>
               </div>
             </div>
             <div className="mt-12 text-center">
               <a href="/petition" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3.5 rounded-full shadow-sm hover:shadow-lg transition-all text-lg">
                 <FileSignature size={20} />
-                Signer la pétition maintenant
+                Consulter le bilan de la pétition
               </a>
             </div>
           </div>
@@ -534,7 +518,7 @@ export default function LandingPage() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold text-stone-900 mb-4">Notre plan d'action</h2>
-              <p className="text-stone-600">Les prochaines étapes pour faire avancer le projet ensemble.</p>
+              <p className="text-stone-600">Une mobilisation citoyenne suivie d’une nouvelle étape de travail avec la municipalité.</p>
             </div>
 
             <div className="relative py-8">
@@ -564,9 +548,9 @@ export default function LandingPage() {
                   <div className="hidden md:block md:w-1/2"></div>
                   {/* Contenu */}
                   <div className="w-full md:w-1/2 pl-12 md:pl-12">
-                    <div className="text-sm font-semibold text-emerald-600 mb-1">En ligne !</div>
+                    <div className="text-sm font-semibold text-emerald-600 mb-1">Collecte terminée</div>
                     <h3 className="text-xl font-bold text-stone-900 mb-2"><a href="/petition" className="text-emerald-700 hover:underline">Pétition citoyenne →</a></h3>
-                    <p className="text-stone-600">Lancement de la pétition demandant une révision budgétaire concertée pour valoriser les dépenses engagées. <br/><span className="text-sm italic text-stone-500">Resp. Axelle Bonnisseau</span></p>
+                    <p className="text-stone-600">La pétition citoyenne a accompagné la demande d’une révision budgétaire concertée. Elle est désormais close.</p>
                   </div>
                 </div>
 
@@ -576,9 +560,9 @@ export default function LandingPage() {
                   <div className="absolute left-[12px] md:left-1/2 md:-ml-2 top-1 w-4 h-4 rounded-full bg-stone-300 ring-4 ring-stone-50 z-10"></div>
                   {/* Contenu */}
                   <div className="w-full md:w-1/2 pl-12 md:pl-0 md:pr-12 md:text-right">
-                    <div className="text-sm font-semibold text-stone-500 mb-1">13 Octobre</div>
-                    <h3 className="text-xl font-bold text-stone-900 mb-2">Création d'une commission</h3>
-                    <p className="text-stone-600">Demande par courrier au Maire pour la création d'une commission extra-municipale lors du prochain conseil. <br/><span className="text-sm italic text-stone-500">Resp. Malo Le Cam</span></p>
+                    <div className="text-sm font-semibold text-stone-500 mb-1">Après le vote du conseil</div>
+                    <h3 className="text-xl font-bold text-stone-900 mb-2">Retour chez l’architecte</h3>
+                    <p className="text-stone-600">Le dossier est retravaillé pour entrer dans l’enveloppe prévue. Les prochaines étapes seront précisées lorsque les informations seront disponibles.</p>
                   </div>
                   {/* Espace vide à droite sur Desktop */}
                   <div className="hidden md:block md:w-1/2"></div>
@@ -594,7 +578,7 @@ export default function LandingPage() {
             <div className="bg-stone-50 border border-stone-200 rounded-3xl p-8 md:p-12 shadow-sm">
               <div className="flex items-center gap-3 mb-8 border-b border-stone-200 pb-6">
                 <Newspaper className="text-stone-500" size={32} />
-                <h2 className="text-2xl md:text-3xl font-bold text-stone-900">Communiqué de presse</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-stone-900">Communiqué de presse · archives</h2>
               </div>
               <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-stone-200">
                  <img src="/images/reunion.jpg" alt="Réunion publique du collectif citoyen" className="w-full h-auto object-cover max-h-[400px] object-center" />
@@ -605,7 +589,7 @@ export default function LandingPage() {
                 </p>
                 <div className="space-y-4">
                   <p>
-                    À la suite du récent vote du conseil municipal rejetant l’étude de faisabilité financière pour la rénovation de l’école, les habitants et parents d’élèves refusent de voir ce sujet vital s'enliser.
+                    Ce communiqué retrace le lancement de la mobilisation avant le dernier vote du conseil municipal. Depuis, le dossier retourne chez l’architecte pour être adapté à l’enveloppe prévue.
                   </p>
                   <p>
                     Samedi matin, une réunion publique a scellé le lancement officiel du collectif citoyen « Un nid tout neuf pour nos écureuils ». L’initiative rencontre un écho immédiat : 51 personnes ont déjà rejoint la démarche, et de nouvelles adhésions sont attendues dès la semaine prochaine auprès des familles et des citoyens. Le maire et trois adjoints étaient d'ailleurs présents pour saluer cette dynamique.
@@ -614,7 +598,7 @@ export default function LandingPage() {
                     Loin de toute opposition, le collectif se positionne comme un relais constructif et un appui aux décisions. Sa vocation : faciliter la communication et créer du lien entre les usagers des lieux, l'équipe éducative, la municipalité et l'ensemble des citoyens, tout en veillant au respect du calendrier pour traiter sans délai les urgences du bâtiment (radon, amiante, électricité, sanitaires, accessibilité).
                   </p>
                   <p>
-                    Pour valoriser les dépenses déjà engagées, une pétition citoyenne demandant une révision budgétaire concertée est lancée. En parallèle, le collectif sollicite la création d’une commission extra-municipale lors du conseil du 13 octobre.
+                    La pétition citoyenne est maintenant close. Le collectif poursuit le dialogue avec la municipalité et suivra la suite des travaux de l’architecte.
                   </p>
                 </div>
               </div>

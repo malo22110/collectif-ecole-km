@@ -12,6 +12,7 @@ const ADMIN_EMAILS = new Set([
   "collectif.ecole.km@gmail.com"
 ]);
 const MAX_MEMBERS = 1000;
+const PETITION_CLOSED: boolean = true;
 const requestSchema = z.object({
   emails: z.array(z.string().trim().email().max(320)).min(1).max(100)
     .refine(emails => new Set(emails.map(email => email.toLowerCase())).size === emails.length, "Les membres ne doivent pas être répétés."),
@@ -118,6 +119,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const authorization = await authorizeAdmin(request);
   if (!authorization.admin) return authorization.response;
+  // [SPEC-PET-CLOSE-01] Admin SDK bypasses Firestore rules: collective assent creation is closed too.
+  if (PETITION_CLOSED) return NextResponse.json({ error: "La pétition est close : aucun nouvel accord ne peut être enregistré." }, { status: 410 });
   if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
     return NextResponse.json({ error: "Format de requête invalide." }, { status: 415 });
   }

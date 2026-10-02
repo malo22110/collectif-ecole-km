@@ -119,6 +119,8 @@ async function loadExistingSigners(): Promise<ExistingSigner[] | null> {
   });
 }
 
+const PETITION_CLOSED: boolean = true;
+
 export async function POST(request: Request) {
   // [SPEC-PET-SCAN-01] La photo reste locale; seuls les champs révisés sont envoyés pour aperçu ou import.
   try {
@@ -137,6 +139,10 @@ export async function POST(request: Request) {
     const parsed = requestSchema.safeParse(body.value);
     if (!parsed.success) {
       return NextResponse.json({ error: "Vérifiez les champs de chaque ligne (nom, commune et lien)." }, { status: 400 });
+    }
+    // [SPEC-PET-CLOSE-01] Admin SDK bypasses Firestore rules: refuse any new paper import.
+    if (PETITION_CLOSED && parsed.data.action !== "review") {
+      return NextResponse.json({ error: "La pétition est close : l’import de signatures est désactivé." }, { status: 410 });
     }
 
     const entries = parsed.data.entries.map(entry => ({

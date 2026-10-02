@@ -83,9 +83,9 @@ service cloud.firestore {
     }
 
     
-    // PETITION: Tout le monde peut signer, seuls les admins (ou l'API server) peuvent lire la collection complète
+    // [SPEC-PET-CLOSE-01] Collecte close : les signatures historiques restent consultables par les rôles autorisés.
     match /signatures/{sigId} {
-      allow create: if true;
+      allow create: if false;
       allow read: if isAdmin() || hasRole('correcteur');
       allow update: if hasRole('correcteur');
       allow delete: if isAdmin();
