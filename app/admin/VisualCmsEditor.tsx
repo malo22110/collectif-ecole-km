@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, increment } from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { publishCmsPageRevision } from "@/lib/cmsRevisionClient";
 import { Save, ArrowUp, ArrowDown, GripVertical, CheckCircle2, Eye, Send } from "lucide-react";
 import BlockRenderer from "../components/cms/BlockRenderer";
 
@@ -96,11 +97,14 @@ export default function VisualCmsEditor({ pageId = "historique", onDirtyChange, 
     setSaving(true);
     setError(null);
     try {
-      // [SPEC-CMS-DRAFT-01] version incrémentée atomiquement à chaque publication
-      await updateDoc(doc(db, "pages", pageId), { ...pageData, version: increment(1) });
+      // [SPEC-CMS-HISTORY-01] Archiver l’état publié et la nouvelle version dans une transaction serveur.
+      const result = await publishCmsPageRevision(pageData, "visual");
+      const savedData = { ...pageData, version: result.version };
+      setPageData(savedData);
       setSaved(true);
       setIsDirty(false);
-      originalRef.current = JSON.stringify(pageData);
+      originalRef.current = JSON.stringify(savedData);
+      onPageDataChange?.(savedData);
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) { setError(err.message); }
     setSaving(false);

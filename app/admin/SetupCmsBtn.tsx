@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Database, Loader2 } from "lucide-react";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import timelineData from "@/data/timeline.json";
 
@@ -12,6 +12,12 @@ export default function SetupCmsBtn() {
   const handleSetup = async () => {
     setLoading(true);
     try {
+      const pageRef = doc(db, "pages", "historique");
+      const existingPage = await getDoc(pageRef);
+      if (existingPage.exists()) {
+        alert("La page est déjà initialisée. Utilisez l’éditeur afin de conserver son historique.");
+        return;
+      }
       const pageData = {
         header: {
           title: "Historique & Analyse du Projet",
@@ -69,7 +75,7 @@ export default function SetupCmsBtn() {
 ]
       };
 
-      await setDoc(doc(db, "pages", "historique"), pageData);
+      await setDoc(pageRef, pageData);
       alert("✅ Migration CMS réussie ! La base de données est initialisée.");
     } catch (err) {
       console.error(err);

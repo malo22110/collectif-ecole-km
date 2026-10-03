@@ -4,7 +4,8 @@ import React, { useState, useCallback } from "react";
 import VisualCmsEditor from "./VisualCmsEditor";
 import CmsPageEditor from "./CmsPageEditor";
 import DraftReviewPanel from "./DraftReviewPanel";
-import { LayoutTemplate, Code2, GitPullRequest } from "lucide-react";
+import CmsRevisionHistory from "./CmsRevisionHistory";
+import { LayoutTemplate, Code2, GitPullRequest, History } from "lucide-react";
 
 export default function HistoriqueAdmin({
   onDirtyChange,
@@ -19,7 +20,8 @@ export default function HistoriqueAdmin({
   const [isDirty, setIsDirty] = useState(false);
   const [isSimplified, setIsSimplified] = useState(false);
   // Onglet admin : éditeur ou révisions en attente
-  const [adminTab, setAdminTab] = useState<"editor" | "reviews">("editor");
+  const [adminTab, setAdminTab] = useState<"editor" | "reviews" | "history">("editor");
+  const [editorReloadKey, setEditorReloadKey] = useState(0);
 
   const handleDirtyChange = useCallback((dirty: boolean) => {
     setIsDirty(dirty);
@@ -63,7 +65,7 @@ export default function HistoriqueAdmin({
           )}
 
           {/* Switch mode éditeur (admins seulement) */}
-          {isAdmin && (
+          {isAdmin && adminTab === "editor" && (
             <div className="flex bg-stone-100 p-0.5 rounded-lg">
               <button
                 onClick={() => handleModeChange("visual")}
@@ -97,18 +99,27 @@ export default function HistoriqueAdmin({
           >
             <GitPullRequest size={14} /> Révisions en attente
           </button>
+          <button
+            onClick={() => setAdminTab("history")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-colors ${adminTab === "history" ? "bg-white shadow-sm text-stone-900" : "text-stone-500 hover:text-stone-700"}`}
+          >
+            <History size={14} /> Historique
+          </button>
         </div>
       )}
 
       {/* Contenu selon onglet */}
-      {adminTab === "reviews" ? (
+      {adminTab === "history" ? (
+        <CmsRevisionHistory onRestored={() => setEditorReloadKey(key => key + 1)} />
+      ) : adminTab === "reviews" ? (
         <DraftReviewPanel />
       ) : mode === "expert" ? (
-        <CmsPageEditor pageId="historique" />
+        <CmsPageEditor key={editorReloadKey} pageId="historique" />
       ) : (
         // Mode visuel : layout côte-à-côte par bloc (showPreview=true)
         <div className="border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
           <VisualCmsEditor
+            key={editorReloadKey}
             pageId="historique"
             onDirtyChange={handleDirtyChange}
             showPreview={true}

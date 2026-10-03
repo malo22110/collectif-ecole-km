@@ -5,7 +5,9 @@ service cloud.firestore {
     
     match /pages/{pageId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if isAdmin();
+      // [SPEC-CMS-HISTORY-01] Les mises à jour de la page fiscale passent par l’API transactionnelle qui archive chaque état précédent.
+      allow update, delete: if isAdmin() && pageId != 'historique';
     }
 
     match /faqs/{faqId} {

@@ -2,8 +2,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { publishCmsPageRevision } from "@/lib/cmsRevisionClient";
 import { Save, AlertCircle, RefreshCw } from "lucide-react";
 
 export default function CmsPageEditor({ pageId = "historique" }: { pageId?: string }) {
@@ -41,7 +42,11 @@ export default function CmsPageEditor({ pageId = "historique" }: { pageId?: stri
     setSaving(true);
     try {
       const parsedData = JSON.parse(jsonString);
-      await updateDoc(doc(db, "pages", pageId), parsedData);
+      // [SPEC-CMS-HISTORY-01] Le mode expert passe par le même archivage transactionnel.
+      const result = await publishCmsPageRevision(parsedData, "expert");
+      const savedData = { ...parsedData, version: result.version };
+      setPageData(savedData);
+      setJsonString(JSON.stringify(savedData, null, 2));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
