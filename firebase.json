@@ -3,8 +3,83 @@
     "public": "public",
     "redirects": [
       {
-        "source": "/:path*",
-        "destination": "https://collectif-ecole-km.fr/:path*",
+        "source": "/",
+        "destination": "https://collectif-ecole-km.fr/",
+        "type": 301
+      },
+      {
+        "source": "/actualites",
+        "destination": "https://collectif-ecole-km.fr/actualites",
+        "type": 301
+      },
+      {
+        "source": "/actualites/:path*",
+        "destination": "https://collectif-ecole-km.fr/actualites/:path*",
+        "type": 301
+      },
+      {
+        "source": "/admin",
+        "destination": "https://collectif-ecole-km.fr/admin",
+        "type": 301
+      },
+      {
+        "source": "/admin/:path*",
+        "destination": "https://collectif-ecole-km.fr/admin/:path*",
+        "type": 301
+      },
+      {
+        "source": "/api/:path*",
+        "destination": "https://collectif-ecole-km.fr/api/:path*",
+        "type": 301
+      },
+      {
+        "source": "/connexion",
+        "destination": "https://collectif-ecole-km.fr/connexion",
+        "type": 301
+      },
+      {
+        "source": "/espace-membre",
+        "destination": "https://collectif-ecole-km.fr/espace-membre",
+        "type": 301
+      },
+      {
+        "source": "/espace-membre/:path*",
+        "destination": "https://collectif-ecole-km.fr/espace-membre/:path*",
+        "type": 301
+      },
+      {
+        "source": "/faq",
+        "destination": "https://collectif-ecole-km.fr/faq",
+        "type": 301
+      },
+      {
+        "source": "/historique",
+        "destination": "https://collectif-ecole-km.fr/historique",
+        "type": 301
+      },
+      {
+        "source": "/images/:path*",
+        "destination": "https://collectif-ecole-km.fr/images/:path*",
+        "type": 301
+      },
+      {
+        "source": "/_next/:path*",
+        "destination": "https://collectif-ecole-km.fr/_next/:path*",
+        "type": 301
+      },
+      {
+        "source": "/petition",
+        "destination": "https://collectif-ecole-km.fr/petition",
+        "type": 301
+      },
+      {
+        "source": "/robots.txt",
+        "destination": "https://collectif-ecole-km.fr/robots.txt",
+        "type": 301
+      },
+      {
+        "source": "/sitemap.xml",
+        "destination": "https://collectif-ecole-km.fr/sitemap.xml",
         "type": 301
       }
     ]
