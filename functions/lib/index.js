@@ -13,6 +13,7 @@ const petitionPublicNames_1 = require("./petitionPublicNames");
 const mailTransport_1 = require("./mailTransport");
 const mailInboxSync_1 = require("./mailInboxSync");
 const mailInboxUtils_1 = require("./mailInboxUtils");
+const mailQueue_1 = require("./mailQueue");
 (0, v2_1.setGlobalOptions)({ region: "europe-west9" });
 exports.envoyerMailBienvenue = (0, firestore_2.onDocumentUpdated)({ document: "membres/{membreId}", database: "ecole-db", secrets: [mailTransport_1.smtpPassword] }, async (event) => {
     const membreAvant = event.data?.before.data();
@@ -212,34 +213,35 @@ async function processSpreadMail(docSnap) {
         await docSnap.ref.update({ status: 'error', error: String(error) });
     }
 }
-exports.envoyerSpreadMail = (0, firestore_2.onDocumentWritten)({ document: "mailOutbox/{mailId}", database: "ecole-db", secrets: [mailTransport_1.smtpPassword] }, async (event) => {
+exports.envoyerSpreadMail = (0, firestore_2.onDocumentWritten)({ document: "mailOutbox/{mailId}", database: "ecole-db", secrets: [mailTransport_1.smtpPassword], timeoutSeconds: 540, retry: true }, async (event) => {
     const before = event.data?.before.data();
     const after = event.data?.after.data();
     if (!event.data?.after.exists || !after || after.status !== "pending" || before?.status === "pending")
         return;
     // Si le mail est programmé dans le futur, on ne fait rien.
     // C'est le Cron Job qui s'en chargera.
-    if (after.scheduledAt && after.scheduledAt.toDate() > new Date()) {
+    if (!(0, mailQueue_1.isMailDueForDelivery)(after.scheduledAt, new Date())) {
         logger.info(`Mail ${event.params.mailId} programmé pour plus tard. On ignore.`);
         return;
     }
     // Sinon, on envoie immédiatement.
     await processSpreadMail(event.data.after);
 });
-exports.checkScheduledMails = (0, scheduler_1.onSchedule)({ schedule: "every 5 minutes", secrets: [mailTransport_1.smtpPassword] }, async (event) => {
+exports.checkScheduledMails = (0, scheduler_1.onSchedule)({ schedule: "every 5 minutes", secrets: [mailTransport_1.smtpPassword], timeoutSeconds: 540 }, async (event) => {
     const now = new Date();
-    // Cherche les mails en attente dont la date de programmation est passée
+    // [SPEC-MAIL-03] Reprendre aussi les envois immédiats si leur événement Firestore a été manqué.
     const snapshot = await (0, firestore_1.getFirestore)("ecole-db").collection("mailOutbox")
         .where("status", "==", "pending")
-        .where("scheduledAt", "<=", admin.firestore.Timestamp.fromDate(now))
+        .limit(1000)
         .get();
-    if (snapshot.empty) {
-        logger.info("Aucun mail programmé en attente.");
+    const dueMails = snapshot.docs.filter(doc => (0, mailQueue_1.isMailDueForDelivery)(doc.get("scheduledAt"), now));
+    if (dueMails.length === 0) {
+        logger.info("Aucun mail arrivé à échéance dans la file d’attente.");
         return;
     }
-    logger.info(`Trouvé ${snapshot.size} mail(s) programmé(s) à envoyer.`);
-    for (const doc of snapshot.docs) {
-        await processSpreadMail(doc);
+    logger.info(`Trouvé ${dueMails.length} mail(s) arrivé(s) à échéance.`);
+    for (const mail of dueMails) {
+        await processSpreadMail(mail);
     }
 });
 // [SPEC-MAIL-02] Synchronize the private Infomaniak inbox into the staff-only site mailbox.

@@ -10,6 +10,7 @@ import { formatPublicRecentSigner } from "./petitionPublicNames";
 import { createMailTransport, mailFrom, smtpPassword } from "./mailTransport";
 import { syncInfomaniakInbox } from "./mailInboxSync";
 import { getMailMessageIndexId } from "./mailInboxUtils";
+import { isMailDueForDelivery } from "./mailQueue";
 
 setGlobalOptions({ region: "europe-west9" });
 
@@ -234,14 +235,14 @@ async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
   }
 }
 
-export const envoyerSpreadMail = onDocumentWritten({ document: "mailOutbox/{mailId}", database: "ecole-db", secrets: [smtpPassword] }, async (event) => {
+export const envoyerSpreadMail = onDocumentWritten({ document: "mailOutbox/{mailId}", database: "ecole-db", secrets: [smtpPassword], timeoutSeconds: 540, retry: true }, async (event) => {
   const before = event.data?.before.data();
   const after = event.data?.after.data();
   if (!event.data?.after.exists || !after || after.status !== "pending" || before?.status === "pending") return;
 
   // Si le mail est programmé dans le futur, on ne fait rien.
   // C'est le Cron Job qui s'en chargera.
-  if (after.scheduledAt && after.scheduledAt.toDate() > new Date()) {
+  if (!isMailDueForDelivery(after.scheduledAt, new Date())) {
     logger.info(`Mail ${event.params.mailId} programmé pour plus tard. On ignore.`);
     return;
   }
@@ -250,24 +251,25 @@ export const envoyerSpreadMail = onDocumentWritten({ document: "mailOutbox/{mail
   await processSpreadMail(event.data.after);
 });
 
-export const checkScheduledMails = onSchedule({ schedule: "every 5 minutes", secrets: [smtpPassword] }, async (event) => {
+export const checkScheduledMails = onSchedule({ schedule: "every 5 minutes", secrets: [smtpPassword], timeoutSeconds: 540 }, async (event) => {
   const now = new Date();
-  
-  // Cherche les mails en attente dont la date de programmation est passée
+
+  // [SPEC-MAIL-03] Reprendre aussi les envois immédiats si leur événement Firestore a été manqué.
   const snapshot = await getFirestore("ecole-db").collection("mailOutbox")
     .where("status", "==", "pending")
-    .where("scheduledAt", "<=", admin.firestore.Timestamp.fromDate(now))
+    .limit(1000)
     .get();
+  const dueMails = snapshot.docs.filter(doc => isMailDueForDelivery(doc.get("scheduledAt"), now));
 
-  if (snapshot.empty) {
-    logger.info("Aucun mail programmé en attente.");
+  if (dueMails.length === 0) {
+    logger.info("Aucun mail arrivé à échéance dans la file d’attente.");
     return;
   }
 
-  logger.info(`Trouvé ${snapshot.size} mail(s) programmé(s) à envoyer.`);
+  logger.info(`Trouvé ${dueMails.length} mail(s) arrivé(s) à échéance.`);
   
-  for (const doc of snapshot.docs) {
-    await processSpreadMail(doc);
+  for (const mail of dueMails) {
+    await processSpreadMail(mail);
   }
 });
 

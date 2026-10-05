@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { getPersonalTestRecipient, resolveMailRecipients } from "../lib/mailOutboxUtils.ts";
+import { isMailDueForDelivery } from "../functions/src/mailQueue.ts";
 
 // [SPEC-MAIL-03] The all audience contains members and signers, never press contacts.
 test("Tous fusionne membres et signataires, exclut les journalistes et déduplique les adresses", () => {
@@ -40,4 +41,14 @@ test("Le mode test ne cible que l’adresse authentifiée", () => {
   assert.deepEqual(getPersonalTestRecipient("ADMIN@EXEMPLE.FR"), [
     { email: "admin@exemple.fr", name: "Test personnel", status: "pending" }
   ]);
+});
+
+// [SPEC-MAIL-03] Immediate and due messages are eligible for the periodic delivery recovery.
+test("la reprise accepte les envois immédiats et échus, mais pas les envois futurs", () => {
+  const now = new Date("2026-10-05T12:00:00.000Z");
+  assert.equal(isMailDueForDelivery(undefined, now), true);
+  assert.equal(isMailDueForDelivery(null, now), true);
+  assert.equal(isMailDueForDelivery(new Date("2026-10-05T11:59:00.000Z"), now), true);
+  assert.equal(isMailDueForDelivery({ toDate: () => new Date("2026-10-05T12:00:00.000Z") }, now), true);
+  assert.equal(isMailDueForDelivery(new Date("2026-10-05T12:01:00.000Z"), now), false);
 });
