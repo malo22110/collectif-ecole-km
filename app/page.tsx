@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import logoImage from "../public/images/logo.png";
 import heroImage from "../public/images/hero.jpg";
+import reunionImage from "../public/images/reunion.jpg";
 import { collection, setDoc, query, where, getDocs, doc, onSnapshot, getCountFromServer } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
@@ -583,7 +584,7 @@ export default function LandingPage() {
                 <h2 className="text-2xl md:text-3xl font-bold text-stone-900">Communiqué de presse · archives</h2>
               </div>
               <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-stone-200">
-                 <img src="/images/reunion.jpg" alt="Réunion publique du collectif citoyen" className="w-full h-auto object-cover max-h-[400px] object-center" />
+                 <img src={reunionImage.src} alt="Réunion publique du collectif citoyen" className="w-full h-auto object-cover max-h-[400px] object-center" />
               </div>
               <div className="prose prose-stone text-stone-700 max-w-none">
                 <p className="text-lg font-semibold text-stone-900 mb-6">
