@@ -112,11 +112,11 @@ const lieuxDits = [
   { nom: "quinquiziou", foyers: 1 },
   { nom: "Kerbiquet", foyers: 4 },
   { nom: "Toul ar soudard", foyers: 1 },
-  { nom: "Kernevezlan", foyers: 2 }
+  { nom: "Kernevezlan", foyers: 2 },
 ];
 
 function wait(milliseconds) {
-  return new Promise(resolve => setTimeout(resolve, milliseconds));
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 async function geocodeLieuDit(lieuDit) {
@@ -128,13 +128,13 @@ async function geocodeLieuDit(lieuDit) {
   url.search = new URLSearchParams({
     q: lieuDit.nom,
     postcode,
-    limit: "1"
+    limit: "1",
   }).toString();
 
   try {
     const response = await fetch(url, {
       headers: { "User-Agent": "KergristMoelou-Collectif-Geocoder/1.0" },
-      signal: AbortSignal.timeout(15000)
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!response.ok) {
@@ -172,22 +172,26 @@ async function main() {
     const lieuDit = lieuxDits[index];
     const result = await geocodeLieuDit(lieuDit);
     results.push(result);
-    console.log(`[${index + 1}/${lieuxDits.length}] ${lieuDit.nom}: ${result.lat ?? "introuvable"}, ${result.lon ?? "introuvable"}`);
+    console.log(
+      `[${index + 1}/${lieuxDits.length}] ${lieuDit.nom}: ${result.lat ?? "introuvable"}, ${result.lon ?? "introuvable"}`,
+    );
   }
 
   const temporaryPath = `${outputPath}.tmp`;
   await fs.writeFile(temporaryPath, `${JSON.stringify(results, null, 2)}\n`, "utf8");
   await fs.rename(temporaryPath, outputPath);
 
-  const foundCount = results.filter(item => item.lat !== null && item.lon !== null).length;
+  const foundCount = results.filter((item) => item.lat !== null && item.lon !== null).length;
   console.log(`\nTerminé : ${foundCount}/${results.length} lieux géolocalisés.`);
   console.log(`Résultat enregistré dans : ${outputPath}`);
   if (foundCount < results.length) {
-    console.log("Les lieux non trouvés ont lat et lon à null; relisez-les manuellement avant de planifier une tournée.");
+    console.log(
+      "Les lieux non trouvés ont lat et lon à null; relisez-les manuellement avant de planifier une tournée.",
+    );
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error("Échec du géocodage :", error);
   process.exitCode = 1;
 });

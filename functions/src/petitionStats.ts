@@ -39,15 +39,11 @@ function isDeclaredParentOfPupil(quality: string) {
     .replace(/[^a-z0-9]+/g, " ")
     .trim()
     .replace(/\s+/g, " ");
-  return /^parents? d eleves?(?: actuel(?:le)? ou futur(?:e)?)?$/.test(
-    normalized,
-  );
+  return /^parents? d eleves?(?: actuel(?:le)? ou futur(?:e)?)?$/.test(normalized);
 }
 
 // [SPEC-PET-STATS-01] Keep the public counters, admin export, and reviewer view on the same precedence rules.
-export function calculatePetitionStats(
-  entries: PetitionStatsEntry[],
-): PetitionStatsBreakdown {
+export function calculatePetitionStats(entries: PetitionStatsEntry[]): PetitionStatsBreakdown {
   const breakdown: PetitionStatsBreakdown = {
     total: entries.length,
     habitantsKergrist: 0,
@@ -69,35 +65,20 @@ export function calculatePetitionStats(
     const town = String(entry.ville || "").toLowerCase();
     const declaresParentOfPupil = isDeclaredParentOfPupil(quality);
     if (declaresParentOfPupil) breakdown.declaredParentOfPupilQuality++;
-    if (
-      quality.includes("habitant(e) de kergrist") ||
-      town.includes("kergrist")
-    ) {
+    if (quality.includes("habitant(e) de kergrist") || town.includes("kergrist")) {
       breakdown.habitantsKergrist++;
     } else if (declaresParentOfPupil) {
       breakdown.parentsEleves++;
-    } else if (
-      quality.includes("voisine") ||
-      (town.length > 0 && !town.includes("kergrist"))
-    ) {
+    } else if (quality.includes("voisine") || (town.length > 0 && !town.includes("kergrist"))) {
       breakdown.communesVoisines++;
     } else {
       breakdown.autres++;
     }
   }
 
-  breakdown.habitantsKergristPercent = percent(
-    breakdown.habitantsKergrist,
-    breakdown.total,
-  );
-  breakdown.parentsElevesPercent = percent(
-    breakdown.parentsEleves,
-    breakdown.total,
-  );
-  breakdown.communesVoisinesPercent = percent(
-    breakdown.communesVoisines,
-    breakdown.total,
-  );
+  breakdown.habitantsKergristPercent = percent(breakdown.habitantsKergrist, breakdown.total);
+  breakdown.parentsElevesPercent = percent(breakdown.parentsEleves, breakdown.total);
+  breakdown.communesVoisinesPercent = percent(breakdown.communesVoisines, breakdown.total);
   breakdown.autresPercent = percent(breakdown.autres, breakdown.total);
   breakdown.declaredParentOfPupilQualityPercent = percent(
     breakdown.declaredParentOfPupilQuality,
@@ -110,11 +91,7 @@ export function calculatePetitionStats(
   );
   breakdown.kergristElectorateEstimatePercent =
     breakdown.total > 0
-      ? percent(
-          breakdown.habitantsKergrist,
-          KERGRIST_VOTING_AGE_POPULATION_ESTIMATE,
-          2,
-        )
+      ? percent(breakdown.habitantsKergrist, KERGRIST_VOTING_AGE_POPULATION_ESTIMATE, 2)
       : null;
 
   return breakdown;

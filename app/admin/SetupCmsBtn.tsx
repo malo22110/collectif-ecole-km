@@ -15,9 +15,7 @@ export default function SetupCmsBtn() {
       const pageRef = doc(db, "pages", "historique");
       const existingPage = await getDoc(pageRef);
       if (existingPage.exists()) {
-        alert(
-          "La page est déjà initialisée. Utilisez l’éditeur afin de conserver son historique.",
-        );
+        alert("La page est déjà initialisée. Utilisez l’éditeur afin de conserver son historique.");
         return;
       }
       const pageData = {
@@ -109,12 +107,10 @@ export default function SetupCmsBtn() {
   return (
     <div className="mt-8 bg-amber-50 rounded-2xl shadow-sm border border-amber-200 overflow-hidden p-6 flex flex-col md:flex-row items-center justify-between gap-4">
       <div>
-        <h3 className="font-bold text-amber-900 text-lg">
-          Setup CMS (Mode Développeur)
-        </h3>
+        <h3 className="font-bold text-amber-900 text-lg">Setup CMS (Mode Développeur)</h3>
         <p className="text-amber-700 text-sm mt-1">
-          Génère le document `pages/historique` dans Firestore avec les données
-          en dur actuelles. À n'utiliser qu'une seule fois.
+          Génère le document `pages/historique` dans Firestore avec les données en dur actuelles. À
+          n'utiliser qu'une seule fois.
         </p>
       </div>
       <button
@@ -122,11 +118,7 @@ export default function SetupCmsBtn() {
         disabled={loading}
         className="flex items-center gap-2 px-6 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors disabled:opacity-50 shrink-0"
       >
-        {loading ? (
-          <Loader2 size={18} className="animate-spin" />
-        ) : (
-          <Database size={18} />
-        )}
+        {loading ? <Loader2 size={18} className="animate-spin" /> : <Database size={18} />}
         Lancer la migration CMS
       </button>
     </div>

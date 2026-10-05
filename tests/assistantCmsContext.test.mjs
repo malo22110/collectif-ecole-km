@@ -53,8 +53,7 @@ test("borne les blocs CMS structurés et retire les champs privés", () => {
 test("nettoie le HTML d’un article publié et retire scripts/styles", () => {
   const text = extractPublishedArticleText({
     title: "Réunion publique",
-    content:
-      "<p>Budget &amp; école</p><script>secret()</script><style>.x{}</style>",
+    content: "<p>Budget &amp; école</p><script>secret()</script><style>.x{}</style>",
   });
   assert.match(text, /Budget & école/);
   assert.doesNotMatch(text, /secret|\.x\{/);

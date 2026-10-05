@@ -1,7 +1,7 @@
 export const getEmailFooter = (html: boolean = true) => {
   const siteUrl = "https://collectif-ecole-km.web.app/";
   const logoUrl = "https://collectif-ecole-km.web.app/images/logo.png";
-  
+
   if (!html) {
     return `
 Bien amicalement,

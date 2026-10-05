@@ -7,7 +7,6 @@
   --foreground: #1c1917;
 }
 
-
 body {
   color: var(--foreground);
   background: var(--background);
@@ -21,20 +20,20 @@ body {
   .input-base {
     @apply w-full px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white text-stone-900 transition-all shadow-sm;
   }
-  
+
   .input-label {
     @apply block text-sm font-semibold text-stone-700 mb-2;
   }
-  
+
   /* Boutons */
   .btn-primary {
     @apply inline-flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
   }
-  
+
   .btn-secondary {
     @apply inline-flex justify-center items-center gap-2 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 px-6 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
   }
-  
+
   .btn-danger {
     @apply inline-flex justify-center items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
   }

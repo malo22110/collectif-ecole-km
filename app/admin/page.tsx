@@ -28,21 +28,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  User,
-} from "firebase/auth";
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  updateDoc,
-  doc,
-  getDoc,
-} from "firebase/firestore";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
+import { collection, query, where, onSnapshot, updateDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 interface Membre {
@@ -59,9 +46,9 @@ function AdminDashboardContent() {
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("tab") as any) || "membres";
-  const [activeTab, setActiveTab] = useState<
-    "membres" | "articles" | "faq" | "emails" | "presse"
-  >(initialTab);
+  const [activeTab, setActiveTab] = useState<"membres" | "articles" | "faq" | "emails" | "presse">(
+    initialTab,
+  );
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
 
@@ -103,10 +90,7 @@ function AdminDashboardContent() {
     };
     fetchRole();
 
-    const q = query(
-      collection(db, "membres"),
-      where("status", "==", "pending"),
-    );
+    const q = query(collection(db, "membres"), where("status", "==", "pending"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const membresData = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -121,11 +105,7 @@ function AdminDashboardContent() {
     e.preventDefault();
     setLoginError("");
     try {
-      await signInWithEmailAndPassword(
-        auth,
-        loginForm.email,
-        loginForm.password,
-      );
+      await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
     } catch (error: any) {
       setLoginError("Identifiants incorrects.");
     }
@@ -142,28 +122,18 @@ function AdminDashboardContent() {
   };
 
   if (loading)
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Chargement...
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
 
   if (!user) {
     return (
       <div className="min-h-screen bg-stone-100 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-stone-900">
-              Espace Administration
-            </h1>
+            <h1 className="text-2xl font-bold text-stone-900">Espace Administration</h1>
             <p className="text-stone-500">Collectif Kergrist-Moëlou</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
-            {loginError && (
-              <div className="text-red-500 text-sm text-center">
-                {loginError}
-              </div>
-            )}
+            {loginError && <div className="text-red-500 text-sm text-center">{loginError}</div>}
             <div>
               <label className="input-label">Email</label>
               <input
@@ -172,9 +142,7 @@ function AdminDashboardContent() {
                 autoComplete="username"
                 required
                 className="input-base"
-                onChange={(e) =>
-                  setLoginForm({ ...loginForm, email: e.target.value })
-                }
+                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
               />
             </div>
             <div>
@@ -185,9 +153,7 @@ function AdminDashboardContent() {
                 autoComplete="current-password"
                 required
                 className="input-base"
-                onChange={(e) =>
-                  setLoginForm({ ...loginForm, password: e.target.value })
-                }
+                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
               />
             </div>
             <button type="submit" className="btn-primary w-full">
@@ -266,14 +232,10 @@ function AdminDashboardContent() {
       </div>
 
       <div className="flex-1 p-8">
-        {activeTab === "presse" && userRoles.includes("admin") && (
-          <PresseManager />
-        )}
+        {activeTab === "presse" && userRoles.includes("admin") && <PresseManager />}
         {activeTab === "membres" && userRoles.includes("admin") && (
           <div>
-            <h2 className="text-2xl font-bold text-stone-900 mb-6">
-              Gestion des candidatures
-            </h2>
+            <h2 className="text-2xl font-bold text-stone-900 mb-6">Gestion des candidatures</h2>
             <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
               <div className="p-6 border-b border-stone-200 flex justify-between items-center bg-amber-50/30">
                 <h3 className="font-semibold text-stone-800">
@@ -303,9 +265,7 @@ function AdminDashboardContent() {
                         </p>
                         <p className="text-stone-400 text-xs mt-1">
                           Inscrit(e) le{" "}
-                          {new Date(membre.dateInscription).toLocaleDateString(
-                            "fr-FR",
-                          )}
+                          {new Date(membre.dateInscription).toLocaleDateString("fr-FR")}
                         </p>
                       </div>
                       <div className="flex gap-3">
@@ -338,9 +298,7 @@ function AdminDashboardContent() {
 
         {activeTab === "articles" && (
           <div>
-            <h2 className="text-2xl font-bold text-stone-900 mb-6">
-              Articles & Documents
-            </h2>
+            <h2 className="text-2xl font-bold text-stone-900 mb-6">Articles & Documents</h2>
             <ArticleManager />
             <SetupCmsBtn />
             <HistoriqueAdmin />
@@ -349,10 +307,9 @@ function AdminDashboardContent() {
 
         {activeTab === "faq" && userRoles.includes("admin") && <FaqManager />}
 
-        {activeTab === "emails" &&
-          (userRoles.includes("admin") || userRoles.includes("mail")) && (
-            <MailManager />
-          )}
+        {activeTab === "emails" && (userRoles.includes("admin") || userRoles.includes("mail")) && (
+          <MailManager />
+        )}
       </div>
     </div>
   );
@@ -361,11 +318,7 @@ function AdminDashboardContent() {
 export default function AdminDashboard() {
   return (
     <React.Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          Chargement...
-        </div>
-      }
+      fallback={<div className="min-h-screen flex items-center justify-center">Chargement...</div>}
     >
       <AdminDashboardContent />
     </React.Suspense>

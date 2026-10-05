@@ -1,14 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  CheckCircle2,
-  Clock3,
-  Loader2,
-  RefreshCw,
-  SendHorizontal,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, Clock3, Loader2, RefreshCw, SendHorizontal, XCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
 
 interface SentSummary {
@@ -103,12 +96,10 @@ export default function MailSent() {
 
   const refreshSelected = useCallback(async (mailId: string) => {
     try {
-      const result = (await authorizedFetch(
-        `/api/mail-outbox/${encodeURIComponent(mailId)}`,
-      )) as { message: SentDetail };
-      setSelected((current) =>
-        current?.id === mailId ? result.message : current,
-      );
+      const result = (await authorizedFetch(`/api/mail-outbox/${encodeURIComponent(mailId)}`)) as {
+        message: SentDetail;
+      };
+      setSelected((current) => (current?.id === mailId ? result.message : current));
     } catch (refreshError) {
       setError(
         refreshError instanceof Error
@@ -123,12 +114,7 @@ export default function MailSent() {
   }, [load]);
 
   useEffect(() => {
-    if (
-      !items.some((item) =>
-        ["preparing", "pending", "sending"].includes(item.status),
-      )
-    )
-      return;
+    if (!items.some((item) => ["preparing", "pending", "sending"].includes(item.status))) return;
     const intervalId = window.setInterval(() => {
       void load(true);
       if (selected) void refreshSelected(selected.id);
@@ -156,9 +142,7 @@ export default function MailSent() {
             <SendHorizontal size={19} aria-hidden="true" />
             Envoyés
           </h3>
-          <p className="text-xs text-stone-500">
-            Historique et état de livraison par destinataire
-          </p>
+          <p className="text-xs text-stone-500">Historique et état de livraison par destinataire</p>
         </div>
         <button
           type="button"
@@ -166,28 +150,19 @@ export default function MailSent() {
           disabled={loading}
           className="btn-secondary min-h-10 px-3 py-2 text-sm"
         >
-          <RefreshCw
-            size={15}
-            className={loading ? "animate-spin" : ""}
-            aria-hidden="true"
-          />
+          <RefreshCw size={15} className={loading ? "animate-spin" : ""} aria-hidden="true" />
           Actualiser
         </button>
       </div>
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(17rem,0.85fr)_minmax(0,1.4fr)]">
         <div className="min-w-0 border-y border-stone-200">
           {loading && items.length === 0 ? (
-            <p
-              role="status"
-              className="py-8 text-center text-sm text-stone-500"
-            >
+            <p role="status" className="py-8 text-center text-sm text-stone-500">
               <Loader2 className="mr-2 inline animate-spin" size={16} />
               Chargement…
             </p>
           ) : items.length === 0 ? (
-            <p className="py-8 text-center text-sm text-stone-500">
-              Aucun message envoyé.
-            </p>
+            <p className="py-8 text-center text-sm text-stone-500">Aucun message envoyé.</p>
           ) : (
             <ul className="max-h-[65vh] divide-y divide-stone-200 overflow-y-auto">
               {items.map((item) => (
@@ -205,8 +180,7 @@ export default function MailSent() {
                           className="shrink-0 text-emerald-700"
                           aria-label="Accepté par SMTP"
                         />
-                      ) : item.status === "error" ||
-                        item.status === "partial" ? (
+                      ) : item.status === "error" || item.status === "partial" ? (
                         <XCircle
                           size={15}
                           className="shrink-0 text-rose-700"
@@ -216,9 +190,7 @@ export default function MailSent() {
                         <Clock3
                           size={15}
                           className="shrink-0 text-amber-700"
-                          aria-label={
-                            deliveryStatusLabels[item.status] || "En attente"
-                          }
+                          aria-label={deliveryStatusLabels[item.status] || "En attente"}
                         />
                       )}
                       <span className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-900">
@@ -233,9 +205,7 @@ export default function MailSent() {
                         ? "Test personnel"
                         : audienceLabels[item.target] || item.target}{" "}
                       · {item.sentCount}/{item.recipientCount} envoyé(s)
-                      {item.failedCount
-                        ? ` · ${item.failedCount} échec(s)`
-                        : ""}
+                      {item.failedCount ? ` · ${item.failedCount} échec(s)` : ""}
                     </span>
                   </button>
                 </li>
@@ -261,11 +231,9 @@ export default function MailSent() {
                   · Créé le {formatDate(selected.createdAt)}
                 </p>
                 <p className="text-xs text-stone-700">
-                  État :{" "}
-                  {deliveryStatusLabels[selected.status] || selected.status} ·{" "}
-                  {selected.sentCount} accepté(s) par SMTP,{" "}
-                  {selected.failedCount} échec(s), {selected.recipientCount}{" "}
-                  destinataire(s)
+                  État : {deliveryStatusLabels[selected.status] || selected.status} ·{" "}
+                  {selected.sentCount} accepté(s) par SMTP, {selected.failedCount} échec(s),{" "}
+                  {selected.recipientCount} destinataire(s)
                 </p>
               </header>
               <ul className="max-h-[52vh] divide-y divide-stone-200 overflow-y-auto">
@@ -281,17 +249,9 @@ export default function MailSent() {
                         aria-hidden="true"
                       />
                     ) : recipient.status === "error" ? (
-                      <XCircle
-                        size={15}
-                        className="shrink-0 text-rose-700"
-                        aria-hidden="true"
-                      />
+                      <XCircle size={15} className="shrink-0 text-rose-700" aria-hidden="true" />
                     ) : (
-                      <Clock3
-                        size={15}
-                        className="shrink-0 text-amber-700"
-                        aria-hidden="true"
-                      />
+                      <Clock3 size={15} className="shrink-0 text-amber-700" aria-hidden="true" />
                     )}
                     <span className="min-w-0 flex-1 truncate text-stone-800">
                       {recipient.name ? `${recipient.name} · ` : ""}

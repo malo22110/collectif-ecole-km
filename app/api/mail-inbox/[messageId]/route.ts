@@ -17,19 +17,13 @@ async function getParams(context: { params: Promise<{ messageId: string }> }) {
   return await context.params;
 }
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ messageId: string }> },
-) {
+export async function GET(request: Request, context: { params: Promise<{ messageId: string }> }) {
   const authorization = await authorizeMailInboxStaff(request);
   if (!authorization.staff) return authorization.response;
 
   const { messageId } = await getParams(context);
   if (!messageIdSchema.safeParse(messageId).success)
-    return Response.json(
-      { error: "Identifiant de message invalide." },
-      { status: 400 },
-    );
+    return Response.json({ error: "Identifiant de message invalide." }, { status: 400 });
 
   try {
     const messageRef = mailInboxDb.collection("mailInbox").doc(messageId);
@@ -69,9 +63,7 @@ export async function GET(
           ? data.attachments.map((attachment: Record<string, unknown>) => ({
               id: String(attachment.id || ""),
               fileName: String(attachment.fileName || "piece-jointe"),
-              contentType: String(
-                attachment.contentType || "application/octet-stream",
-              ),
+              contentType: String(attachment.contentType || "application/octet-stream"),
               size: Number(attachment.size || 0),
             }))
           : [];
@@ -89,8 +81,7 @@ export async function GET(
         });
         return {
           id: document.id,
-          threadId:
-            typeof data.threadId === "string" ? data.threadId : document.id,
+          threadId: typeof data.threadId === "string" ? data.threadId : document.id,
           from:
             data.from && typeof data.from === "object"
               ? {
@@ -104,10 +95,7 @@ export async function GET(
           messageId: String(data.messageId || ""),
           references: Array.isArray(data.references)
             ? data.references
-                .filter(
-                  (value: unknown): value is string =>
-                    typeof value === "string",
-                )
+                .filter((value: unknown): value is string => typeof value === "string")
                 .slice(-10)
             : [],
           isRead: data.isRead === true,
@@ -121,9 +109,7 @@ export async function GET(
     const selectedMessage =
       messagesWithReplies.find((message) => message.id === messageId) ||
       messagesWithReplies.at(-1)!;
-    selectedMessage.isRead = messagesWithReplies.every(
-      (message) => message.isRead,
-    );
+    selectedMessage.isRead = messagesWithReplies.every((message) => message.isRead);
     const replies = messagesWithReplies.flatMap((message) => message.replies);
 
     return Response.json(
@@ -139,44 +125,26 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ messageId: string }> },
-) {
+export async function PATCH(request: Request, context: { params: Promise<{ messageId: string }> }) {
   const authorization = await authorizeMailInboxStaff(request);
   if (!authorization.staff) return authorization.response;
 
   const { messageId } = await getParams(context);
   if (!messageIdSchema.safeParse(messageId).success)
-    return Response.json(
-      { error: "Identifiant de message invalide." },
-      { status: 400 },
-    );
-  if (
-    !request.headers
-      .get("Content-Type")
-      ?.toLowerCase()
-      .includes("application/json")
-  ) {
-    return Response.json(
-      { error: "Format de requête invalide." },
-      { status: 415 },
-    );
+    return Response.json({ error: "Identifiant de message invalide." }, { status: 400 });
+  if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
+    return Response.json({ error: "Format de requête invalide." }, { status: 415 });
   }
 
   try {
     const value = await readMailInboxJsonBody(request, 2048);
     const parsed = updateSchema.safeParse(value);
     if (!parsed.success)
-      return Response.json(
-        { error: "État lu/non lu invalide." },
-        { status: 400 },
-      );
+      return Response.json({ error: "État lu/non lu invalide." }, { status: 400 });
 
     const messageRef = mailInboxDb.collection("mailInbox").doc(messageId);
     const snapshot = await messageRef.get();
-    if (!snapshot.exists)
-      return Response.json({ error: "Message introuvable." }, { status: 404 });
+    if (!snapshot.exists) return Response.json({ error: "Message introuvable." }, { status: 404 });
     const threadId = snapshot.get("threadId");
     if (typeof threadId === "string" && threadId) {
       let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
@@ -204,9 +172,6 @@ export async function PATCH(
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
-    return mailInboxErrorResponse(
-      error,
-      "Impossible de mettre à jour ce message.",
-    );
+    return mailInboxErrorResponse(error, "Impossible de mettre à jour ce message.");
   }
 }

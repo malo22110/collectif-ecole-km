@@ -22,11 +22,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserAvatar from "../components/UserAvatar";
 
-export default function EspaceMembreLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function EspaceMembreLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [isMember, setIsMember] = useState<boolean | null>(null);
   const [userRoles, setUserRoles] = useState<string[]>(["membre"]);
@@ -44,17 +40,11 @@ export default function EspaceMembreLayout({
           const { db } = await import("@/lib/firebase");
           const docRef = doc(db, "membres", u.email!);
           const docSnap = await getDoc(docRef);
-          setIsMember(
-            docSnap.exists() && docSnap.data().status === "validated",
-          );
+          setIsMember(docSnap.exists() && docSnap.data().status === "validated");
           if (docSnap.exists()) {
             const data = docSnap.data();
             setUserRoles(
-              Array.isArray(data.roles)
-                ? data.roles
-                : data.role
-                  ? [data.role]
-                  : ["membre"],
+              Array.isArray(data.roles) ? data.roles : data.role ? [data.role] : ["membre"],
             );
           }
         } catch (err) {
@@ -89,17 +79,13 @@ export default function EspaceMembreLayout({
         });
         if (!response.ok) return;
         const result = await response.json();
-        if (active && Number.isInteger(result.count))
-          setUnreadMailCount(Math.max(0, result.count));
+        if (active && Number.isInteger(result.count)) setUnreadMailCount(Math.max(0, result.count));
       } catch {
         // Keep the last known count when the mailbox API is temporarily unavailable.
       }
     };
     void refreshUnreadCount();
-    const interval = window.setInterval(
-      () => void refreshUnreadCount(),
-      120_000,
-    );
+    const interval = window.setInterval(() => void refreshUnreadCount(), 120_000);
     const onFocus = () => void refreshUnreadCount();
     window.addEventListener("focus", onFocus);
     window.addEventListener("mail-inbox-updated", onFocus);
@@ -113,9 +99,7 @@ export default function EspaceMembreLayout({
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        Chargement...
-      </div>
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">Chargement...</div>
     );
 
   if (!user || isMember === false) {
@@ -123,9 +107,7 @@ export default function EspaceMembreLayout({
       <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full">
           <ShieldAlert className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-stone-900 mb-2">
-            Accès restreint
-          </h1>
+          <h1 className="text-2xl font-bold text-stone-900 mb-2">Accès restreint</h1>
           <p className="text-stone-600 mb-6">
             {!user
               ? "Vous devez être connecté pour accéder à cette page."
@@ -151,18 +133,12 @@ export default function EspaceMembreLayout({
                 aria-label="Retour au tableau de bord"
                 className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-lg pr-2 text-sm font-semibold text-stone-200 hover:bg-stone-800 hover:text-white"
               >
-                <ArrowLeft size={19} aria-hidden="true" />{" "}
-                <span>Tableau de bord</span>
+                <ArrowLeft size={19} aria-hidden="true" /> <span>Tableau de bord</span>
               </Link>
-              <span
-                className="h-6 w-px shrink-0 bg-stone-700"
-                aria-hidden="true"
-              />
+              <span className="h-6 w-px shrink-0 bg-stone-700" aria-hidden="true" />
             </>
           )}
-          <span className="truncate text-sm font-bold text-stone-400">
-            Espace membre
-          </span>
+          <span className="truncate text-sm font-bold text-stone-400">Espace membre</span>
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(true)}
@@ -187,12 +163,9 @@ export default function EspaceMembreLayout({
         <div className="p-6 border-b border-stone-800 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <ShieldAlert size={20} className="text-emerald-500" /> Espace
-              Membre
+              <ShieldAlert size={20} className="text-emerald-500" /> Espace Membre
             </h2>
-            <p className="text-xs text-stone-500 mt-1 truncate max-w-[200px]">
-              {user.email}
-            </p>
+            <p className="text-xs text-stone-500 mt-1 truncate max-w-[200px]">{user.email}</p>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
@@ -224,9 +197,7 @@ export default function EspaceMembreLayout({
           </Link>
 
           {(userRoles.includes("admin") ||
-            userRoles.some((role) =>
-              ["redacteur", "faq", "presse"].includes(role),
-            )) && (
+            userRoles.some((role) => ["redacteur", "faq", "presse"].includes(role))) && (
             <Link
               href="/espace-membre/redaction"
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname.startsWith("/espace-membre/redaction") || ["/espace-membre/articles", "/espace-membre/faq", "/espace-membre/presse"].includes(pathname) ? "bg-emerald-600 text-white" : "hover:bg-stone-800 text-emerald-400"}`}
@@ -246,9 +217,7 @@ export default function EspaceMembreLayout({
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname.startsWith("/espace-membre/mailing") ? "bg-emerald-600 text-white" : "hover:bg-stone-800 text-emerald-400"}`}
             >
               <Mail size={20} />{" "}
-              <span className="min-w-0 flex-1 truncate">
-                Campagne d'e-mailing
-              </span>
+              <span className="min-w-0 flex-1 truncate">Campagne d'e-mailing</span>
               {unreadMailCount > 0 && (
                 <span
                   className="inline-flex min-w-6 items-center justify-center rounded-full bg-rose-600 px-1.5 py-0.5 text-xs font-bold leading-4 text-white"
@@ -267,8 +236,7 @@ export default function EspaceMembreLayout({
             <UserCircle2 size={20} /> <span>L'équipe</span>
           </Link>
 
-          {(userRoles.includes("admin") ||
-            userRoles.includes("gestionnaire")) && (
+          {(userRoles.includes("admin") || userRoles.includes("gestionnaire")) && (
             <Link
               href="/espace-membre/gestionnaire"
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap hover:bg-stone-800 text-emerald-400"

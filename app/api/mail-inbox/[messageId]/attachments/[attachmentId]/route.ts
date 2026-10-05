@@ -26,27 +26,17 @@ export async function GET(
     !messageIdSchema.safeParse(messageId).success ||
     !attachmentIdSchema.safeParse(attachmentId).success
   ) {
-    return Response.json(
-      { error: "Identifiant de pièce jointe invalide." },
-      { status: 400 },
-    );
+    return Response.json({ error: "Identifiant de pièce jointe invalide." }, { status: 400 });
   }
 
   try {
-    const message = await mailInboxDb
-      .collection("mailInbox")
-      .doc(messageId)
-      .get();
-    if (!message.exists)
-      return Response.json({ error: "Message introuvable." }, { status: 404 });
+    const message = await mailInboxDb.collection("mailInbox").doc(messageId).get();
+    if (!message.exists) return Response.json({ error: "Message introuvable." }, { status: 404 });
     const attachments = message.get("attachments");
     const attachment = Array.isArray(attachments)
       ? attachments.find(
           (item: unknown) =>
-            item &&
-            typeof item === "object" &&
-            "id" in item &&
-            item.id === attachmentId,
+            item && typeof item === "object" && "id" in item && item.id === attachmentId,
         )
       : null;
     if (
@@ -55,39 +45,23 @@ export async function GET(
       !("storagePath" in attachment) ||
       typeof attachment.storagePath !== "string"
     ) {
-      return Response.json(
-        { error: "Pièce jointe introuvable." },
-        { status: 404 },
-      );
+      return Response.json({ error: "Pièce jointe introuvable." }, { status: 404 });
     }
     const expectedPrefix = `mailInbox/${messageId}/attachments/${attachmentId}`;
     if (attachment.storagePath !== expectedPrefix)
-      return Response.json(
-        { error: "Chemin de pièce jointe invalide." },
-        { status: 500 },
-      );
+      return Response.json({ error: "Chemin de pièce jointe invalide." }, { status: 500 });
 
-    const [metadata] = await mailInboxBucket
-      .file(attachment.storagePath)
-      .getMetadata();
+    const [metadata] = await mailInboxBucket.file(attachment.storagePath).getMetadata();
     const size = Number(metadata.size || 0);
-    const contentType = String(
-      metadata.contentType || "application/octet-stream",
-    );
-    if (
-      size < 1 ||
-      size > MAX_ATTACHMENT_BYTES ||
-      size !== Number(attachment.size)
-    ) {
+    const contentType = String(metadata.contentType || "application/octet-stream");
+    if (size < 1 || size > MAX_ATTACHMENT_BYTES || size !== Number(attachment.size)) {
       return Response.json(
         { error: "Cette pièce jointe dépasse les limites autorisées." },
         { status: 500 },
       );
     }
 
-    const [contents] = await mailInboxBucket
-      .file(attachment.storagePath)
-      .download();
+    const [contents] = await mailInboxBucket.file(attachment.storagePath).download();
     const fileName = String(attachment.fileName || "piece-jointe")
       .replace(/[\r\n"\\]/g, "_")
       .slice(0, 160);
@@ -103,9 +77,6 @@ export async function GET(
       },
     });
   } catch (error) {
-    return mailInboxErrorResponse(
-      error,
-      "Impossible de télécharger la pièce jointe.",
-    );
+    return mailInboxErrorResponse(error, "Impossible de télécharger la pièce jointe.");
   }
 }

@@ -59,10 +59,7 @@ export default function DraftReviewPanel() {
 
   // [SPEC-CMS-DRAFT-01] Écoute en temps réel des brouillons en attente
   useEffect(() => {
-    const q = query(
-      collection(db, "cms_drafts"),
-      where("status", "==", "pending"),
-    );
+    const q = query(collection(db, "cms_drafts"), where("status", "==", "pending"));
     const unsub = onSnapshot(q, (snap) => {
       setDrafts(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Draft));
     });
@@ -149,9 +146,7 @@ export default function DraftReviewPanel() {
                 <div>
                   <p className="font-bold text-stone-900 text-sm">
                     Révision de la page{" "}
-                    <span className="font-mono text-amber-700">
-                      {draft.pageId}
-                    </span>
+                    <span className="font-mono text-amber-700">{draft.pageId}</span>
                   </p>
                   <div className="flex items-center gap-2 text-xs text-stone-500 mt-0.5">
                     <User size={11} />
@@ -178,17 +173,11 @@ export default function DraftReviewPanel() {
                 onClick={() => setExpandedDraft(isExpanded ? null : draft.id)}
                 className="flex items-center gap-1.5 text-xs font-medium text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
                 aria-expanded={isExpanded}
-                aria-label={
-                  isExpanded ? "Masquer les détails" : "Voir les modifications"
-                }
+                aria-label={isExpanded ? "Masquer les détails" : "Voir les modifications"}
               >
                 <FileText size={13} />
                 {isExpanded ? "Masquer" : "Voir les modifications"}
-                {isExpanded ? (
-                  <ChevronUp size={13} />
-                ) : (
-                  <ChevronDown size={13} />
-                )}
+                {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
               </button>
             </div>
 
@@ -206,9 +195,7 @@ export default function DraftReviewPanel() {
               <div className="p-5 space-y-5">
                 {/* Toggle résumé/détails pour le diff */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-stone-500">
-                    Mode aperçu :
-                  </span>
+                  <span className="text-xs font-medium text-stone-500">Mode aperçu :</span>
                   <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
                     <button
                       onClick={() => setIsSimplified(false)}
@@ -238,10 +225,7 @@ export default function DraftReviewPanel() {
                       </div>
                       <div className="overflow-x-hidden bg-stone-50">
                         {liveData?.blocks?.map((block: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className="border-b border-stone-100 last:border-0"
-                          >
+                          <div key={idx} className="border-b border-stone-100 last:border-0">
                             <BlockRenderer
                               block={block}
                               context={{
@@ -265,10 +249,7 @@ export default function DraftReviewPanel() {
                       </div>
                       <div className="overflow-x-hidden bg-amber-50/30">
                         {draft.data?.blocks?.map((block: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className="border-b border-amber-100 last:border-0"
-                          >
+                          <div key={idx} className="border-b border-amber-100 last:border-0">
                             <BlockRenderer
                               block={block}
                               context={{
@@ -310,9 +291,7 @@ export default function DraftReviewPanel() {
                     aria-label="Approuver et publier les modifications"
                   >
                     <CheckCircle2 size={16} />
-                    {processingId === draft.id
-                      ? "Publication..."
-                      : "Approuver et publier"}
+                    {processingId === draft.id ? "Publication..." : "Approuver et publier"}
                   </button>
                   <button
                     onClick={() => reject(draft)}

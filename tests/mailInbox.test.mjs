@@ -16,14 +16,8 @@ test("produit une clé stable à partir du Message-ID ou de l’UID IMAP", () =>
     getInboxMessageId("<reply@example.test>", 42, 7),
     getInboxMessageId("<reply@example.test>", 91, 8),
   );
-  assert.equal(
-    getInboxMessageId(undefined, 42, 7),
-    getInboxMessageId(undefined, 42, 7),
-  );
-  assert.notEqual(
-    getInboxMessageId(undefined, 42, 7),
-    getInboxMessageId(undefined, 43, 7),
-  );
+  assert.equal(getInboxMessageId(undefined, 42, 7), getInboxMessageId(undefined, 42, 7));
+  assert.notEqual(getInboxMessageId(undefined, 42, 7), getInboxMessageId(undefined, 43, 7));
 });
 
 // [SPEC-MAIL-04] Message-ID matching is case-insensitive and never stores raw identifiers as document IDs.
@@ -41,9 +35,6 @@ test("borne les emails entrants et nettoie les noms des pièces jointes", () => 
   assert.equal(MAX_INBOX_MESSAGE_BYTES, 8 * 1024 * 1024);
   assert.equal(MAX_INBOX_ATTACHMENT_BYTES, 4 * 1024 * 1024);
   assert.equal(MAX_INBOX_ATTACHMENTS, 5);
-  assert.equal(
-    normalizeInboxText(`safe\0${"x".repeat(60_000)}`).length,
-    50_000,
-  );
+  assert.equal(normalizeInboxText(`safe\0${"x".repeat(60_000)}`).length, 50_000);
   assert.equal(sanitizeInboxFileName("../../rapport.pdf"), "_.._rapport.pdf");
 });

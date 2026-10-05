@@ -31,15 +31,9 @@ export const envoyerMailBienvenue = onDocumentUpdated(
 
     if (!membreAvant || !membreApres) return;
 
-    if (
-      membreAvant.status === "pending" &&
-      membreApres.status === "validated"
-    ) {
+    if (membreAvant.status === "pending" && membreApres.status === "validated") {
       if (!membreApres.email) {
-        logger.error(
-          "Pas d'email trouvé pour le membre",
-          event.params.membreId,
-        );
+        logger.error("Pas d'email trouvé pour le membre", event.params.membreId);
         return;
       }
 
@@ -84,8 +78,7 @@ ${getEmailFooter(false)}`;
         from: mailFrom,
         replyTo: mailFrom.address,
         to: membreApres.email,
-        subject:
-          "Bienvenue au sein du collectif « Un nid tout neuf pour nos écureuils » ! 🐿️",
+        subject: "Bienvenue au sein du collectif « Un nid tout neuf pour nos écureuils » ! 🐿️",
         text: textContent,
         html: htmlContent,
         headers: {
@@ -122,9 +115,7 @@ export const envoyerMagicLink = onDocumentCreated(
       };
 
       // Génération du lien de connexion sécurisé
-      const signinLink = await admin
-        .auth()
-        .generateSignInWithEmailLink(email, actionCodeSettings);
+      const signinLink = await admin.auth().generateSignInWithEmailLink(email, actionCodeSettings);
 
       const transporter = createMailTransport();
 
@@ -180,17 +171,15 @@ Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sé
 );
 
 async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
-  const data = await docSnap.ref.firestore.runTransaction(
-    async (transaction) => {
-      const current = await transaction.get(docSnap.ref);
-      if (!current.exists || current.get("status") !== "pending") return null;
-      transaction.update(docSnap.ref, {
-        status: "sending",
-        startedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      return current.data();
-    },
-  );
+  const data = await docSnap.ref.firestore.runTransaction(async (transaction) => {
+    const current = await transaction.get(docSnap.ref);
+    if (!current.exists || current.get("status") !== "pending") return null;
+    transaction.update(docSnap.ref, {
+      status: "sending",
+      startedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return current.data();
+  });
   if (!data) return;
 
   try {
@@ -247,10 +236,7 @@ async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
             .doc(indexId)
             .set({ threadId: docSnap.id, campaignId: docSnap.id })
             .catch((error) =>
-              logger.error(
-                "Impossible d’indexer le Message-ID de campagne.",
-                error,
-              ),
+              logger.error("Impossible d’indexer le Message-ID de campagne.", error),
             );
         }
         await docSnap.ref.update({
@@ -316,9 +302,7 @@ export const envoyerSpreadMail = onDocumentWritten(
     // Si le mail est programmé dans le futur, on ne fait rien.
     // C'est le Cron Job qui s'en chargera.
     if (!isMailDueForDelivery(after.scheduledAt, new Date())) {
-      logger.info(
-        `Mail ${event.params.mailId} programmé pour plus tard. On ignore.`,
-      );
+      logger.info(`Mail ${event.params.mailId} programmé pour plus tard. On ignore.`);
       return;
     }
 
@@ -392,22 +376,14 @@ export const envoyerReponseBoiteMail = onDocumentCreated(
         typeof replyData.subject === "string"
           ? replyData.subject.slice(0, 500)
           : "Re: Votre message";
-      const text =
-        typeof replyData.text === "string"
-          ? replyData.text.slice(0, 12000)
-          : "";
-      if (!recipient || !text)
-        throw new Error("Réponse sans destinataire ou contenu.");
+      const text = typeof replyData.text === "string" ? replyData.text.slice(0, 12000) : "";
+      if (!recipient || !text) throw new Error("Réponse sans destinataire ou contenu.");
 
       const originalMessageId =
-        typeof replyData.originalMessageId === "string"
-          ? replyData.originalMessageId.trim()
-          : "";
+        typeof replyData.originalMessageId === "string" ? replyData.originalMessageId.trim() : "";
       const references = Array.isArray(replyData.originalReferences)
         ? replyData.originalReferences
-            .filter(
-              (value: unknown): value is string => typeof value === "string",
-            )
+            .filter((value: unknown): value is string => typeof value === "string")
             .slice(-10)
         : [];
       if (originalMessageId && !references.includes(originalMessageId))
@@ -445,10 +421,7 @@ export const envoyerReponseBoiteMail = onDocumentCreated(
         latestReplyAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     } catch (error) {
-      logger.error(
-        "Erreur lors de l’envoi d’une réponse depuis la boîte de réception.",
-        error,
-      );
+      logger.error("Erreur lors de l’envoi d’une réponse depuis la boîte de réception.", error);
       await replyRef.update({
         status: "error",
         error: "L’envoi a échoué. Réessayez depuis le message.",
@@ -462,9 +435,7 @@ export const updatePetitionStats = onDocumentWritten(
   { document: "signatures/{sigId}", database: "ecole-db" },
   async (event) => {
     try {
-      const snapshot = await getFirestore("ecole-db")
-        .collection("signatures")
-        .get();
+      const snapshot = await getFirestore("ecole-db").collection("signatures").get();
 
       let validSignatures: any[] = [];
       let habitantsKergrist = 0;
@@ -504,9 +475,7 @@ export const updatePetitionStats = onDocumentWritten(
         return timeB - timeA;
       });
 
-      const recentNames = validSignatures
-        .slice(0, 10)
-        .map(formatPublicRecentSigner);
+      const recentNames = validSignatures.slice(0, 10).map(formatPublicRecentSigner);
 
       // On déduplique la liste des noms récents pour l'affichage propre
       const dedupedRecent = [...new Set(recentNames)];

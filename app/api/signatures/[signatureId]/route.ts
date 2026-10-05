@@ -25,14 +25,8 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ signatureId: string }> },
 ) {
-  const token = request.headers
-    .get("Authorization")
-    ?.match(/^Bearer\s+(.+)$/i)?.[1];
-  if (!token)
-    return NextResponse.json(
-      { error: "Authentification requise." },
-      { status: 401 },
-    );
+  const token = request.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!token) return NextResponse.json({ error: "Authentification requise." }, { status: 401 });
 
   let decodedToken;
   try {
@@ -41,20 +35,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Session invalide." }, { status: 401 });
   }
   if (!decodedToken.email)
-    return NextResponse.json(
-      { error: "Adresse e-mail absente du compte." },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "Adresse e-mail absente du compte." }, { status: 401 });
 
-  const memberSnapshot = await adminDb
-    .collection("membres")
-    .doc(decodedToken.email)
-    .get();
+  const memberSnapshot = await adminDb.collection("membres").doc(decodedToken.email).get();
   const memberData = memberSnapshot.data();
   const roles = getMemberRoles(memberData || {});
-  const isAdmin =
-    ADMIN_EMAILS.has(decodedToken.email.toLowerCase()) ||
-    roles.includes("admin");
+  const isAdmin = ADMIN_EMAILS.has(decodedToken.email.toLowerCase()) || roles.includes("admin");
   const isCorrector =
     memberSnapshot.exists &&
     Boolean(memberData) &&
@@ -69,37 +55,20 @@ export async function DELETE(
 
   const { signatureId } = await context.params;
   if (!signatureIdSchema.safeParse(signatureId).success) {
-    return NextResponse.json(
-      { error: "Identifiant de signature invalide." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Identifiant de signature invalide." }, { status: 400 });
   }
-  if (
-    !request.headers
-      .get("Content-Type")
-      ?.toLowerCase()
-      .includes("application/json")
-  ) {
-    return NextResponse.json(
-      { error: "Confirmation de suppression requise." },
-      { status: 415 },
-    );
+  if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
+    return NextResponse.json({ error: "Confirmation de suppression requise." }, { status: 415 });
   }
 
   try {
     const contentLength = Number(request.headers.get("content-length"));
     if (Number.isFinite(contentLength) && contentLength > 1024) {
-      return NextResponse.json(
-        { error: "Requête trop volumineuse." },
-        { status: 413 },
-      );
+      return NextResponse.json({ error: "Requête trop volumineuse." }, { status: 413 });
     }
     const text = await request.text();
     if (Buffer.byteLength(text, "utf8") > 1024)
-      return NextResponse.json(
-        { error: "Requête trop volumineuse." },
-        { status: 413 },
-      );
+      return NextResponse.json({ error: "Requête trop volumineuse." }, { status: 413 });
     let body: unknown;
     try {
       body = JSON.parse(text);
@@ -107,10 +76,7 @@ export async function DELETE(
       return NextResponse.json({ error: "JSON invalide." }, { status: 400 });
     }
     if (!deleteSchema.safeParse(body).success)
-      return NextResponse.json(
-        { error: "Confirmation de suppression requise." },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Confirmation de suppression requise." }, { status: 400 });
 
     const signatures = adminDb.collection("signatures");
     const signatureRef = signatures.doc(signatureId);
@@ -128,9 +94,7 @@ export async function DELETE(
         });
       if (linkedSnapshot.size > MAX_REFERENCING_SIGNATURES) {
         throw Object.assign(
-          new Error(
-            "Trop de références liées; demande une intervention administrateur.",
-          ),
+          new Error("Trop de références liées; demande une intervention administrateur."),
           { status: 409 },
         );
       }
@@ -154,21 +118,13 @@ export async function DELETE(
     );
   } catch (error) {
     const status =
-      error &&
-      typeof error === "object" &&
-      "status" in error &&
-      typeof error.status === "number"
+      error && typeof error === "object" && "status" in error && typeof error.status === "number"
         ? error.status
         : 500;
     const message =
-      error instanceof Error
-        ? error.message
-        : "Impossible de supprimer cette signature.";
+      error instanceof Error ? error.message : "Impossible de supprimer cette signature.";
     if (status === 500)
-      console.error(
-        "Erreur de suppression de signature depuis le correcteur:",
-        error,
-      );
+      console.error("Erreur de suppression de signature depuis le correcteur:", error);
     return NextResponse.json({ error: message }, { status });
   }
 }

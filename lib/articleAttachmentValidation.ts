@@ -41,6 +41,4 @@ export const articleAttachmentDeleteSchema = z
   })
   .strict();
 
-export type ArticleAttachmentMetadata = z.infer<
-  typeof articleAttachmentMetadataSchema
->;
+export type ArticleAttachmentMetadata = z.infer<typeof articleAttachmentMetadataSchema>;

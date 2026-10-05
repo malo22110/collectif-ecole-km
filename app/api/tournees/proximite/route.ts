@@ -7,9 +7,7 @@ import { hasEligibleHouseholds } from "@/lib/tractationValidation";
 
 export const dynamic = "force-dynamic";
 
-const requestSchema = z
-  .object({ address: z.string().trim().min(5).max(180) })
-  .strict();
+const requestSchema = z.object({ address: z.string().trim().min(5).max(180) }).strict();
 const banResponseSchema = z.object({
   features: z.array(
     z.object({
@@ -27,30 +25,16 @@ const banResponseSchema = z.object({
 export async function POST(request: Request) {
   // [SPEC-TOURNEE-03] Geocode only for this request; do not persist the member address.
   try {
-    if (
-      !request.headers
-        .get("Content-Type")
-        ?.toLowerCase()
-        .includes("application/json")
-    ) {
-      return NextResponse.json(
-        { error: "Format de requête invalide." },
-        { status: 415 },
-      );
+    if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "Format de requête invalide." }, { status: 415 });
     }
     if (Number(request.headers.get("Content-Length") || 0) > 4096) {
-      return NextResponse.json(
-        { error: "Adresse trop longue." },
-        { status: 413 },
-      );
+      return NextResponse.json({ error: "Adresse trop longue." }, { status: 413 });
     }
 
     const access = await verifyValidatedMember(request);
     if (!access.allowed)
-      return NextResponse.json(
-        { error: access.error },
-        { status: access.status },
-      );
+      return NextResponse.json({ error: access.error }, { status: access.status });
 
     const body: unknown = await request.json();
     const parsed = requestSchema.safeParse(body);
@@ -93,14 +77,11 @@ export async function POST(request: Request) {
           Number.isFinite(feature.geometry.coordinates[0]) &&
           Number.isFinite(feature.geometry.coordinates[1]),
       )
-      .sort(
-        (first, second) => second.properties.score - first.properties.score,
-      )[0];
+      .sort((first, second) => second.properties.score - first.properties.score)[0];
     if (!candidate || candidate.properties.score < 0.35) {
       return NextResponse.json(
         {
-          error:
-            "Adresse non trouvée. Vérifiez l'adresse et précisez la commune si nécessaire.",
+          error: "Adresse non trouvée. Vérifiez l'adresse et précisez la commune si nécessaire.",
         },
         { status: 404 },
       );
@@ -121,8 +102,7 @@ export async function POST(request: Request) {
 
     const places: TourLieuDit[] = snapshot.docs.flatMap((document) => {
       const data = document.data();
-      const foyers =
-        Number.isInteger(data.foyers) && data.foyers >= 0 ? data.foyers : 0;
+      const foyers = Number.isInteger(data.foyers) && data.foyers >= 0 ? data.foyers : 0;
       if (
         !Number.isFinite(data.lat) ||
         !Number.isFinite(data.lon) ||

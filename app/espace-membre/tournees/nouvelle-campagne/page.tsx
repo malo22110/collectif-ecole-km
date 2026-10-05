@@ -5,26 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import {
-  ArrowLeft,
-  FileUp,
-  Heart,
-  Loader2,
-  MapPin,
-  Megaphone,
-  Search,
-} from "lucide-react";
+import { ArrowLeft, FileUp, Heart, Loader2, MapPin, Megaphone, Search } from "lucide-react";
 import { auth } from "@/lib/firebase";
 
 type Place = { id: string; nom: string; foyers: number };
 type CampaignBootstrap = { places: Place[]; canCreate: boolean };
 type PrivatePreferences = { favoritePlaceIds: string[] };
 
-async function authorizedRequest(
-  user: User,
-  url: string,
-  init: RequestInit = {},
-) {
+async function authorizedRequest(user: User, url: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${await user.getIdToken()}`);
   const response = await fetch(url, { ...init, headers, cache: "no-store" });
@@ -54,17 +42,12 @@ export default function NouvelleCampagnePage() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
-        setError(
-          "Connectez-vous avec un compte membre pour créer une campagne.",
-        );
+        setError("Connectez-vous avec un compte membre pour créer une campagne.");
         setLoading(false);
         return;
       }
       void Promise.all([
-        authorizedRequest(
-          currentUser,
-          "/api/tractation",
-        ) as Promise<CampaignBootstrap>,
+        authorizedRequest(currentUser, "/api/tractation") as Promise<CampaignBootstrap>,
         authorizedRequest(
           currentUser,
           "/api/member-place-preferences",
@@ -98,14 +81,11 @@ export default function NouvelleCampagnePage() {
   const visiblePlaces = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("fr");
     return places.filter(
-      (place) =>
-        !normalizedSearch ||
-        place.nom.toLocaleLowerCase("fr").includes(normalizedSearch),
+      (place) => !normalizedSearch || place.nom.toLocaleLowerCase("fr").includes(normalizedSearch),
     );
   }, [places, search]);
   const allPlacesSelected =
-    places.length > 0 &&
-    places.every((place) => selectedIds.includes(place.id));
+    places.length > 0 && places.every((place) => selectedIds.includes(place.id));
 
   const togglePlace = (placeId: string) => {
     setSelectedIds((current) =>
@@ -123,19 +103,9 @@ export default function NouvelleCampagnePage() {
       setFile(null);
       return;
     }
-    const allowedTypes = [
-      "application/pdf",
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-    ];
-    if (
-      !allowedTypes.includes(selectedFile.type) ||
-      selectedFile.size > 10 * 1024 * 1024
-    ) {
-      setError(
-        "Choisissez un PDF ou une image JPEG, PNG ou WebP de 10 Mio maximum.",
-      );
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(selectedFile.type) || selectedFile.size > 10 * 1024 * 1024) {
+      setError("Choisissez un PDF ou une image JPEG, PNG ou WebP de 10 Mio maximum.");
       setFile(null);
       return;
     }
@@ -156,18 +126,14 @@ export default function NouvelleCampagnePage() {
       setCreated(true);
       if (file) {
         try {
-          await authorizedRequest(
-            user,
-            `/api/tractation/${campaign.id}/document`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": file.type,
-                "X-File-Name": encodeURIComponent(file.name),
-              },
-              body: file,
+          await authorizedRequest(user, `/api/tractation/${campaign.id}/document`, {
+            method: "POST",
+            headers: {
+              "Content-Type": file.type,
+              "X-File-Name": encodeURIComponent(file.name),
             },
-          );
+            body: file,
+          });
         } catch {
           setError(
             "La campagne est créée, mais le document n'a pas pu être téléversé. Vous pouvez le réessayer depuis la campagne.",
@@ -179,9 +145,7 @@ export default function NouvelleCampagnePage() {
       router.push("/espace-membre/tournees");
     } catch (submitError) {
       setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Impossible de créer la campagne.",
+        submitError instanceof Error ? submitError.message : "Impossible de créer la campagne.",
       );
     } finally {
       setSaving(false);
@@ -194,17 +158,11 @@ export default function NouvelleCampagnePage() {
         href="/espace-membre/tournees"
         className="inline-flex min-h-10 items-center gap-2 rounded-md text-sm font-semibold text-stone-700 hover:text-emerald-900"
       >
-        <ArrowLeft size={17} aria-hidden="true" /> Retour à la carte et aux
-        campagnes
+        <ArrowLeft size={17} aria-hidden="true" /> Retour à la carte et aux campagnes
       </Link>
       <header className="border-b border-stone-200 pb-4">
         <h1 className="flex items-center gap-3 text-2xl font-black text-stone-900 md:text-3xl">
-          <Megaphone
-            size={27}
-            className="text-emerald-800"
-            aria-hidden="true"
-          />{" "}
-          Nouvelle campagne
+          <Megaphone size={27} className="text-emerald-800" aria-hidden="true" /> Nouvelle campagne
         </h1>
         <p className="mt-2 text-sm text-stone-600">
           Choisissez les lieux à couvrir et les informations à transmettre.
@@ -231,10 +189,7 @@ export default function NouvelleCampagnePage() {
       ) : created ? (
         <div className="flex flex-wrap items-center justify-between gap-4 border-y border-emerald-200 bg-emerald-50 p-4">
           <p className="font-semibold text-emerald-900">Campagne créée.</p>
-          <Link
-            href="/espace-membre/tournees"
-            className="btn-primary min-h-10 px-4 py-2"
-          >
+          <Link href="/espace-membre/tournees" className="btn-primary min-h-10 px-4 py-2">
             Retour à la carte
           </Link>
         </div>
@@ -270,8 +225,7 @@ export default function NouvelleCampagnePage() {
             </label>
             <div>
               <label htmlFor="campaign-document" className="input-label">
-                Document à partager{" "}
-                <span className="font-normal text-stone-500">(facultatif)</span>
+                Document à partager <span className="font-normal text-stone-500">(facultatif)</span>
               </label>
               <input
                 id="campaign-document"
@@ -292,9 +246,7 @@ export default function NouvelleCampagnePage() {
               className="btn-primary min-h-11 w-full sm:w-auto"
             >
               <Megaphone size={17} aria-hidden="true" />
-              {saving
-                ? "Publication…"
-                : `Publier la campagne · ${selectedIds.length} lieux`}
+              {saving ? "Publication…" : `Publier la campagne · ${selectedIds.length} lieux`}
             </button>
           </div>
 
@@ -323,9 +275,7 @@ export default function NouvelleCampagnePage() {
               <button
                 type="button"
                 onClick={() =>
-                  setSelectedIds(
-                    allPlacesSelected ? [] : places.map((place) => place.id),
-                  )
+                  setSelectedIds(allPlacesSelected ? [] : places.map((place) => place.id))
                 }
                 disabled={!places.length}
                 aria-pressed={allPlacesSelected}
@@ -338,20 +288,13 @@ export default function NouvelleCampagnePage() {
                 type="button"
                 onClick={() =>
                   setSelectedIds((current) =>
-                    Array.from(new Set([...current, ...favoriteIds])).slice(
-                      0,
-                      200,
-                    ),
+                    Array.from(new Set([...current, ...favoriteIds])).slice(0, 200),
                   )
                 }
                 disabled={!favoriteIds.length}
                 className="btn-secondary min-h-10 px-3 py-2 text-sm"
               >
-                <Heart
-                  size={15}
-                  className="fill-rose-200 text-rose-700"
-                  aria-hidden="true"
-                />
+                <Heart size={15} className="fill-rose-200 text-rose-700" aria-hidden="true" />
                 Ajouter mes favoris
               </button>
             </div>
@@ -381,8 +324,7 @@ export default function NouvelleCampagnePage() {
               ))}
             </div>
             <p className="mt-2 text-xs text-stone-500">
-              Tous les lieux sont sélectionnés par défaut. Vous pouvez ensuite
-              affiner la sélection.
+              Tous les lieux sont sélectionnés par défaut. Vous pouvez ensuite affiner la sélection.
             </p>
           </fieldset>
         </form>

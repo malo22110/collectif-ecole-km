@@ -7,11 +7,7 @@ import { db } from "@/lib/firebase";
 import { publishCmsPageRevision } from "@/lib/cmsRevisionClient";
 import { Save, AlertCircle, RefreshCw } from "lucide-react";
 
-export default function CmsPageEditor({
-  pageId = "historique",
-}: {
-  pageId?: string;
-}) {
+export default function CmsPageEditor({ pageId = "historique" }: { pageId?: string }) {
   const [pageData, setPageData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,21 +66,14 @@ export default function CmsPageEditor({
     <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden mt-8">
       <div className="p-6 border-b border-stone-200 flex justify-between items-center bg-stone-50">
         <div>
-          <h3 className="font-bold text-stone-900">
-            Éditeur de page CMS (Mode Expert)
-          </h3>
+          <h3 className="font-bold text-stone-900">Éditeur de page CMS (Mode Expert)</h3>
           <p className="text-sm text-stone-500">
             Modification directe de la structure de la page{" "}
-            <code className="bg-stone-200 px-1.5 py-0.5 rounded">
-              /{pageId}
-            </code>
+            <code className="bg-stone-200 px-1.5 py-0.5 rounded">/{pageId}</code>
           </p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={fetchPage}
-            className="btn-secondary flex items-center gap-2"
-          >
+          <button onClick={fetchPage} className="btn-secondary flex items-center gap-2">
             <RefreshCw size={16} /> Recharger
           </button>
           <button
@@ -108,9 +97,9 @@ export default function CmsPageEditor({
           </div>
         )}
         <p className="mb-4 text-sm text-amber-700 bg-amber-50 p-4 rounded-xl border border-amber-200">
-          <strong>Attention :</strong> Cet éditeur modifie directement le code
-          de la page. Vérifiez bien que votre JSON est valide avant
-          d'enregistrer. Une virgule manquante empêchera la sauvegarde.
+          <strong>Attention :</strong> Cet éditeur modifie directement le code de la page. Vérifiez
+          bien que votre JSON est valide avant d'enregistrer. Une virgule manquante empêchera la
+          sauvegarde.
         </p>
         <textarea
           value={jsonString}

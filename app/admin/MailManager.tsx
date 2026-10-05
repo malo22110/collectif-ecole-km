@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  deleteDoc,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import { collection, getDocs, query, where, deleteDoc, updateDoc, doc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import {
   Send,
@@ -87,25 +79,16 @@ const MenuBar = ({ editor }: { editor: any }) => {
 };
 
 export default function MailManager() {
-  const [activeView, setActiveView] = useState<"send" | "inbox" | "sent">(
-    "send",
-  );
+  const [activeView, setActiveView] = useState<"send" | "inbox" | "sent">("send");
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
   const [testMode, setTestMode] = useState(true);
   const [scheduledAt, setScheduledAt] = useState("");
-  const [status, setStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
   const [target, setTarget] = useState<
-    | "all"
-    | "membres"
-    | "signataires"
-    | "membres_non_signataires"
-    | "journalistes"
-    | "individuel"
+    "all" | "membres" | "signataires" | "membres_non_signataires" | "journalistes" | "individuel"
   >("all");
   const [recipient, setRecipient] = useState<RecipientOption | null>(null);
   const [membres, setMembres] = useState<any[]>([]);
@@ -155,8 +138,7 @@ export default function MailManager() {
 
     if (target === "all" || target === "membres") {
       membres.forEach((m) => {
-        if (m.email && !m.emailBounced)
-          emails.add(m.email.toLowerCase().trim());
+        if (m.email && !m.emailBounced) emails.add(m.email.toLowerCase().trim());
       });
     }
     if (target === "all" || target === "signataires") {
@@ -174,9 +156,7 @@ export default function MailManager() {
 
   const getIntersectionCount = () => {
     let count = 0;
-    const membreEmails = new Set(
-      membres.map((m) => m.email.toLowerCase().trim()),
-    );
+    const membreEmails = new Set(membres.map((m) => m.email.toLowerCase().trim()));
     signatures.forEach((s) => {
       if (s.email && membreEmails.has(s.email.toLowerCase().trim())) count++;
     });
@@ -185,12 +165,10 @@ export default function MailManager() {
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content:
-      "<p>Bonjour à tous,</p><p><br/></p><p>À très vite,<br/>Le Collectif</p>",
+    content: "<p>Bonjour à tous,</p><p><br/></p><p>À très vite,<br/>Le Collectif</p>",
     editorProps: {
       attributes: {
-        class:
-          "prose prose-stone max-w-none focus:outline-none min-h-[300px] p-4 text-sm",
+        class: "prose prose-stone max-w-none focus:outline-none min-h-[300px] p-4 text-sm",
       },
     },
     onUpdate: ({ editor }) => {
@@ -210,11 +188,7 @@ export default function MailManager() {
     const emailToClean = bounceEmail.trim().toLowerCase();
     if (!emailToClean) return;
 
-    if (
-      !confirm(
-        `Voulez-vous vraiment nettoyer l'adresse ${emailToClean} de toutes les listes ?`,
-      )
-    )
+    if (!confirm(`Voulez-vous vraiment nettoyer l'adresse ${emailToClean} de toutes les listes ?`))
       return;
 
     setBounceLoading(true);
@@ -222,10 +196,7 @@ export default function MailManager() {
       let found = false;
 
       // 1. Check signatures
-      const sigQ = query(
-        collection(db, "signatures"),
-        where("email", "==", emailToClean),
-      );
+      const sigQ = query(collection(db, "signatures"), where("email", "==", emailToClean));
       const sigSnap = await getDocs(sigQ);
       sigSnap.docs.forEach(async (d) => {
         await deleteDoc(doc(db, "signatures", d.id));
@@ -243,10 +214,7 @@ export default function MailManager() {
       });
 
       // 3. Check journalistes
-      const jourQ = query(
-        collection(db, "journalistes"),
-        where("email", "==", emailToClean),
-      );
+      const jourQ = query(collection(db, "journalistes"), where("email", "==", emailToClean));
       const jourSnap = await getDocs(jourQ);
       jourSnap.docs.forEach(async (d) => {
         await deleteDoc(doc(db, "journalistes", d.id));
@@ -271,8 +239,7 @@ export default function MailManager() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subject.trim() || !htmlContent.trim() || htmlContent === "<p></p>")
-      return;
+    if (!subject.trim() || !htmlContent.trim() || htmlContent === "<p></p>") return;
     if (!testMode && target === "individuel" && !recipient) {
       setErrorMsg("Choisis le membre destinataire.");
       setStatus("error");
@@ -295,20 +262,13 @@ export default function MailManager() {
           html: htmlContent,
           testMode,
           target,
-          ...(target === "individuel" && recipient
-            ? { recipientId: recipient.id }
-            : {}),
-          ...(scheduledAt
-            ? { scheduledAt: new Date(scheduledAt).toISOString() }
-            : {}),
+          ...(target === "individuel" && recipient ? { recipientId: recipient.id } : {}),
+          ...(scheduledAt ? { scheduledAt: new Date(scheduledAt).toISOString() } : {}),
         }),
       });
       const result = await response.json().catch(() => null);
       if (!response.ok)
-        throw new Error(
-          result?.error ||
-            "Impossible de placer l’e-mail dans la file d’envoi.",
-        );
+        throw new Error(result?.error || "Impossible de placer l’e-mail dans la file d’envoi.");
       setStatus("success");
       setSubject("");
       setRecipient(null);
@@ -370,19 +330,11 @@ export default function MailManager() {
         </button>
       </div>
       {activeView === "inbox" ? (
-        <div
-          role="tabpanel"
-          id="mail-inbox-panel"
-          aria-labelledby="mail-inbox-tab"
-        >
+        <div role="tabpanel" id="mail-inbox-panel" aria-labelledby="mail-inbox-tab">
           <MailInbox />
         </div>
       ) : activeView === "sent" ? (
-        <div
-          role="tabpanel"
-          id="mail-sent-panel"
-          aria-labelledby="mail-sent-tab"
-        >
+        <div role="tabpanel" id="mail-sent-panel" aria-labelledby="mail-sent-tab">
           <MailSent />
         </div>
       ) : (
@@ -397,9 +349,7 @@ export default function MailManager() {
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
               <div className="flex items-center gap-3 text-stone-500 mb-2">
                 <Users size={20} className="text-emerald-600" />
-                <h3 className="font-semibold text-sm uppercase tracking-wider">
-                  Membres Validés
-                </h3>
+                <h3 className="font-semibold text-sm uppercase tracking-wider">Membres Validés</h3>
               </div>
               <p className="text-3xl font-black text-stone-900">
                 {loadingStats ? "..." : membres.length}
@@ -440,10 +390,7 @@ export default function MailManager() {
             {status === "success" && (
               <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-3">
                 <CheckCircle2 size={20} className="text-emerald-600" />
-                <p>
-                  L'e-mail a été placé dans la file d'attente d'envoi avec
-                  succès !
-                </p>
+                <p>L'e-mail a été placé dans la file d'attente d'envoi avec succès !</p>
               </div>
             )}
 
@@ -470,12 +417,7 @@ export default function MailManager() {
                     />
                     <span className="text-sm font-medium">
                       Tous (
-                      {loadingStats
-                        ? "..."
-                        : target === "all"
-                          ? getUniqueEmails().length
-                          : "..."}
-                      )
+                      {loadingStats ? "..." : target === "all" ? getUniqueEmails().length : "..."})
                     </span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -518,9 +460,7 @@ export default function MailManager() {
                       onChange={() => setTarget("journalistes")}
                       className="text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm font-medium text-blue-900">
-                      Journalistes (Presse)
-                    </span>
+                    <span className="text-sm font-medium text-blue-900">Journalistes (Presse)</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-stone-300 bg-white px-2 py-1">
                     <input
@@ -530,9 +470,7 @@ export default function MailManager() {
                       onChange={() => setTarget("individuel")}
                       className="text-emerald-700 focus:ring-emerald-600"
                     />
-                    <span className="text-sm font-medium text-stone-800">
-                      Un membre
-                    </span>
+                    <span className="text-sm font-medium text-stone-800">Un membre</span>
                   </label>
                 </div>
                 {target === "individuel" && (
@@ -577,10 +515,7 @@ export default function MailManager() {
                 </label>
                 <div className="border border-stone-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all">
                   <MenuBar editor={editor} />
-                  <div
-                    className="bg-white cursor-text"
-                    onClick={() => editor?.commands.focus()}
-                  >
+                  <div className="bg-white cursor-text" onClick={() => editor?.commands.focus()}>
                     <EditorContent editor={editor} />
                   </div>
                 </div>

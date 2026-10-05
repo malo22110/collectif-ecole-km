@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  buildCmsRevisionSnapshot,
-  buildVersionedCmsPageData,
-} from "../lib/cmsRevisionModel.ts";
+import { buildCmsRevisionSnapshot, buildVersionedCmsPageData } from "../lib/cmsRevisionModel.ts";
 
 // [SPEC-CMS-HISTORY-01] Each publication archives the previous document and the client cannot select its version.
 test("archive l’état précédent et calcule la version côté serveur", () => {
@@ -15,11 +12,7 @@ test("archive l’état précédent et calcule la version côté serveur", () =>
     version: 999,
     blocks: [{ type: "financial_overview", data: { title: "Après" } }],
   };
-  const snapshot = buildCmsRevisionSnapshot(
-    previous,
-    "admin@example.com",
-    "visual",
-  );
+  const snapshot = buildCmsRevisionSnapshot(previous, "admin@example.com", "visual");
   const next = buildVersionedCmsPageData(previous, proposed);
 
   assert.equal(snapshot.data, previous);
@@ -30,11 +23,8 @@ test("archive l’état précédent et calcule la version côté serveur", () =>
 });
 
 test("une page historique sans version démarre à la version 1", () => {
-  assert.deepEqual(
-    buildVersionedCmsPageData({}, { version: 42, header: { title: "Page" } }),
-    {
-      header: { title: "Page" },
-      version: 1,
-    },
-  );
+  assert.deepEqual(buildVersionedCmsPageData({}, { version: 42, header: { title: "Page" } }), {
+    header: { title: "Page" },
+    version: 1,
+  });
 });

@@ -24,8 +24,7 @@ test("découpe une tournée longue en tronçons courts compatibles mobile", () =
   assert.equal(segments[4].destination.id, "stop-19");
   assert.ok(segments.every((segment) => segment.waypoints.length <= 3));
   assert.equal(
-    segments.flatMap((segment) => [...segment.waypoints, segment.destination])
-      .length,
+    segments.flatMap((segment) => [...segment.waypoints, segment.destination]).length,
     stops.length,
   );
 });
@@ -33,8 +32,5 @@ test("découpe une tournée longue en tronçons courts compatibles mobile", () =
 // [SPEC-TOURNEE-05] Empty tours return no routes and segment sizes stay within mobile limits.
 test("gère une tournée vide et refuse une taille de tronçon incompatible", () => {
   assert.deepEqual(buildTourRouteSegments({ lat: 48, lon: -3 }, []), []);
-  assert.throws(
-    () => buildTourRouteSegments({ lat: 48, lon: -3 }, [], 5),
-    RangeError,
-  );
+  assert.throws(() => buildTourRouteSegments({ lat: 48, lon: -3 }, [], 5), RangeError);
 });

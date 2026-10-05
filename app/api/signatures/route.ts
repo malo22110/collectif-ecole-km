@@ -39,10 +39,7 @@ export async function GET(request: Request) {
     }
 
     if (!isAdmin && !isMember) {
-      return NextResponse.json(
-        { error: "Accès réservé aux membres validés" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Accès réservé aux membres validés" }, { status: 403 });
     }
 
     // Récupérer les signatures
@@ -79,9 +76,7 @@ export async function GET(request: Request) {
               ? "accord_collectif"
               : "en ligne",
         potentialDuplicate: data.potentialDuplicate === true,
-        potentialDuplicateCount: Array.isArray(
-          data.potentialDuplicateCandidates,
-        )
+        potentialDuplicateCount: Array.isArray(data.potentialDuplicateCandidates)
           ? data.potentialDuplicateCandidates.length
           : 0,
         createdAt: isoDate,

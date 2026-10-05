@@ -2,10 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { adminAuth, adminDb } from "@/lib/firebaseAdmin";
-import {
-  isPotentialPetitionDuplicate,
-  type PetitionIdentity,
-} from "@/lib/petitionDuplicates";
+import { isPotentialPetitionDuplicate, type PetitionIdentity } from "@/lib/petitionDuplicates";
 import { formatPaperSignatureEmail } from "@/lib/paperSignature";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +23,7 @@ const requestSchema = z
   })
   .strict();
 
-async function readJsonBody(
-  request: Request,
-): Promise<{ value?: unknown; tooLarge: boolean }> {
+async function readJsonBody(request: Request): Promise<{ value?: unknown; tooLarge: boolean }> {
   const reader = request.body?.getReader();
   if (!reader) return { tooLarge: false };
 
@@ -75,15 +70,10 @@ function getIdentity(fullName: string, ville: string): PetitionIdentity {
 }
 
 async function verifyMember(request: Request) {
-  const token = request.headers
-    .get("Authorization")
-    ?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const token = request.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token)
     return {
-      error: NextResponse.json(
-        { error: "Authentification requise." },
-        { status: 401 },
-      ),
+      error: NextResponse.json({ error: "Authentification requise." }, { status: 401 }),
     };
 
   let decodedToken;
@@ -97,47 +87,32 @@ async function verifyMember(request: Request) {
 
   if (!decodedToken.email) {
     return {
-      error: NextResponse.json(
-        { error: "Adresse e-mail absente du compte." },
-        { status: 401 },
-      ),
+      error: NextResponse.json({ error: "Adresse e-mail absente du compte." }, { status: 401 }),
     };
   }
 
-  const memberSnapshot = await adminDb
-    .collection("membres")
-    .doc(decodedToken.email)
-    .get();
+  const memberSnapshot = await adminDb.collection("membres").doc(decodedToken.email).get();
   const memberData = memberSnapshot.data();
   const roles = Array.isArray(memberData?.roles)
     ? memberData.roles
     : memberData?.role
       ? [memberData.role]
       : [];
-  const isValidatedMember =
-    memberSnapshot.exists && memberData?.status === "validated";
+  const isValidatedMember = memberSnapshot.exists && memberData?.status === "validated";
 
   if (!isValidatedMember && !roles.includes("admin")) {
     return {
-      error: NextResponse.json(
-        { error: "Accès réservé aux membres validés." },
-        { status: 403 },
-      ),
+      error: NextResponse.json({ error: "Accès réservé aux membres validés." }, { status: 403 }),
     };
   }
 
   const memberName = [memberData?.prenom, memberData?.nom]
-    .filter(
-      (part): part is string =>
-        typeof part === "string" && part.trim().length > 0,
-    )
+    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
     .join(" ");
 
   return {
     uid: decodedToken.uid,
-    memberName:
-      memberName ||
-      (typeof decodedToken.name === "string" ? decodedToken.name : ""),
+    memberName: memberName || (typeof decodedToken.name === "string" ? decodedToken.name : ""),
   };
 }
 
@@ -166,16 +141,8 @@ const PETITION_CLOSED: boolean = true;
 export async function POST(request: Request) {
   // [SPEC-PET-SCAN-01] La photo reste locale; seuls les champs révisés sont envoyés pour aperçu ou import.
   try {
-    if (
-      !request.headers
-        .get("Content-Type")
-        ?.toLowerCase()
-        .includes("application/json")
-    ) {
-      return NextResponse.json(
-        { error: "Format de requête invalide." },
-        { status: 415 },
-      );
+    if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "Format de requête invalide." }, { status: 415 });
     }
 
     const authorization = await verifyMember(request);
@@ -183,10 +150,7 @@ export async function POST(request: Request) {
 
     const body = await readJsonBody(request);
     if (body.tooLarge) {
-      return NextResponse.json(
-        { error: "Le lot dépasse la taille autorisée." },
-        { status: 413 },
-      );
+      return NextResponse.json({ error: "Le lot dépasse la taille autorisée." }, { status: 413 });
     }
 
     const parsed = requestSchema.safeParse(body.value);
@@ -202,8 +166,7 @@ export async function POST(request: Request) {
     if (PETITION_CLOSED && parsed.data.action !== "review") {
       return NextResponse.json(
         {
-          error:
-            "La pétition est close : l’import de signatures est désactivé.",
+          error: "La pétition est close : l’import de signatures est désactivé.",
         },
         { status: 410 },
       );
@@ -237,8 +200,7 @@ export async function POST(request: Request) {
           const sameBatchMatches = entries
             .filter(
               (other, otherIndex) =>
-                otherIndex !== entryIndex &&
-                isPotentialPetitionDuplicate(entry, other),
+                otherIndex !== entryIndex && isPotentialPetitionDuplicate(entry, other),
             )
             .map((other) => ({
               fullName: other.fullName,

@@ -10,8 +10,7 @@ const MAIL_ADMIN_EMAILS = new Set([
 
 export const mailInboxDb = adminDb;
 export const mailInboxBucket = getStorage(adminApp).bucket(
-  process.env.FIREBASE_STORAGE_BUCKET ||
-    "collectif-ecole-km.firebasestorage.app",
+  process.env.FIREBASE_STORAGE_BUCKET || "collectif-ecole-km.firebasestorage.app",
 );
 
 export type MailInboxStaff = {
@@ -21,8 +20,7 @@ export type MailInboxStaff = {
 };
 
 export type MailInboxAuthorization =
-  | { staff: MailInboxStaff; response?: never }
-  | { staff?: never; response: Response };
+  { staff: MailInboxStaff; response?: never } | { staff?: never; response: Response };
 
 export class MailInboxRequestError extends Error {
   constructor(
@@ -33,18 +31,11 @@ export class MailInboxRequestError extends Error {
   }
 }
 
-export async function authorizeMailInboxStaff(
-  request: Request,
-): Promise<MailInboxAuthorization> {
-  const token = request.headers
-    .get("Authorization")
-    ?.match(/^Bearer\s+(.+)$/i)?.[1];
+export async function authorizeMailInboxStaff(request: Request): Promise<MailInboxAuthorization> {
+  const token = request.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token)
     return {
-      response: Response.json(
-        { error: "Authentification requise." },
-        { status: 401 },
-      ),
+      response: Response.json({ error: "Authentification requise." }, { status: 401 }),
     };
 
   let decodedToken;
@@ -58,22 +49,15 @@ export async function authorizeMailInboxStaff(
 
   if (!decodedToken.email) {
     return {
-      response: Response.json(
-        { error: "Adresse e-mail absente du compte." },
-        { status: 401 },
-      ),
+      response: Response.json({ error: "Adresse e-mail absente du compte." }, { status: 401 }),
     };
   }
 
-  const memberSnapshot = await mailInboxDb
-    .collection("membres")
-    .doc(decodedToken.email)
-    .get();
+  const memberSnapshot = await mailInboxDb.collection("membres").doc(decodedToken.email).get();
   const memberData = memberSnapshot.data();
   const roles = getMemberRoles(memberData || {});
   const isAdmin =
-    roles.includes("admin") ||
-    MAIL_ADMIN_EMAILS.has(decodedToken.email.toLowerCase());
+    roles.includes("admin") || MAIL_ADMIN_EMAILS.has(decodedToken.email.toLowerCase());
   const isAuthorized =
     isAdmin ||
     (memberSnapshot.exists &&
@@ -101,35 +85,21 @@ export function mailInboxErrorResponse(
   if (error instanceof MailInboxRequestError) {
     return Response.json({ error: error.message }, { status: error.status });
   }
-  if (
-    error &&
-    typeof error === "object" &&
-    "status" in error &&
-    typeof error.status === "number"
-  ) {
+  if (error && typeof error === "object" && "status" in error && typeof error.status === "number") {
     const message =
-      "message" in error && typeof error.message === "string"
-        ? error.message
-        : fallback;
+      "message" in error && typeof error.message === "string" ? error.message : fallback;
     return Response.json({ error: message }, { status: error.status });
   }
   console.error(fallback, error);
   return Response.json({ error: fallback }, { status: 500 });
 }
 
-export async function readMailInboxJsonBody(
-  request: Request,
-  maxBytes: number,
-): Promise<unknown> {
+export async function readMailInboxJsonBody(request: Request, maxBytes: number): Promise<unknown> {
   const contentLength = Number(request.headers.get("content-length"));
   if (Number.isFinite(contentLength) && contentLength > maxBytes) {
-    throw new MailInboxRequestError(
-      413,
-      "La requête dépasse la taille maximale.",
-    );
+    throw new MailInboxRequestError(413, "La requête dépasse la taille maximale.");
   }
-  if (!request.body)
-    throw new MailInboxRequestError(400, "Corps JSON manquant.");
+  if (!request.body) throw new MailInboxRequestError(400, "Corps JSON manquant.");
 
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -140,10 +110,7 @@ export async function readMailInboxJsonBody(
     totalBytes += value.byteLength;
     if (totalBytes > maxBytes || chunks.length >= 64) {
       await reader.cancel();
-      throw new MailInboxRequestError(
-        413,
-        "La requête dépasse la taille maximale.",
-      );
+      throw new MailInboxRequestError(413, "La requête dépasse la taille maximale.");
     }
     chunks.push(value);
   }

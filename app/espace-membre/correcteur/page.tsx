@@ -2,13 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { auth, db } from "@/lib/firebase";
-import {
-  doc,
-  getDoc,
-  collection,
-  onSnapshot,
-  updateDoc,
-} from "firebase/firestore";
+import { doc, getDoc, collection, onSnapshot, updateDoc } from "firebase/firestore";
 import {
   ShieldAlert,
   Search,
@@ -94,9 +88,7 @@ export default function CorrecteurPage() {
         ...d.data(),
       })) as Signature[];
       data.sort(
-        (a, b) =>
-          new Date(b.createdAt || 0).getTime() -
-          new Date(a.createdAt || 0).getTime(),
+        (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
       );
       setSignatures(data);
     });
@@ -108,17 +100,12 @@ export default function CorrecteurPage() {
     return signatures.filter(
       (s) =>
         !q ||
-        `${s.prenom} ${s.nom} ${s.ville} ${s.qualite} ${s.email || ""}`
-          .toLowerCase()
-          .includes(q),
+        `${s.prenom} ${s.nom} ${s.ville} ${s.qualite} ${s.email || ""}`.toLowerCase().includes(q),
     );
   }, [signatures, search]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const currentItems = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const potentialDuplicatePairs = useMemo(() => {
     const groupedSigners = groupPetitionSigners(
       signatures.map((signature) => ({
@@ -134,10 +121,7 @@ export default function CorrecteurPage() {
     );
     return findPotentialPetitionDuplicatePairs(groupedSigners);
   }, [signatures]);
-  const petitionStats = useMemo(
-    () => calculatePetitionStats(signatures),
-    [signatures],
-  );
+  const petitionStats = useMemo(() => calculatePetitionStats(signatures), [signatures]);
 
   const startEdit = (sig: Signature) => {
     setEditingId(sig.id);
@@ -201,9 +185,7 @@ export default function CorrecteurPage() {
       link.remove();
       URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      setExportError(
-        error instanceof Error ? error.message : "L'export a échoué.",
-      );
+      setExportError(error instanceof Error ? error.message : "L'export a échoué.");
     } finally {
       setExporting(false);
     }
@@ -213,8 +195,7 @@ export default function CorrecteurPage() {
   const handleDeleteDuplicate = async (signatureId: string) => {
     const signature = signatures.find((item) => item.id === signatureId);
     if (!signature) return;
-    const signerName =
-      `${signature.prenom} ${signature.nom}`.trim() || "ce signataire";
+    const signerName = `${signature.prenom} ${signature.nom}`.trim() || "ce signataire";
     if (
       !window.confirm(
         `Supprimer définitivement l’entrée de ${signerName} (${signature.source || "en ligne"}) ? Cette action est irréversible.`,
@@ -227,30 +208,22 @@ export default function CorrecteurPage() {
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error("Votre session a expiré. Reconnectez-vous.");
-      const response = await fetch(
-        `/api/signatures/${encodeURIComponent(signatureId)}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ confirmed: true }),
-          cache: "no-store",
+      const response = await fetch(`/api/signatures/${encodeURIComponent(signatureId)}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ confirmed: true }),
+        cache: "no-store",
+      });
       const result = await response.json().catch(() => null);
-      if (!response.ok)
-        throw new Error(result?.error || "La suppression a échoué.");
-      setSignatures((current) =>
-        current.filter((item) => item.id !== signatureId),
-      );
+      if (!response.ok) throw new Error(result?.error || "La suppression a échoué.");
+      setSignatures((current) => current.filter((item) => item.id !== signatureId));
       if (editingId === signatureId) cancelEdit();
     } catch (error) {
       setDeleteError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de supprimer cette entrée.",
+        error instanceof Error ? error.message : "Impossible de supprimer cette entrée.",
       );
     } finally {
       setDeletingId(null);
@@ -259,20 +232,14 @@ export default function CorrecteurPage() {
 
   // --- Guards ---
   if (hasAccess === null)
-    return (
-      <div className="p-8 text-center text-stone-500">
-        Vérification des droits...
-      </div>
-    );
+    return <div className="p-8 text-center text-stone-500">Vérification des droits...</div>;
 
   if (!hasAccess)
     return (
       <div className="p-8 text-center flex flex-col items-center">
         <ShieldAlert size={48} className="mb-4 text-red-500" />
         <h2 className="text-xl font-bold text-red-700">Accès refusé</h2>
-        <p className="text-stone-500">
-          Vous n'avez pas les droits pour accéder à cette page.
-        </p>
+        <p className="text-stone-500">Vous n'avez pas les droits pour accéder à cette page.</p>
       </div>
     );
 
@@ -285,9 +252,8 @@ export default function CorrecteurPage() {
           Correcteur de Pétition
         </h1>
         <p className="text-stone-500 text-sm">
-          Corrigez les fautes de frappe ou erreurs dans les entrées de la
-          pétition. Seuls les champs nom, prénom, ville, lien et e-mail peuvent
-          être modifiés.
+          Corrigez les fautes de frappe ou erreurs dans les entrées de la pétition. Seuls les champs
+          nom, prénom, ville, lien et e-mail peuvent être modifiés.
         </p>
       </div>
 
@@ -318,17 +284,11 @@ export default function CorrecteurPage() {
             disabled={exporting}
             className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-emerald-800 px-4 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60"
           >
-            {exporting ? (
-              <Loader2 className="animate-spin" size={17} />
-            ) : (
-              <Download size={17} />
-            )}
+            {exporting ? <Loader2 className="animate-spin" size={17} /> : <Download size={17} />}
             {exporting ? "Préparation…" : "Exporter tous les signataires (CSV)"}
           </button>
         </div>
-        <p className="text-xs text-stone-400 mt-2">
-          {filtered.length} entrée(s)
-        </p>
+        <p className="text-xs text-stone-400 mt-2">{filtered.length} entrée(s)</p>
         {exportError && (
           <p role="alert" className="mt-2 text-sm font-medium text-red-700">
             {exportError}
@@ -341,29 +301,18 @@ export default function CorrecteurPage() {
         aria-labelledby="signature-duplicate-analysis-title"
       >
         <div className="flex items-start gap-3">
-          <AlertTriangle
-            size={20}
-            className="mt-0.5 shrink-0 text-amber-700"
-            aria-hidden="true"
-          />
+          <AlertTriangle size={20} className="mt-0.5 shrink-0 text-amber-700" aria-hidden="true" />
           <div className="min-w-0 flex-1">
-            <h2
-              id="signature-duplicate-analysis-title"
-              className="font-bold text-stone-900"
-            >
+            <h2 id="signature-duplicate-analysis-title" className="font-bold text-stone-900">
               Doublons potentiels · {potentialDuplicatePairs.length} paire(s)
             </h2>
             <p className="mt-1 text-xs leading-5 text-stone-600">
-              Rapprochements de noms identiques ou proches dans une même
-              commune. Ce sont des alertes à vérifier, jamais une fusion
-              automatique. Les signatures papier, en ligne et accords de
-              principe sont comparés ensemble.
+              Rapprochements de noms identiques ou proches dans une même commune. Ce sont des
+              alertes à vérifier, jamais une fusion automatique. Les signatures papier, en ligne et
+              accords de principe sont comparés ensemble.
             </p>
             {deleteError && (
-              <p
-                role="alert"
-                className="mt-2 text-sm font-semibold text-rose-800"
-              >
+              <p role="alert" className="mt-2 text-sm font-semibold text-rose-800">
                 {deleteError}
               </p>
             )}
@@ -409,9 +358,7 @@ export default function CorrecteurPage() {
                       {pair.first.id && (
                         <button
                           type="button"
-                          onClick={() =>
-                            void handleDeleteDuplicate(pair.first.id!)
-                          }
+                          onClick={() => void handleDeleteDuplicate(pair.first.id!)}
                           disabled={Boolean(deletingId)}
                           aria-label={`Supprimer l’entrée ${pair.first.prenom} ${pair.first.nom} (${pair.first.source || "en ligne"})`}
                           className="inline-flex min-h-10 items-center justify-center gap-1 rounded border border-rose-300 px-2 text-xs font-semibold text-rose-800 hover:bg-rose-50 disabled:opacity-50"
@@ -427,9 +374,7 @@ export default function CorrecteurPage() {
                       {pair.second.id && (
                         <button
                           type="button"
-                          onClick={() =>
-                            void handleDeleteDuplicate(pair.second.id!)
-                          }
+                          onClick={() => void handleDeleteDuplicate(pair.second.id!)}
                           disabled={Boolean(deletingId)}
                           aria-label={`Supprimer l’entrée ${pair.second.prenom} ${pair.second.nom} (${pair.second.source || "en ligne"})`}
                           className="inline-flex min-h-10 items-center justify-center gap-1 rounded border border-rose-300 px-2 text-xs font-semibold text-rose-800 hover:bg-rose-50 disabled:opacity-50"
@@ -449,15 +394,12 @@ export default function CorrecteurPage() {
             )}
             {potentialDuplicatePairs.length > 100 && (
               <p className="mt-2 text-xs font-medium text-amber-900">
-                Affichage des 100 premières paires sur{" "}
-                {potentialDuplicatePairs.length}. Utilise la recherche pour
-                examiner un nom précis.
+                Affichage des 100 premières paires sur {potentialDuplicatePairs.length}. Utilise la
+                recherche pour examiner un nom précis.
               </p>
             )}
             {potentialDuplicatePairs.length === 0 && (
-              <p className="mt-2 text-sm text-stone-600">
-                Aucune paire candidate détectée.
-              </p>
+              <p className="mt-2 text-sm text-stone-600">Aucune paire candidate détectée.</p>
             )}
           </div>
         </div>
@@ -468,10 +410,7 @@ export default function CorrecteurPage() {
         aria-labelledby="petition-statistics-title"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2
-            id="petition-statistics-title"
-            className="font-bold text-stone-900"
-          >
+          <h2 id="petition-statistics-title" className="font-bold text-stone-900">
             Statistiques de la pétition
           </h2>
           <span className="text-sm font-semibold text-stone-700">
@@ -480,25 +419,20 @@ export default function CorrecteurPage() {
         </div>
         <dl className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
           <div className="border-l-2 border-emerald-700 pl-3">
-            <dt className="text-xs text-stone-500">
-              Habitants de Kergrist-Moëlou
-            </dt>
+            <dt className="text-xs text-stone-500">Habitants de Kergrist-Moëlou</dt>
             <dd className="mt-0.5 text-lg font-bold text-emerald-900">
               {petitionStats.habitantsKergrist}{" "}
               <span className="text-sm font-semibold">
                 (
-                {petitionStats.habitantsKergristPercent.toLocaleString(
-                  "fr-FR",
-                  { maximumFractionDigits: 1 },
-                )}
+                {petitionStats.habitantsKergristPercent.toLocaleString("fr-FR", {
+                  maximumFractionDigits: 1,
+                })}
                 %)
               </span>
             </dd>
           </div>
           <div className="border-l-2 border-stone-300 pl-3">
-            <dt className="text-xs text-stone-500">
-              Parents d’élèves (catégorie)
-            </dt>
+            <dt className="text-xs text-stone-500">Parents d’élèves (catégorie)</dt>
             <dd className="mt-0.5 text-lg font-bold text-stone-900">
               {petitionStats.parentsEleves}{" "}
               <span className="text-sm font-semibold">
@@ -537,48 +471,39 @@ export default function CorrecteurPage() {
             </dd>
           </div>
           <div className="border-l-2 border-amber-500 pl-3">
-            <dt className="text-xs text-stone-500">
-              Qualité déclarée « parent d’élève »*
-            </dt>
+            <dt className="text-xs text-stone-500">Qualité déclarée « parent d’élève »*</dt>
             <dd className="mt-0.5 text-lg font-bold text-stone-900">
               {petitionStats.declaredParentOfPupilQuality}{" "}
               <span className="text-sm font-semibold">
                 (
-                {petitionStats.declaredParentOfPupilQualityPercent.toLocaleString(
-                  "fr-FR",
-                  { maximumFractionDigits: 1 },
-                )}
+                {petitionStats.declaredParentOfPupilQualityPercent.toLocaleString("fr-FR", {
+                  maximumFractionDigits: 1,
+                })}
                 %)
               </span>
             </dd>
           </div>
           <div className="border-l-2 border-amber-700 pl-3">
-            <dt className="text-xs text-stone-500">
-              Signataires / 47 parents au total*
-            </dt>
+            <dt className="text-xs text-stone-500">Signataires / 47 parents au total*</dt>
             <dd className="mt-0.5 text-lg font-bold text-amber-900">
               {petitionStats.declaredParentOfPupilQuality} / 47{" "}
               <span className="text-sm font-semibold">
                 (
-                {petitionStats.parentSignersOfKnownParentsPercent.toLocaleString(
-                  "fr-FR",
-                  { minimumFractionDigits: 2, maximumFractionDigits: 2 },
-                )}
+                {petitionStats.parentSignersOfKnownParentsPercent.toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
                 %)
               </span>
             </dd>
           </div>
           <div className="border-l-2 border-emerald-700 pl-3">
-            <dt className="text-xs text-stone-500">
-              Habitants / base électorale estimée*
-            </dt>
+            <dt className="text-xs text-stone-500">Habitants / base électorale estimée*</dt>
             <dd className="mt-0.5 text-lg font-bold text-emerald-900">
               {petitionStats.habitantsKergrist} / 539{" "}
               <span className="text-sm font-semibold">
                 (
-                {(
-                  petitionStats.kergristElectorateEstimatePercent ?? 0
-                ).toLocaleString("fr-FR", {
+                {(petitionStats.kergristElectorateEstimatePercent ?? 0).toLocaleString("fr-FR", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
@@ -588,10 +513,9 @@ export default function CorrecteurPage() {
           </div>
         </dl>
         <p className="mt-3 text-xs leading-5 text-stone-500">
-          * La part / 47 compare les qualités déclarées « Parent d’élève » au
-          nombre total de parents communiqué (47); elle ne confirme pas
-          l’identité de parent. La part électorale utilise une base estimée de
-          539 habitants en âge de voter, à confirmer et actualiser.
+          * La part / 47 compare les qualités déclarées « Parent d’élève » au nombre total de
+          parents communiqué (47); elle ne confirme pas l’identité de parent. La part électorale
+          utilise une base estimée de 539 habitants en âge de voter, à confirmer et actualiser.
         </p>
         <details className="mt-3 text-xs text-stone-600">
           <summary className="min-h-10 cursor-pointer py-2 font-semibold text-stone-700">
@@ -599,20 +523,20 @@ export default function CorrecteurPage() {
           </summary>
           <ol className="list-decimal space-y-1 pl-5 leading-5">
             <li>
-              Kergrist si la commune contient « kergrist » ou si le lien
-              contient « habitant(e) de Kergrist ».
+              Kergrist si la commune contient « kergrist » ou si le lien contient « habitant(e) de
+              Kergrist ».
             </li>
             <li>
-              Sinon, parent d’élève si le lien déclaré contient à la fois «
-              parent » et « élève »; l’accent est ignoré.
+              Sinon, parent d’élève si le lien déclaré contient à la fois « parent » et « élève »;
+              l’accent est ignoré.
             </li>
             <li>
-              Sinon, commune voisine si le lien contient « voisine » ou qu’une
-              commune non vide est renseignée.
+              Sinon, commune voisine si le lien contient « voisine » ou qu’une commune non vide est
+              renseignée.
             </li>
             <li>
-              Toutes les autres entrées sont classées « Autres soutiens ».
-              Chaque entrée est comptée une seule fois, selon cette priorité.
+              Toutes les autres entrées sont classées « Autres soutiens ». Chaque entrée est comptée
+              une seule fois, selon cette priorité.
             </li>
           </ol>
         </details>
@@ -625,15 +549,9 @@ export default function CorrecteurPage() {
             <tr>
               <th className="p-3 md:px-6 font-semibold">Prénom</th>
               <th className="p-3 md:px-6 font-semibold">Nom</th>
-              <th className="p-3 md:px-6 font-semibold hidden md:table-cell">
-                Lien avec l'école
-              </th>
-              <th className="p-3 md:px-6 font-semibold hidden lg:table-cell">
-                Commune
-              </th>
-              <th className="p-3 md:px-6 font-semibold hidden xl:table-cell">
-                E-mail
-              </th>
+              <th className="p-3 md:px-6 font-semibold hidden md:table-cell">Lien avec l'école</th>
+              <th className="p-3 md:px-6 font-semibold hidden lg:table-cell">Commune</th>
+              <th className="p-3 md:px-6 font-semibold hidden xl:table-cell">E-mail</th>
               <th className="p-3 md:px-6 font-semibold text-right">Actions</th>
             </tr>
           </thead>
@@ -646,36 +564,28 @@ export default function CorrecteurPage() {
                     <input
                       className="input-base py-1 text-sm"
                       value={editForm.prenom || ""}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, prenom: e.target.value })
-                      }
+                      onChange={(e) => setEditForm({ ...editForm, prenom: e.target.value })}
                     />
                   </td>
                   <td className="p-2 md:px-4">
                     <input
                       className="input-base py-1 text-sm"
                       value={editForm.nom || ""}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, nom: e.target.value })
-                      }
+                      onChange={(e) => setEditForm({ ...editForm, nom: e.target.value })}
                     />
                   </td>
                   <td className="p-2 md:px-4 hidden md:table-cell">
                     <input
                       className="input-base py-1 text-sm"
                       value={editForm.qualite || ""}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, qualite: e.target.value })
-                      }
+                      onChange={(e) => setEditForm({ ...editForm, qualite: e.target.value })}
                     />
                   </td>
                   <td className="p-2 md:px-4 hidden lg:table-cell">
                     <input
                       className="input-base py-1 text-sm"
                       value={editForm.ville || ""}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, ville: e.target.value })
-                      }
+                      onChange={(e) => setEditForm({ ...editForm, ville: e.target.value })}
                     />
                   </td>
                   <td className="p-2 md:px-4 hidden xl:table-cell">
@@ -683,9 +593,7 @@ export default function CorrecteurPage() {
                       type="email"
                       className="input-base py-1 text-sm"
                       value={editForm.email || ""}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, email: e.target.value })
-                      }
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     />
                   </td>
                   <td className="p-2 md:px-4 text-right">
@@ -719,20 +627,13 @@ export default function CorrecteurPage() {
                 >
                   <td className="p-3 md:px-6 font-medium text-stone-900">
                     {savedId === sig.id && (
-                      <Check
-                        size={14}
-                        className="inline mr-1 text-emerald-600"
-                      />
+                      <Check size={14} className="inline mr-1 text-emerald-600" />
                     )}
                     {sig.prenom}
                   </td>
                   <td className="p-3 md:px-6 text-stone-700">{sig.nom}</td>
-                  <td className="p-3 md:px-6 text-stone-600 hidden md:table-cell">
-                    {sig.qualite}
-                  </td>
-                  <td className="p-3 md:px-6 text-stone-600 hidden lg:table-cell">
-                    {sig.ville}
-                  </td>
+                  <td className="p-3 md:px-6 text-stone-600 hidden md:table-cell">{sig.qualite}</td>
+                  <td className="p-3 md:px-6 text-stone-600 hidden lg:table-cell">{sig.ville}</td>
                   <td className="p-3 md:px-6 text-stone-400 text-xs hidden xl:table-cell">
                     {sig.email ? (
                       <span className="font-mono">{sig.email}</span>

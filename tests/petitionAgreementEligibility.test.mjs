@@ -13,14 +13,12 @@ const member = {
 test("masque les membres déjà signataires, déjà représentés ou rapprochés d’une signature papier", () => {
   assert.equal(classifyPetitionAgreementMember(member, []).available, true);
   assert.equal(
-    classifyPetitionAgreementMember(member, [{ ...member, source: "en ligne" }])
-      .isAlreadySigned,
+    classifyPetitionAgreementMember(member, [{ ...member, source: "en ligne" }]).isAlreadySigned,
     true,
   );
   assert.equal(
-    classifyPetitionAgreementMember(member, [
-      { ...member, source: "accord_collectif" },
-    ]).hasAgreement,
+    classifyPetitionAgreementMember(member, [{ ...member, source: "accord_collectif" }])
+      .hasAgreement,
     true,
   );
   const paperMatch = {
@@ -29,14 +27,10 @@ test("masque les membres déjà signataires, déjà représentés ou rapprochés
     ...member,
   };
   assert.equal(
-    classifyPetitionAgreementMember(member, [paperMatch])
-      .hasPotentialPaperSignature,
+    classifyPetitionAgreementMember(member, [paperMatch]).hasPotentialPaperSignature,
     true,
   );
-  assert.equal(
-    classifyPetitionAgreementMember(member, [paperMatch]).available,
-    false,
-  );
+  assert.equal(classifyPetitionAgreementMember(member, [paperMatch]).available, false);
 });
 
 test("ne bloque pas un membre pour une entrée papier sans correspondance de nom/commune", () => {
@@ -47,8 +41,5 @@ test("ne bloque pas un membre pour une entrée papier sans correspondance de nom
     nom: "Dupont",
     ville: "Dinan",
   };
-  assert.equal(
-    classifyPetitionAgreementMember(member, [unrelatedPaper]).available,
-    true,
-  );
+  assert.equal(classifyPetitionAgreementMember(member, [unrelatedPaper]).available, true);
 });

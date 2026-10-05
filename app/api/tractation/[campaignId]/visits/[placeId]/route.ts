@@ -41,17 +41,10 @@ export async function PUT(
   try {
     const parsed = visitInputSchema.safeParse(await readJsonBody(request));
     if (!parsed.success)
-      return Response.json(
-        { error: "État de passage invalide." },
-        { status: 400 },
-      );
+      return Response.json({ error: "État de passage invalide." }, { status: 400 });
 
-    const campaignRef = tractationDb
-      .collection("tractationCampaigns")
-      .doc(campaignId);
-    const participantRef = campaignRef
-      .collection("participants")
-      .doc(authorization.member.uid);
+    const campaignRef = tractationDb.collection("tractationCampaigns").doc(campaignId);
+    const participantRef = campaignRef.collection("participants").doc(authorization.member.uid);
     const visitRef = participantRef.collection("visits").doc(placeId);
 
     await tractationDb.runTransaction(async (transaction) => {
@@ -59,27 +52,17 @@ export async function PUT(
       const participant = await transaction.get(participantRef);
       const visit = await transaction.get(visitRef);
 
-      if (!campaign.exists)
-        throw new VisitRequestError(404, "Campagne introuvable.");
+      if (!campaign.exists) throw new VisitRequestError(404, "Campagne introuvable.");
       if (campaign.get("status") !== "active")
         throw new VisitRequestError(409, "Cette campagne n'est plus ouverte.");
       if (!participant.exists)
-        throw new VisitRequestError(
-          403,
-          "Rejoignez la campagne avant de valider un passage.",
-        );
+        throw new VisitRequestError(403, "Rejoignez la campagne avant de valider un passage.");
 
       const selectedPlaces = campaign.get("lieuDits");
       const place = Array.isArray(selectedPlaces)
-        ? selectedPlaces.find(
-            (item) => item && typeof item === "object" && item.id === placeId,
-          )
+        ? selectedPlaces.find((item) => item && typeof item === "object" && item.id === placeId)
         : undefined;
-      if (!place)
-        throw new VisitRequestError(
-          404,
-          "Ce lieu ne fait pas partie de la campagne.",
-        );
+      if (!place) throw new VisitRequestError(404, "Ce lieu ne fait pas partie de la campagne.");
 
       if (parsed.data.visited) {
         if (!visit.exists) {

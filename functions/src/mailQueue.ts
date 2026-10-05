@@ -8,7 +8,6 @@ export function isMailDueForDelivery(
 ): boolean {
   if (scheduledAt == null) return true;
 
-  const scheduledDate =
-    scheduledAt instanceof Date ? scheduledAt : scheduledAt.toDate();
+  const scheduledDate = scheduledAt instanceof Date ? scheduledAt : scheduledAt.toDate();
   return Number.isFinite(scheduledDate.getTime()) && scheduledDate <= now;
 }

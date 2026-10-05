@@ -53,22 +53,20 @@ export default function PetitionPage() {
             Rappel de la demande portée par la pétition pendant la collecte :
           </p>
           <blockquote className="border-l-4 border-emerald-600 bg-emerald-50 px-5 py-4 text-stone-900 leading-relaxed">
-            Nous demandons la poursuite et la réévaluation à la baisse du
-            dossier de rénovation déjà engagé, afin d&apos;aboutir à une
-            solution économe (retour à l&apos;enveloppe de 550 000 € HT) et
-            adaptée aux capacités de la commune, plutôt qu&apos;à un blocage ou
-            un abandon qui contraindrait à repartir de zéro.
+            Nous demandons la poursuite et la réévaluation à la baisse du dossier de rénovation déjà
+            engagé, afin d&apos;aboutir à une solution économe (retour à l&apos;enveloppe de 550 000
+            € HT) et adaptée aux capacités de la commune, plutôt qu&apos;à un blocage ou un abandon
+            qui contraindrait à repartir de zéro.
           </blockquote>
           <h2 className="text-2xl font-bold">La pétition est close</h2>
           <p className="text-stone-700 leading-relaxed">
-            Il n’est plus possible de signer en ligne ni de déposer de nouvelles
-            signatures papier. Les signatures recueillies restent prises en
-            compte dans le bilan de cette mobilisation.
+            Il n’est plus possible de signer en ligne ni de déposer de nouvelles signatures papier.
+            Les signatures recueillies restent prises en compte dans le bilan de cette mobilisation.
           </p>
           <p className="text-stone-700 leading-relaxed">
-            L’étape suivante est le travail de l’architecte pour faire entrer le
-            projet dans l’enveloppe. Les caractéristiques et le calendrier du
-            projet seront précisés lorsque les informations seront publiées.
+            L’étape suivante est le travail de l’architecte pour faire entrer le projet dans
+            l’enveloppe. Les caractéristiques et le calendrier du projet seront précisés lorsque les
+            informations seront publiées.
           </p>
           <Link
             href="/historique"

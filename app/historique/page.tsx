@@ -27,7 +27,11 @@ export default function HistoriquePage() {
 
   // [SPEC-CMS-DRAFT-01] Vérifie si l'utilisateur est admin ou éditeur
   useEffect(() => {
-    const ADMIN_EMAILS = ["contact@collectif-ecole-km.fr", "lecam.malo@gmail.com", "collectif.ecole.km@gmail.com"];
+    const ADMIN_EMAILS = [
+      "contact@collectif-ecole-km.fr",
+      "lecam.malo@gmail.com",
+      "collectif.ecole.km@gmail.com",
+    ];
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
       if (user && user.email) {
         setCurrentUserEmail(user.email);
@@ -71,7 +75,7 @@ export default function HistoriquePage() {
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "commentaires"), (snapshot) => {
       const counts: Record<string, number> = {};
-      snapshot.forEach(doc => {
+      snapshot.forEach((doc) => {
         const topic = doc.data().topic || "Général";
         counts[topic] = (counts[topic] || 0) + 1;
       });
@@ -101,13 +105,19 @@ export default function HistoriquePage() {
       {/* HEADER */}
       <header className="bg-white border-b border-stone-200 sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-stone-600 hover:text-stone-900 font-medium transition-colors">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-stone-600 hover:text-stone-900 font-medium transition-colors"
+          >
             <ArrowLeft size={20} />
             <span className="hidden sm:inline">Retour à l'accueil</span>
           </Link>
           <div className="font-bold text-stone-900 hidden sm:block">Le Collectif</div>
           <div className="flex items-center gap-4">
-            <Link href="/petition" className="text-sm font-bold bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors">
+            <Link
+              href="/petition"
+              className="text-sm font-bold bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full hover:bg-emerald-200 transition-colors"
+            >
               Pétition
             </Link>
             <UserAvatar />
@@ -120,13 +130,13 @@ export default function HistoriquePage() {
             <div className="inline-flex bg-stone-200/50 p-1 rounded-full items-center border border-stone-200 shadow-inner">
               <button
                 onClick={() => setIsSimplified(true)}
-                className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${isSimplified ? "bg-white text-emerald-700 shadow-sm" : "text-stone-500 hover:text-stone-700"}`}
               >
                 Version Courte (Résumé)
               </button>
               <button
                 onClick={() => setIsSimplified(false)}
-                className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${!isSimplified ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${!isSimplified ? "bg-white text-emerald-700 shadow-sm" : "text-stone-500 hover:text-stone-700"}`}
               >
                 Détails Complets
               </button>
@@ -137,17 +147,17 @@ export default function HistoriquePage() {
       <div className="h-8"></div>
 
       <div className="max-w-4xl mx-auto px-4 pt-4 pb-8 text-center">
-        
         {/* TITRE ET SOUS-TITRE (Dynamiques via CMS) */}
         {pageData.header && (
           <>
-            <h1 className="text-3xl md:text-4xl font-bold text-stone-900 mb-4">{pageData.header.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-stone-900 mb-4">
+              {pageData.header.title}
+            </h1>
             <p className="text-lg text-stone-600 max-w-2xl mx-auto mb-12">
               {pageData.header.subtitle}
             </p>
           </>
         )}
-
       </div>
 
       {canEdit && (
@@ -155,15 +165,25 @@ export default function HistoriquePage() {
           <button
             onClick={() => {
               if (editMode && isEditorDirty) {
-                const ok = window.confirm("⚠️ Vous avez des modifications non sauvegardées.\n\nSi vous quittez le mode édition, vos modifications seront perdues. Continuer quand même ?");
+                const ok = window.confirm(
+                  "⚠️ Vous avez des modifications non sauvegardées.\n\nSi vous quittez le mode édition, vos modifications seront perdues. Continuer quand même ?",
+                );
                 if (!ok) return;
               }
               setEditMode(!editMode);
               setIsEditorDirty(false);
             }}
-            className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold shadow-xl transition-all ${editMode ? 'bg-emerald-600 text-white' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
+            className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold shadow-xl transition-all ${editMode ? "bg-emerald-600 text-white" : "bg-stone-900 text-white hover:bg-stone-800"}`}
           >
-            {editMode ? <><Eye size={16}/> Quitter l'édition</> : <><Pencil size={16}/> Modifier la page</>}
+            {editMode ? (
+              <>
+                <Eye size={16} /> Quitter l'édition
+              </>
+            ) : (
+              <>
+                <Pencil size={16} /> Modifier la page
+              </>
+            )}
           </button>
         </div>
       )}
@@ -179,7 +199,6 @@ export default function HistoriquePage() {
           </div>
         ) : (
           <>
-
             {(() => {
               // [SPEC-CMS-DRAFT-01] Injecter le numéro de version dans le titre
               // de la première Alert au moment du rendu (sans modifier Firestore)
@@ -187,13 +206,13 @@ export default function HistoriquePage() {
               let firstAlertFound = false;
               return pageData.blocks?.map((block: any, idx: number) => {
                 let displayBlock = block;
-                if (!firstAlertFound && block.type === 'alert' && version !== null) {
+                if (!firstAlertFound && block.type === "alert" && version !== null) {
                   firstAlertFound = true;
                   displayBlock = {
                     ...block,
                     data: {
                       ...block.data,
-                      title: `v${version} — ${block.data.title || ''}`.trimEnd(),
+                      title: `v${version} — ${block.data.title || ""}`.trimEnd(),
                     },
                   };
                 }
@@ -219,11 +238,24 @@ export default function HistoriquePage() {
 
       {/* DRAWER COMMENTAIRES */}
       {activeTopic && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-stone-900/50 backdrop-blur-sm transition-opacity" onClick={() => setActiveTopic(null)}>
-          <div className="w-full max-w-md bg-stone-50 h-full overflow-y-auto shadow-2xl animate-in slide-in-from-right" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-stone-900/50 backdrop-blur-sm transition-opacity"
+          onClick={() => setActiveTopic(null)}
+        >
+          <div
+            className="w-full max-w-md bg-stone-50 h-full overflow-y-auto shadow-2xl animate-in slide-in-from-right"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 bg-white border-b border-stone-200 p-4 flex justify-between items-center z-10 shadow-sm">
-              <h3 className="font-bold text-stone-900 flex-1 truncate mr-4">Débat : {activeTopic}</h3>
-              <button onClick={() => setActiveTopic(null)} className="p-2 bg-stone-100 text-stone-600 hover:bg-stone-200 rounded-full transition-colors"><X size={20}/></button>
+              <h3 className="font-bold text-stone-900 flex-1 truncate mr-4">
+                Débat : {activeTopic}
+              </h3>
+              <button
+                onClick={() => setActiveTopic(null)}
+                className="p-2 bg-stone-100 text-stone-600 hover:bg-stone-200 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
             </div>
             <div className="p-4">
               <Comments topic={activeTopic} inline={true} />
@@ -231,7 +263,6 @@ export default function HistoriquePage() {
           </div>
         </div>
       )}
-
     </main>
   );
 }

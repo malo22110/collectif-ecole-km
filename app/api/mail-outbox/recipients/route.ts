@@ -13,9 +13,7 @@ const MAX_MEMBERS = 1000;
 export async function GET(request: Request) {
   const authorization = await authorizeMailInboxStaff(request);
   if (!authorization.staff) return authorization.response;
-  const query = (new URL(request.url).searchParams.get("q") || "")
-    .trim()
-    .toLocaleLowerCase("fr");
+  const query = (new URL(request.url).searchParams.get("q") || "").trim().toLocaleLowerCase("fr");
   if (query.length < 2 || query.length > 120) {
     return Response.json(
       { items: [] },
@@ -62,9 +60,6 @@ export async function GET(request: Request) {
       { headers: { "Cache-Control": "private, no-store, max-age=0" } },
     );
   } catch (error) {
-    return mailInboxErrorResponse(
-      error,
-      "Impossible de rechercher les destinataires.",
-    );
+    return mailInboxErrorResponse(error, "Impossible de rechercher les destinataires.");
   }
 }

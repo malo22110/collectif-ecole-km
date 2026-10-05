@@ -34,21 +34,10 @@ export async function PATCH(
 
   const { campaignId } = await context.params;
   if (!campaignIdSchema.safeParse(campaignId).success) {
-    return Response.json(
-      { error: "Identifiant de campagne invalide." },
-      { status: 400 },
-    );
+    return Response.json({ error: "Identifiant de campagne invalide." }, { status: 400 });
   }
-  if (
-    !request.headers
-      .get("Content-Type")
-      ?.toLowerCase()
-      .includes("application/json")
-  ) {
-    return Response.json(
-      { error: "Format de requête invalide." },
-      { status: 415 },
-    );
+  if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
+    return Response.json({ error: "Format de requête invalide." }, { status: 415 });
   }
 
   try {
@@ -63,20 +52,14 @@ export async function PATCH(
     const placeRefs = parsed.data.lieuDitIds.map((id) =>
       tractationDb.collection("lieuxDits").doc(id),
     );
-    const placeSnapshots = await Promise.all(
-      placeRefs.map((reference) => reference.get()),
-    );
+    const placeSnapshots = await Promise.all(placeRefs.map((reference) => reference.get()));
     if (placeSnapshots.some((snapshot) => !snapshot.exists)) {
       return Response.json(
         { error: "Un ou plusieurs lieux-dits n'existent plus." },
         { status: 400 },
       );
     }
-    if (
-      placeSnapshots.some(
-        (snapshot) => !hasEligibleHouseholds(snapshot.get("foyers")),
-      )
-    ) {
+    if (placeSnapshots.some((snapshot) => !hasEligibleHouseholds(snapshot.get("foyers")))) {
       return Response.json(
         { error: "Les lieux ciblés doivent avoir au moins un foyer recensé." },
         { status: 400 },
@@ -91,39 +74,26 @@ export async function PATCH(
       };
     });
 
-    const campaignRef = tractationDb
-      .collection("tractationCampaigns")
-      .doc(campaignId);
+    const campaignRef = tractationDb.collection("tractationCampaigns").doc(campaignId);
     await tractationDb.runTransaction(async (transaction) => {
       const campaignSnapshot = await transaction.get(campaignRef);
-      if (!campaignSnapshot.exists)
-        throw new CampaignUpdateError(404, "Campagne introuvable.");
+      if (!campaignSnapshot.exists) throw new CampaignUpdateError(404, "Campagne introuvable.");
       if (campaignSnapshot.get("status") !== "active") {
-        throw new CampaignUpdateError(
-          409,
-          "Cette campagne n'est plus modifiable.",
-        );
+        throw new CampaignUpdateError(409, "Cette campagne n'est plus modifiable.");
       }
 
-      const assignmentSnapshot = await transaction.get(
-        campaignRef.collection("placeAssignments"),
-      );
+      const assignmentSnapshot = await transaction.get(campaignRef.collection("placeAssignments"));
       const activeAssignments = assignmentSnapshot.docs.filter(
         (document) =>
-          document.get("status") === "claimed" ||
-          document.get("status") === "completed",
+          document.get("status") === "claimed" || document.get("status") === "completed",
       );
       const assignmentPlaceSnapshots = await Promise.all(
         activeAssignments.map((document) =>
-          transaction.get(
-            tractationDb.collection("lieuxDits").doc(document.id),
-          ),
+          transaction.get(tractationDb.collection("lieuxDits").doc(document.id)),
         ),
       );
       const assignedPlaceIds = activeAssignments.flatMap((document, index) =>
-        hasEligibleHouseholds(assignmentPlaceSnapshots[index]?.get("foyers"))
-          ? [document.id]
-          : [],
+        hasEligibleHouseholds(assignmentPlaceSnapshots[index]?.get("foyers")) ? [document.id] : [],
       );
       if (!canUpdateCampaignPlaces(assignedPlaceIds, parsed.data.lieuDitIds)) {
         throw new CampaignUpdateError(
@@ -133,9 +103,7 @@ export async function PATCH(
       }
 
       activeAssignments.forEach((document, index) => {
-        if (
-          !hasEligibleHouseholds(assignmentPlaceSnapshots[index]?.get("foyers"))
-        )
+        if (!hasEligibleHouseholds(assignmentPlaceSnapshots[index]?.get("foyers")))
           transaction.delete(document.ref);
       });
 

@@ -28,12 +28,8 @@ function getSender(parsed: Awaited<ReturnType<typeof simpleParser>>) {
   };
 }
 
-function getReceivedDate(
-  parsedDate: Date | undefined,
-  internalDate: Date | string | undefined,
-) {
-  const candidate =
-    parsedDate || (internalDate ? new Date(internalDate) : new Date());
+function getReceivedDate(parsedDate: Date | undefined, internalDate: Date | string | undefined) {
+  const candidate = parsedDate || (internalDate ? new Date(internalDate) : new Date());
   return Number.isNaN(candidate.getTime()) ? new Date() : candidate;
 }
 
@@ -44,9 +40,7 @@ export async function syncInfomaniakInbox() {
   }
 
   const firestore = getFirestore("ecole-db");
-  const stateRef = firestore
-    .collection("mailInboxSyncState")
-    .doc("infomaniakInbox");
+  const stateRef = firestore.collection("mailInboxSyncState").doc("infomaniakInbox");
   const lockToken = randomUUID();
   const acquired = await firestore.runTransaction(async (transaction) => {
     const state = await transaction.get(stateRef);
@@ -64,19 +58,14 @@ export async function syncInfomaniakInbox() {
   });
 
   if (!acquired) {
-    logger.info(
-      "Une synchronisation de la boîte de réception est déjà en cours.",
-    );
+    logger.info("Une synchronisation de la boîte de réception est déjà en cours.");
     return;
   }
 
-  const imapHost =
-    process.env.IMAP_HOST || process.env.SMTP_HOST || "mail.infomaniak.com";
+  const imapHost = process.env.IMAP_HOST || process.env.SMTP_HOST || "mail.infomaniak.com";
   const imapPort = Number(process.env.IMAP_PORT || 993);
   const imapUser =
-    process.env.IMAP_USER ||
-    process.env.SMTP_USER ||
-    "contact@collectif-ecole-km.fr";
+    process.env.IMAP_USER || process.env.SMTP_USER || "contact@collectif-ecole-km.fr";
   const client = new ImapFlow({
     host: imapHost,
     port: imapPort,
@@ -85,8 +74,7 @@ export async function syncInfomaniakInbox() {
     logger: false,
   });
   const bucket = getStorage().bucket(
-    process.env.FIREBASE_STORAGE_BUCKET ||
-      "collectif-ecole-km.firebasestorage.app",
+    process.env.FIREBASE_STORAGE_BUCKET || "collectif-ecole-km.firebasestorage.app",
   );
   let lock: Awaited<ReturnType<typeof client.getMailboxLock>> | undefined;
 
@@ -94,22 +82,15 @@ export async function syncInfomaniakInbox() {
     await client.connect();
     lock = await client.getMailboxLock(MAILBOX_PATH, { readOnly: true });
     const openedMailbox = client.mailbox;
-    if (!openedMailbox)
-      throw new Error("La boîte de réception IMAP n’est pas ouverte.");
+    if (!openedMailbox) throw new Error("La boîte de réception IMAP n’est pas ouverte.");
     const uidValidity = Number(openedMailbox.uidValidity || 0);
-    if (!uidValidity)
-      throw new Error("Le serveur IMAP n’a pas fourni UIDVALIDITY.");
+    if (!uidValidity) throw new Error("Le serveur IMAP n’a pas fourni UIDVALIDITY.");
 
     const stateSnapshot = await stateRef.get();
     const stateUidValidity = Number(stateSnapshot.get("uidValidity") || 0);
     const lastUid =
-      stateUidValidity === uidValidity
-        ? Number(stateSnapshot.get("lastUid") || 0)
-        : 0;
-    const searchResult = await client.search(
-      { uid: `${lastUid + 1}:*` },
-      { uid: true },
-    );
+      stateUidValidity === uidValidity ? Number(stateSnapshot.get("lastUid") || 0) : 0;
+    const searchResult = await client.search({ uid: `${lastUid + 1}:*` }, { uid: true });
     const uids = (Array.isArray(searchResult) ? searchResult : [])
       .filter((uid) => Number.isInteger(uid) && uid > lastUid)
       .sort((first, second) => first - second)
@@ -134,11 +115,7 @@ export async function syncInfomaniakInbox() {
         }
 
         const externalMessageId = metadata.envelope?.messageId;
-        const inboxMessageId = getInboxMessageId(
-          externalMessageId,
-          uidValidity,
-          uid,
-        );
+        const inboxMessageId = getInboxMessageId(externalMessageId, uidValidity, uid);
         const inboxRef = firestore.collection("mailInbox").doc(inboxMessageId);
         if ((await inboxRef.get()).exists) {
           await saveCursor(stateRef, lockToken, uidValidity, uid);
@@ -151,14 +128,9 @@ export async function syncInfomaniakInbox() {
               name: "",
               email: metadata.envelope?.from?.[0]?.address || "",
             },
-            subject: (metadata.envelope?.subject || "Message reçu").slice(
-              0,
-              500,
-            ),
+            subject: (metadata.envelope?.subject || "Message reçu").slice(0, 500),
             receivedAt: Timestamp.fromDate(
-              metadata.internalDate
-                ? new Date(metadata.internalDate)
-                : new Date(),
+              metadata.internalDate ? new Date(metadata.internalDate) : new Date(),
             ),
             text: "Ce message dépasse la taille maximale prise en charge par la boîte de réception du site.",
             messageId: externalMessageId || "",
@@ -215,9 +187,7 @@ export async function syncInfomaniakInbox() {
 
           const attachmentId = randomUUID();
           const fileName = sanitizeInboxFileName(attachment.filename);
-          const contentType = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(
-            attachment.contentType,
-          )
+          const contentType = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(attachment.contentType)
             ? attachment.contentType.toLowerCase()
             : "application/octet-stream";
           const storagePath = `mailInbox/${inboxMessageId}/attachments/${attachmentId}`;
@@ -241,16 +211,12 @@ export async function syncInfomaniakInbox() {
 
         const sender = getSender(parsed);
         const references = Array.isArray(parsed.references)
-          ? parsed.references
-              .slice(-10)
-              .map((value) => String(value).slice(0, 500))
+          ? parsed.references.slice(-10).map((value) => String(value).slice(0, 500))
           : parsed.references
             ? [String(parsed.references).slice(0, 500)]
             : [];
         const inReplyTo =
-          typeof parsed.inReplyTo === "string"
-            ? parsed.inReplyTo.slice(0, 998)
-            : "";
+          typeof parsed.inReplyTo === "string" ? parsed.inReplyTo.slice(0, 998) : "";
         const threadId = await resolveThreadId(
           firestore,
           [inReplyTo, ...references],
@@ -260,13 +226,9 @@ export async function syncInfomaniakInbox() {
           await createInboxMessage(inboxRef, {
             from: sender,
             subject: (parsed.subject || "(sans objet)").slice(0, 500),
-            receivedAt: Timestamp.fromDate(
-              getReceivedDate(parsed.date, metadata.internalDate),
-            ),
+            receivedAt: Timestamp.fromDate(getReceivedDate(parsed.date, metadata.internalDate)),
             text: normalizeInboxText(parsed.text),
-            messageId: String(
-              parsed.messageId || externalMessageId || "",
-            ).slice(0, 998),
+            messageId: String(parsed.messageId || externalMessageId || "").slice(0, 998),
             inReplyTo,
             threadId,
             references,
@@ -290,9 +252,7 @@ export async function syncInfomaniakInbox() {
           throw error;
         }
 
-        const receivedMessageId = getMailMessageIndexId(
-          parsed.messageId || externalMessageId,
-        );
+        const receivedMessageId = getMailMessageIndexId(parsed.messageId || externalMessageId);
         if (receivedMessageId) {
           await firestore
             .collection("mailMessageIndex")
@@ -333,10 +293,7 @@ export async function syncInfomaniakInbox() {
         }
       })
       .catch((error) =>
-        logger.error(
-          "Impossible de libérer le verrou de synchronisation IMAP.",
-          error,
-        ),
+        logger.error("Impossible de libérer le verrou de synchronisation IMAP.", error),
       );
   }
 }
@@ -349,10 +306,7 @@ async function resolveThreadId(
   for (const messageId of references.slice().reverse()) {
     const indexId = getMailMessageIndexId(messageId);
     if (!indexId) continue;
-    const index = await firestore
-      .collection("mailMessageIndex")
-      .doc(indexId)
-      .get();
+    const index = await firestore.collection("mailMessageIndex").doc(indexId).get();
     const threadId = index.get("threadId");
     if (typeof threadId === "string" && threadId) return threadId;
   }
@@ -377,8 +331,7 @@ async function saveCursor(
 ) {
   await getFirestore("ecole-db").runTransaction(async (transaction) => {
     const state = await transaction.get(reference);
-    if (state.get("lockToken") !== lockToken)
-      throw new Error("Le verrou IMAP a expiré.");
+    if (state.get("lockToken") !== lockToken) throw new Error("Le verrou IMAP a expiré.");
     transaction.set(reference, { uidValidity, lastUid }, { merge: true });
   });
 }

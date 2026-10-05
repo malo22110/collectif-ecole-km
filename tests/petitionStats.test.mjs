@@ -30,10 +30,7 @@ test("calcule la ventilation officielle avec priorité Kergrist puis parent puis
     kergristElectorateEstimatePercent: 0.37,
   });
   assert.equal(
-    stats.habitantsKergrist +
-      stats.parentsEleves +
-      stats.communesVoisines +
-      stats.autres,
+    stats.habitantsKergrist + stats.parentsEleves + stats.communesVoisines + stats.autres,
     stats.total,
   );
 });
@@ -61,10 +58,7 @@ test("calcule la part des parent d’élève signataires sur la base communiqué
     ville: "Rostrenen",
     qualite: "Parent d’élève (actuel ou futur)",
   }));
-  assert.equal(
-    calculatePetitionStats(entries).parentSignersOfKnownParentsPercent,
-    87.23,
-  );
+  assert.equal(calculatePetitionStats(entries).parentSignersOfKnownParentsPercent, 87.23);
 });
 
 test("compte la qualité explicite Parent d’élève avec ou sans accent et exclut les amis", () => {
@@ -87,8 +81,5 @@ test("calcule l’estimation de part de population électorale au centième", ()
     ville: "Kergrist-Moëlou",
     qualite: "Habitant(e) de Kergrist",
   }));
-  assert.equal(
-    calculatePetitionStats(entries).kergristElectorateEstimatePercent,
-    23.38,
-  );
+  assert.equal(calculatePetitionStats(entries).kergristElectorateEstimatePercent, 23.38);
 });

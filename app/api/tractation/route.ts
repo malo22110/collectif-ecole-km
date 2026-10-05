@@ -64,9 +64,7 @@ export async function GET(request: Request) {
         { status: 413 },
       );
     }
-    const placeDataById = new Map(
-      placesSnapshot.docs.map((place) => [place.id, place.data()]),
-    );
+    const placeDataById = new Map(placesSnapshot.docs.map((place) => [place.id, place.data()]));
 
     const pageDocuments = campaignSnapshot.docs.slice(0, PAGE_SIZE);
     const campaignData = await Promise.all(
@@ -80,9 +78,7 @@ export async function GET(request: Request) {
           document.ref.collection("placeAssignments").limit(201).get(),
         ]);
         if (assignmentSnapshot.size > 200) {
-          throw new Error(
-            "Le nombre de lieux réservés dépasse la limite autorisée.",
-          );
+          throw new Error("Le nombre de lieux réservés dépasse la limite autorisée.");
         }
         const visiblePlaceIds = new Set(
           Array.isArray(data.lieuDits)
@@ -141,9 +137,7 @@ export async function GET(request: Request) {
                 ? legacyOwnerNames.get(assignment.claimedByUid)
                 : undefined,
             );
-            return publicAssignment
-              ? [[assignmentDocument.id, publicAssignment]]
-              : [];
+            return publicAssignment ? [[assignmentDocument.id, publicAssignment]] : [];
           }),
         );
 
@@ -159,23 +153,18 @@ export async function GET(request: Request) {
                 const campaignPlace = place as Record<string, unknown>;
                 if (typeof campaignPlace.id !== "string") return [];
                 const placeData = placeDataById.get(campaignPlace.id);
-                const foyers = Number.isInteger(placeData?.foyers)
-                  ? Number(placeData!.foyers)
-                  : 0;
+                const foyers = Number.isInteger(placeData?.foyers) ? Number(placeData!.foyers) : 0;
                 if (!hasEligibleHouseholds(foyers)) return [];
                 const lat = placeData?.lat;
                 const lon = placeData?.lon;
                 return [
                   {
                     id: campaignPlace.id,
-                    nom: String(
-                      placeData?.nom || campaignPlace.nom || "Lieu-dit",
-                    ),
+                    nom: String(placeData?.nom || campaignPlace.nom || "Lieu-dit"),
                     foyers,
                     lat: Number.isFinite(lat) ? (lat as number) : null,
                     lon: Number.isFinite(lon) ? (lon as number) : null,
-                    hasCoordinates:
-                      Number.isFinite(lat) && Number.isFinite(lon),
+                    hasCoordinates: Number.isFinite(lat) && Number.isFinite(lon),
                   },
                 ];
               })
@@ -184,9 +173,7 @@ export async function GET(request: Request) {
             data.attachment && typeof data.attachment === "object"
               ? {
                   fileName: String(data.attachment.fileName || "document"),
-                  contentType: String(
-                    data.attachment.contentType || "application/octet-stream",
-                  ),
+                  contentType: String(data.attachment.contentType || "application/octet-stream"),
                   size: Number(data.attachment.size || 0),
                 }
               : null,
@@ -196,8 +183,7 @@ export async function GET(request: Request) {
             ? participant
                 .data()!
                 .routePlaceIds.filter(
-                  (id: unknown): id is string =>
-                    typeof id === "string" && visiblePlaceIds.has(id),
+                  (id: unknown): id is string => typeof id === "string" && visiblePlaceIds.has(id),
                 )
             : [],
         };
@@ -211,8 +197,7 @@ export async function GET(request: Request) {
           id: document.id,
           nom: String(data.nom || ""),
           foyers: Number.isInteger(data.foyers) ? data.foyers : 0,
-          hasCoordinates:
-            Number.isFinite(data.lat) && Number.isFinite(data.lon),
+          hasCoordinates: Number.isFinite(data.lat) && Number.isFinite(data.lon),
           lat: Number.isFinite(data.lat) ? (data.lat as number) : null,
           lon: Number.isFinite(data.lon) ? (data.lon as number) : null,
         };
@@ -227,17 +212,12 @@ export async function GET(request: Request) {
         canCreate: authorization.member.canCreate,
         showStatistics: authorization.member.roles.includes("tractation"),
         nextCursor:
-          campaignSnapshot.docs.length > PAGE_SIZE
-            ? pageDocuments.at(-1)?.id || null
-            : null,
+          campaignSnapshot.docs.length > PAGE_SIZE ? pageDocuments.at(-1)?.id || null : null,
       },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
-    return errorResponse(
-      error,
-      "Impossible de charger les campagnes de tractation.",
-    );
+    return errorResponse(error, "Impossible de charger les campagnes de tractation.");
   }
 }
 
@@ -258,20 +238,14 @@ export async function POST(request: Request) {
     const placeRefs = parsed.data.lieuDitIds.map((id) =>
       tractationDb.collection("lieuxDits").doc(id),
     );
-    const placeSnapshots = await Promise.all(
-      placeRefs.map((reference) => reference.get()),
-    );
+    const placeSnapshots = await Promise.all(placeRefs.map((reference) => reference.get()));
     if (placeSnapshots.some((snapshot) => !snapshot.exists)) {
       return Response.json(
         { error: "Un ou plusieurs lieux-dits ne sont plus disponibles." },
         { status: 400 },
       );
     }
-    if (
-      placeSnapshots.some(
-        (snapshot) => !hasEligibleHouseholds(snapshot.get("foyers")),
-      )
-    ) {
+    if (placeSnapshots.some((snapshot) => !hasEligibleHouseholds(snapshot.get("foyers")))) {
       return Response.json(
         { error: "Les lieux ciblés doivent avoir au moins un foyer recensé." },
         { status: 400 },

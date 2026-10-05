@@ -23,16 +23,20 @@ interface Props {
  */
 async function getArticleBySlugOrId(slugOrId: string) {
   let docSnap = null;
-  
+
   // 1. Chercher par slug (nouveau format)
-  const querySnap = await adminDb.collection("articles").where("slug", "==", slugOrId).limit(1).get();
+  const querySnap = await adminDb
+    .collection("articles")
+    .where("slug", "==", slugOrId)
+    .limit(1)
+    .get();
   if (!querySnap.empty) {
     docSnap = querySnap.docs[0];
   } else {
     // 2. Fallback par ID (anciens articles)
     docSnap = await adminDb.collection("articles").doc(slugOrId).get();
   }
-  
+
   return docSnap;
 }
 
@@ -115,11 +119,11 @@ export default async function ArticlePage({ params }: Props) {
 
   try {
     const docSnap = await getArticleBySlugOrId(slug);
-    
+
     if (!docSnap || !docSnap.exists) {
       notFound();
     }
-    
+
     const status = docSnap.data()?.status || "published";
     if (status !== "published") {
       notFound();

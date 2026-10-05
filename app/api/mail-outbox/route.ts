@@ -53,28 +53,17 @@ function normalizeEmail(value: unknown) {
 async function getRecipients(target: MailAudience, selectedId?: string) {
   const firestore = mailInboxDb;
   if (target === "individuel") {
-    const member = selectedId
-      ? await firestore.collection("membres").doc(selectedId).get()
-      : null;
+    const member = selectedId ? await firestore.collection("membres").doc(selectedId).get() : null;
     const data = member?.data();
     const email = normalizeEmail(data?.email);
-    if (
-      !member?.exists ||
-      data?.status !== "validated" ||
-      data?.emailBounced === true ||
-      !email
-    ) {
+    if (!member?.exists || data?.status !== "validated" || data?.emailBounced === true || !email) {
       throw Object.assign(
-        new Error(
-          "Le destinataire doit être un membre validé, joignable et non signalé en échec.",
-        ),
+        new Error("Le destinataire doit être un membre validé, joignable et non signalé en échec."),
         { status: 400 },
       );
     }
     return resolveMailRecipients("individuel", {
-      members: [
-        { email, name: [data.prenom, data.nom].filter(Boolean).join(" ") },
-      ],
+      members: [{ email, name: [data.prenom, data.nom].filter(Boolean).join(" ") }],
     });
   }
 
@@ -90,10 +79,9 @@ async function getRecipients(target: MailAudience, selectedId?: string) {
       .limit(MAX_MEMBERS + 1)
       .get();
     if (memberSnapshot.size > MAX_MEMBERS)
-      throw Object.assign(
-        new Error("Le nombre de membres dépasse la limite d’envoi."),
-        { status: 413 },
-      );
+      throw Object.assign(new Error("Le nombre de membres dépasse la limite d’envoi."), {
+        status: 413,
+      });
     sources.members = memberSnapshot.docs.map((document) => {
       const data = document.data();
       return {
@@ -109,10 +97,9 @@ async function getRecipients(target: MailAudience, selectedId?: string) {
         .limit(MAX_RECIPIENTS + 1)
         .get();
       if (signatureSnapshot.size > MAX_RECIPIENTS)
-        throw Object.assign(
-          new Error("Le registre de signatures dépasse la limite de calcul."),
-          { status: 413 },
-        );
+        throw Object.assign(new Error("Le registre de signatures dépasse la limite de calcul."), {
+          status: 413,
+        });
       sources.signers = signatureSnapshot.docs.map((document) => {
         const data = document.data();
         return {
@@ -128,10 +115,9 @@ async function getRecipients(target: MailAudience, selectedId?: string) {
       .limit(MAX_RECIPIENTS + 1)
       .get();
     if (snapshot.size > MAX_RECIPIENTS)
-      throw Object.assign(
-        new Error("Le nombre de signataires dépasse la limite d’envoi."),
-        { status: 413 },
-      );
+      throw Object.assign(new Error("Le nombre de signataires dépasse la limite d’envoi."), {
+        status: 413,
+      });
     sources.signers = snapshot.docs.map((document) => {
       const data = document.data();
       return {
@@ -146,10 +132,9 @@ async function getRecipients(target: MailAudience, selectedId?: string) {
       .limit(MAX_RECIPIENTS + 1)
       .get();
     if (snapshot.size > MAX_RECIPIENTS)
-      throw Object.assign(
-        new Error("Le nombre de journalistes dépasse la limite d’envoi."),
-        { status: 413 },
-      );
+      throw Object.assign(new Error("Le nombre de journalistes dépasse la limite d’envoi."), {
+        status: 413,
+      });
     sources.journalists = snapshot.docs.map((document) => {
       const data = document.data();
       return { email: data.email, name: data.nom };
@@ -168,14 +153,9 @@ export async function GET(request: Request) {
     return Response.json({ error: "Limite invalide." }, { status: 400 });
 
   try {
-    let query = mailInboxDb
-      .collection("mailOutbox")
-      .orderBy("createdAt", "desc");
+    let query = mailInboxDb.collection("mailOutbox").orderBy("createdAt", "desc");
     if (cursor) {
-      const cursorDocument = await mailInboxDb
-        .collection("mailOutbox")
-        .doc(cursor)
-        .get();
+      const cursorDocument = await mailInboxDb.collection("mailOutbox").doc(cursor).get();
       if (!cursorDocument.exists)
         return Response.json({ error: "Curseur invalide." }, { status: 400 });
       query = query.startAfter(cursorDocument);
@@ -205,37 +185,23 @@ export async function GET(request: Request) {
     return Response.json(
       {
         items,
-        nextCursor:
-          snapshot.docs.length > limit ? docs.at(-1)?.id || null : null,
+        nextCursor: snapshot.docs.length > limit ? docs.at(-1)?.id || null : null,
       },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
-    return mailInboxErrorResponse(
-      error,
-      "Impossible de charger les messages envoyés.",
-    );
+    return mailInboxErrorResponse(error, "Impossible de charger les messages envoyés.");
   }
 }
 
 export async function POST(request: Request) {
   const authorization = await authorizeMailInboxStaff(request);
   if (!authorization.staff) return authorization.response;
-  if (
-    !request.headers
-      .get("Content-Type")
-      ?.toLowerCase()
-      .includes("application/json")
-  )
-    return Response.json(
-      { error: "Format de requête invalide." },
-      { status: 415 },
-    );
+  if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json"))
+    return Response.json({ error: "Format de requête invalide." }, { status: 415 });
 
   try {
-    const payload = createMailSchema.safeParse(
-      await readMailInboxJsonBody(request, 40_000),
-    );
+    const payload = createMailSchema.safeParse(await readMailInboxJsonBody(request, 40_000));
     if (!payload.success)
       return Response.json(
         { error: "Vérifie l’objet, le contenu et le destinataire." },
@@ -250,14 +216,9 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     if (recipients.length > MAX_RECIPIENTS)
-      return Response.json(
-        { error: "Trop de destinataires pour un envoi." },
-        { status: 413 },
-      );
+      return Response.json({ error: "Trop de destinataires pour un envoi." }, { status: 413 });
 
-    const scheduledDate = payload.data.scheduledAt
-      ? new Date(payload.data.scheduledAt)
-      : null;
+    const scheduledDate = payload.data.scheduledAt ? new Date(payload.data.scheduledAt) : null;
     const mailRef = mailInboxDb.collection("mailOutbox").doc();
     await mailRef.create({
       subject: payload.data.subject,
@@ -269,9 +230,7 @@ export async function POST(request: Request) {
       sentCount: 0,
       failedCount: 0,
       status: "preparing",
-      ...(scheduledDate
-        ? { scheduledAt: Timestamp.fromDate(scheduledDate) }
-        : {}),
+      ...(scheduledDate ? { scheduledAt: Timestamp.fromDate(scheduledDate) } : {}),
       createdByUid: authorization.staff.uid,
       createdByEmail: authorization.staff.email,
       createdAt: FieldValue.serverTimestamp(),
@@ -292,9 +251,6 @@ export async function POST(request: Request) {
       { status: 201, headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
-    return mailInboxErrorResponse(
-      error,
-      "Impossible de placer cet e-mail dans la file d’envoi.",
-    );
+    return mailInboxErrorResponse(error, "Impossible de placer cet e-mail dans la file d’envoi.");
   }
 }

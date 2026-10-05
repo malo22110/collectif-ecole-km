@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
+import { DEFAULT_HOME_ACTION_PLAN, normalizeHomeActionPlan } from "../lib/homeActionPlan";
 import {
   Leaf,
   ShieldCheck,
@@ -36,31 +37,23 @@ import {
 import UserAvatar from "./components/UserAvatar";
 
 export default function LandingPage() {
-  const [formStatus, setFormStatus] = useState<
-    "idle" | "submitting" | "success"
-  >("idle");
+  const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [memberCount, setMemberCount] = useState<number | null>(null);
   const [petitionCount, setPetitionCount] = useState<number | null>(null);
   const [articles, setArticles] = useState<any[]>([]);
   const [presseArticles, setPresseArticles] = useState<any[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [homeActionPlan, setHomeActionPlan] = useState(DEFAULT_HOME_ACTION_PLAN);
 
   useEffect(() => {
     async function fetchArticles() {
       try {
-        const q = query(
-          collection(db, "articles"),
-          where("status", "==", "published"),
-        );
+        const q = query(collection(db, "articles"), where("status", "==", "published"));
         const snapshot = await getDocs(q);
-        const fetchedArticles = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() }) as any,
-        );
+        const fetchedArticles = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as any);
         // Sorting manually since ordering requires a composite index on firestore
         fetchedArticles.sort(
-          (a, b) =>
-            new Date(b.publishedAt || 0).getTime() -
-            new Date(a.publishedAt || 0).getTime(),
+          (a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime(),
         );
         setArticles(fetchedArticles.slice(0, 4));
       } catch (error) {
@@ -75,9 +68,7 @@ export default function LandingPage() {
       try {
         const q = query(collection(db, "presse"));
         const snapshot = await getDocs(q);
-        const fetched = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() }) as any,
-        );
+        const fetched = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as any);
         fetched.sort((a, b) => {
           const dateA = new Date(a.date || 0).getTime();
           const dateB = new Date(b.date || 0).getTime();
@@ -126,9 +117,7 @@ export default function LandingPage() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (typeof data.count === "number") {
-            setPetitionCount((prev) =>
-              prev !== null ? Math.max(prev, data.count) : data.count,
-            );
+            setPetitionCount((prev) => (prev !== null ? Math.max(prev, data.count) : data.count));
           }
         }
       },
@@ -137,6 +126,19 @@ export default function LandingPage() {
       },
     );
     return () => unsubPetition();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      doc(db, "pages", "historique"),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          setHomeActionPlan(normalizeHomeActionPlan(snapshot.data().homeActionPlan));
+        }
+      },
+      (error) => console.error("Erreur lors du chargement du plan d’action:", error),
+    );
+    return () => unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -203,9 +205,7 @@ export default function LandingPage() {
             <span className="font-semibold text-stone-800 hidden sm:block text-sm md:text-base">
               Collectif citoyen pour la rénovation de l'école
             </span>
-            <span className="font-semibold text-stone-800 sm:hidden">
-              Collectif École
-            </span>
+            <span className="font-semibold text-stone-800 sm:hidden">Collectif École</span>
           </div>
 
           {/* Desktop Nav */}
@@ -317,13 +317,12 @@ export default function LandingPage() {
               Kergrist-Moëlou (22110)
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-stone-900 mb-6 leading-tight">
-              Un nid tout neuf pour{" "}
-              <span className="text-amber-600">nos écureuils</span>
+              Un nid tout neuf pour <span className="text-amber-600">nos écureuils</span>
             </h1>
             <p className="text-lg md:text-xl text-stone-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Après le vote du conseil municipal, le dossier retourne chez
-              l’architecte pour être ajusté à l’enveloppe prévue. Nous suivons
-              cette étape avec la municipalité, pour l’avenir de notre école.
+              Après le vote du conseil municipal, le dossier retourne chez l’architecte pour être
+              ajusté à l’enveloppe prévue. Nous suivons cette étape avec la municipalité, pour
+              l’avenir de notre école.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -350,16 +349,14 @@ export default function LandingPage() {
                     Pétition citoyenne close
                   </div>
                   <div className="text-4xl md:text-5xl font-black tracking-tight text-white flex items-baseline gap-3 mb-1">
-                    <span>
-                      {petitionCount !== null ? petitionCount : "..."}
-                    </span>
+                    <span>{petitionCount !== null ? petitionCount : "..."}</span>
                     <span className="text-emerald-200 text-base md:text-xl font-medium">
                       signatures citoyennes
                     </span>
                   </div>
                   <p className="text-xs md:text-sm text-emerald-100/80 leading-snug">
-                    Merci à toutes celles et ceux qui ont soutenu la démarche.
-                    Le dossier entre dans une nouvelle phase de travail.
+                    Merci à toutes celles et ceux qui ont soutenu la démarche. Le dossier entre dans
+                    une nouvelle phase de travail.
                   </p>
                 </div>
 
@@ -415,9 +412,7 @@ export default function LandingPage() {
                   </h3>
                   <div className="flex items-center gap-4 text-stone-300 text-sm md:text-base">
                     <span>
-                      {new Date(
-                        articles[0].publishedAt || Date.now(),
-                      ).toLocaleDateString("fr-FR", {
+                      {new Date(articles[0].publishedAt || Date.now()).toLocaleDateString("fr-FR", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -457,13 +452,14 @@ export default function LandingPage() {
                         )}
                         <div className="p-6 flex flex-col flex-1">
                           <div className="text-sm font-bold text-emerald-600 mb-2">
-                            {new Date(
-                              article.publishedAt || Date.now(),
-                            ).toLocaleDateString("fr-FR", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
+                            {new Date(article.publishedAt || Date.now()).toLocaleDateString(
+                              "fr-FR",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              },
+                            )}
                           </div>
                           <h3 className="text-xl font-bold text-stone-900 mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">
                             {article.title}
@@ -482,18 +478,12 @@ export default function LandingPage() {
         )}
 
         {/* Charte Section */}
-        <section
-          className="py-20 bg-stone-50 px-4 border-b border-stone-200"
-          id="charte"
-        >
+        <section className="py-20 bg-stone-50 px-4 border-b border-stone-200" id="charte">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-stone-900 mb-4">
-                La Charte du Collectif
-              </h2>
+              <h2 className="text-3xl font-bold text-stone-900 mb-4">La Charte du Collectif</h2>
               <p className="text-stone-600 max-w-2xl mx-auto">
-                Notre démarche repose sur 5 piliers fondamentaux pour agir de
-                manière constructive.
+                Notre démarche repose sur 5 piliers fondamentaux pour agir de manière constructive.
               </p>
             </div>
 
@@ -502,60 +492,50 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-stone-100 text-stone-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Scale size={24} />
                 </div>
-                <h3 className="font-semibold text-stone-900 mb-2">
-                  1. Démarche apolitique
-                </h3>
+                <h3 className="font-semibold text-stone-900 mb-2">1. Démarche apolitique</h3>
                 <p className="text-stone-600 text-sm">
-                  Non affiliés, notre but n'est pas de soutenir ou de combattre
-                  une personne ou une liste politique.
+                  Non affiliés, notre but n'est pas de soutenir ou de combattre une personne ou une
+                  liste politique.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 text-center">
                 <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Leaf size={24} />
                 </div>
-                <h3 className="font-semibold text-stone-900 mb-2">
-                  2. Pour l'école
-                </h3>
+                <h3 className="font-semibold text-stone-900 mb-2">2. Pour l'école</h3>
                 <p className="text-stone-600 text-sm">
-                  Nous défendons l'intérêt des enfants, leurs conditions
-                  d'accueil et l'avenir de l'école.
+                  Nous défendons l'intérêt des enfants, leurs conditions d'accueil et l'avenir de
+                  l'école.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 text-center">
                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search size={24} />
                 </div>
-                <h3 className="font-semibold text-stone-900 mb-2">
-                  3. Basé sur les faits
-                </h3>
+                <h3 className="font-semibold text-stone-900 mb-2">3. Basé sur les faits</h3>
                 <p className="text-stone-600 text-sm">
-                  Nous vérifions les informations et distinguons les faits, les
-                  interrogations et nos demandes.
+                  Nous vérifions les informations et distinguons les faits, les interrogations et
+                  nos demandes.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 text-center">
                 <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Users size={24} />
                 </div>
-                <h3 className="font-semibold text-stone-900 mb-2">
-                  4. Action collective
-                </h3>
+                <h3 className="font-semibold text-stone-900 mb-2">4. Action collective</h3>
                 <p className="text-stone-600 text-sm">
-                  Les communications et les actions importantes sont discutées
-                  et validées collectivement.
+                  Les communications et les actions importantes sont discutées et validées
+                  collectivement.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 text-center">
                 <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageSquare size={24} />
                 </div>
-                <h3 className="font-semibold text-stone-900 mb-2">
-                  5. Privilégier le dialogue
-                </h3>
+                <h3 className="font-semibold text-stone-900 mb-2">5. Privilégier le dialogue</h3>
                 <p className="text-stone-600 text-sm">
-                  Échanger avec la municipalité pour obtenir des réponses
-                  claires, dans le respect de tous.
+                  Échanger avec la municipalité pour obtenir des réponses claires, dans le respect
+                  de tous.
                 </p>
               </div>
             </div>
@@ -571,19 +551,16 @@ export default function LandingPage() {
                 <div className="flex-1">
                   <h2 className="text-3xl md:text-4xl font-bold text-stone-900 mb-6 leading-tight">
                     Comprendre le projet : <br />
-                    <span className="text-amber-600">
-                      Historique & Analyse financière
-                    </span>
+                    <span className="text-amber-600">Historique & Analyse financière</span>
                   </h2>
                   <p className="text-lg text-stone-600 mb-6 leading-relaxed">
-                    Nous avons retracé l'intégralité de la chronologie du projet
-                    d'école à travers les procès-verbaux officiels du conseil
-                    municipal (de 2022 à 2026).
+                    Nous avons retracé l'intégralité de la chronologie du projet d'école à travers
+                    les procès-verbaux officiels du conseil municipal (de 2022 à 2026).
                   </p>
                   <p className="text-lg text-stone-600 mb-8 leading-relaxed">
-                    Retrouvez les éléments de contexte et suivez la reprise du
-                    dossier par l’architecte. Les coûts et le calendrier devront
-                    être précisés à l’issue de cette étape.
+                    Retrouvez les éléments de contexte et suivez la reprise du dossier par
+                    l’architecte. Les coûts et le calendrier devront être précisés à l’issue de
+                    cette étape.
                   </p>
                   <a
                     href="/historique"
@@ -616,9 +593,9 @@ export default function LandingPage() {
                 Un dossier retravaillé avec l’architecte
               </h2>
               <p className="text-stone-600 max-w-3xl mx-auto">
-                La pétition est close. Le dossier retourne chez l’architecte
-                pour être ajusté à l’enveloppe prévue. Nous resterons attentifs
-                aux prochaines informations communiquées sur le projet.
+                La pétition est close. Le dossier retourne chez l’architecte pour être ajusté à
+                l’enveloppe prévue. Nous resterons attentifs aux prochaines informations
+                communiquées sur le projet.
               </p>
             </div>
 
@@ -627,12 +604,10 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4">
                   <CheckCircle2 size={24} />
                 </div>
-                <h3 className="font-semibold text-lg text-stone-900 mb-2">
-                  Études existantes
-                </h3>
+                <h3 className="font-semibold text-lg text-stone-900 mb-2">Études existantes</h3>
                 <p className="text-stone-600 text-sm leading-relaxed">
-                  Les études et diagnostics déjà réalisés constituent une base
-                  pour la reprise du dossier.
+                  Les études et diagnostics déjà réalisés constituent une base pour la reprise du
+                  dossier.
                 </p>
               </div>
 
@@ -640,12 +615,10 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center mb-4">
                   <Scale size={24} />
                 </div>
-                <h3 className="font-semibold text-lg text-stone-900 mb-2">
-                  Finances publiques
-                </h3>
+                <h3 className="font-semibold text-lg text-stone-900 mb-2">Finances publiques</h3>
                 <p className="text-stone-600 text-sm leading-relaxed">
-                  L’architecte retravaille le dossier pour respecter l’enveloppe
-                  prévue. Les montants actualisés restent à préciser.
+                  L’architecte retravaille le dossier pour respecter l’enveloppe prévue. Les
+                  montants actualisés restent à préciser.
                 </p>
               </div>
 
@@ -657,8 +630,8 @@ export default function LandingPage() {
                   Subventions & Calendrier
                 </h3>
                 <p className="text-stone-600 text-sm leading-relaxed">
-                  Les prochaines échéances et conditions de financement seront à
-                  confirmer au fil de l’avancement du dossier.
+                  Les prochaines échéances et conditions de financement seront à confirmer au fil de
+                  l’avancement du dossier.
                 </p>
               </div>
 
@@ -666,12 +639,10 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-4">
                   <ShieldCheck size={24} />
                 </div>
-                <h3 className="font-semibold text-lg text-stone-900 mb-2">
-                  Urgences sanitaires
-                </h3>
+                <h3 className="font-semibold text-lg text-stone-900 mb-2">Urgences sanitaires</h3>
                 <p className="text-stone-600 text-sm leading-relaxed">
-                  La santé, la sécurité et les conditions d’accueil des enfants
-                  restent au cœur du projet.
+                  La santé, la sécurité et les conditions d’accueil des enfants restent au cœur du
+                  projet.
                 </p>
               </div>
             </div>
@@ -688,18 +659,13 @@ export default function LandingPage() {
         </section>
 
         {/* Timeline Section */}
-        <section
-          className="py-20 bg-stone-50 px-4 border-y border-stone-200"
-          id="plan"
-        >
+        <section className="py-20 bg-stone-50 px-4 border-y border-stone-200" id="plan">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-stone-900 mb-4">
-                Notre plan d'action
-              </h2>
+              <h2 className="text-3xl font-bold text-stone-900 mb-4">Notre plan d'action</h2>
               <p className="text-stone-600">
-                Une mobilisation citoyenne suivie d’une nouvelle étape de
-                travail avec la municipalité.
+                Une mobilisation citoyenne suivie d’une nouvelle étape de travail avec la
+                municipalité.
               </p>
             </div>
 
@@ -708,75 +674,55 @@ export default function LandingPage() {
               <div className="absolute left-[19px] md:left-1/2 md:-ml-[1px] top-0 bottom-0 w-[2px] bg-amber-200"></div>
 
               <div className="space-y-12">
-                {/* Step 1 (Gauche sur Desktop) */}
-                <div className="relative flex flex-col md:flex-row md:items-start md:justify-center">
-                  {/* Point */}
-                  <div className="absolute left-[12px] md:left-1/2 md:-ml-2 top-1 w-4 h-4 rounded-full bg-emerald-500 ring-4 ring-stone-50 z-10"></div>
-                  {/* Contenu */}
-                  <div className="w-full md:w-1/2 pl-12 md:pl-0 md:pr-12 md:text-right">
-                    <div className="text-sm font-semibold text-emerald-600 mb-1">
-                      Samedi 26 Septembre
-                    </div>
-                    <h3 className="text-xl font-bold text-stone-900 mb-2">
-                      Réunion de lancement
-                    </h3>
-                    <p className="text-stone-600">
-                      Lancement officiel avec déjà 51 personnes mobilisées, en
-                      présence du Maire et de 3 adjoints, pour poser les bases
-                      de notre démarche citoyenne.
-                    </p>
-                  </div>
-                  {/* Espace vide à droite sur Desktop pour équilibrer */}
-                  <div className="hidden md:block md:w-1/2"></div>
-                </div>
+                {homeActionPlan.map((item, index) => {
+                  const isEven = index % 2 === 0;
+                  const markerColor =
+                    item.status === "completed"
+                      ? "bg-emerald-500"
+                      : item.status === "current"
+                        ? "bg-amber-500 animate-pulse"
+                        : "bg-stone-300";
+                  const titleClass = item.linkUrl
+                    ? "text-emerald-700 hover:underline"
+                    : "text-stone-900";
+                  const isExternalLink = item.linkUrl?.startsWith("https://") || false;
 
-                {/* Step 2 (Droite sur Desktop) */}
-                <div className="relative flex flex-col md:flex-row md:items-start md:justify-center">
-                  {/* Point */}
-                  <div className="absolute left-[12px] md:left-1/2 md:-ml-2 top-1 w-4 h-4 rounded-full bg-amber-500 ring-4 ring-stone-50 animate-pulse z-10"></div>
-                  {/* Espace vide à gauche sur Desktop */}
-                  <div className="hidden md:block md:w-1/2"></div>
-                  {/* Contenu */}
-                  <div className="w-full md:w-1/2 pl-12 md:pl-12">
-                    <div className="text-sm font-semibold text-emerald-600 mb-1">
-                      Collecte terminée
-                    </div>
-                    <h3 className="text-xl font-bold text-stone-900 mb-2">
-                      <a
-                        href="/petition"
-                        className="text-emerald-700 hover:underline"
+                  return (
+                    <div
+                      key={`${item.date}-${item.title}-${index}`}
+                      className="relative flex flex-col md:flex-row md:items-start md:justify-center"
+                    >
+                      <div
+                        className={`absolute left-[12px] md:left-1/2 md:-ml-2 top-1 size-4 rounded-full ${markerColor} ring-4 ring-stone-50 z-10`}
+                      />
+                      {!isEven && <div className="hidden md:block md:w-1/2" />}
+                      <div
+                        className={`w-full md:w-1/2 pl-12 ${isEven ? "md:pl-0 md:pr-12 md:text-right" : "md:pl-12 md:pr-0"}`}
                       >
-                        Pétition citoyenne →
-                      </a>
-                    </h3>
-                    <p className="text-stone-600">
-                      La pétition citoyenne a accompagné la demande d’une
-                      révision budgétaire concertée. Elle est désormais close.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 3 (Gauche sur Desktop) */}
-                <div className="relative flex flex-col md:flex-row md:items-start md:justify-center">
-                  {/* Point */}
-                  <div className="absolute left-[12px] md:left-1/2 md:-ml-2 top-1 w-4 h-4 rounded-full bg-stone-300 ring-4 ring-stone-50 z-10"></div>
-                  {/* Contenu */}
-                  <div className="w-full md:w-1/2 pl-12 md:pl-0 md:pr-12 md:text-right">
-                    <div className="text-sm font-semibold text-stone-500 mb-1">
-                      Après le vote du conseil
+                        <div
+                          className={`mb-1 text-sm font-semibold ${item.status === "upcoming" ? "text-stone-500" : "text-emerald-600"}`}
+                        >
+                          {item.date}
+                        </div>
+                        <h3 className="mb-2 text-xl font-bold">
+                          {item.linkUrl ? (
+                            <a
+                              href={item.linkUrl}
+                              className={titleClass}
+                              {...(isExternalLink ? { target: "_blank", rel: "noreferrer" } : {})}
+                            >
+                              {item.title}
+                            </a>
+                          ) : (
+                            <span className={titleClass}>{item.title}</span>
+                          )}
+                        </h3>
+                        <p className="text-stone-600">{item.description}</p>
+                      </div>
+                      {isEven && <div className="hidden md:block md:w-1/2" />}
                     </div>
-                    <h3 className="text-xl font-bold text-stone-900 mb-2">
-                      Retour chez l’architecte
-                    </h3>
-                    <p className="text-stone-600">
-                      Le dossier est retravaillé pour entrer dans l’enveloppe
-                      prévue. Les prochaines étapes seront précisées lorsque les
-                      informations seront disponibles.
-                    </p>
-                  </div>
-                  {/* Espace vide à droite sur Desktop */}
-                  <div className="hidden md:block md:w-1/2"></div>
-                </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -801,38 +747,32 @@ export default function LandingPage() {
               </div>
               <div className="prose prose-stone text-stone-700 max-w-none">
                 <p className="text-lg font-semibold text-stone-900 mb-6">
-                  Rénovation de l’école : un collectif citoyen se mobilise et
-                  tend la main aux élus
+                  Rénovation de l’école : un collectif citoyen se mobilise et tend la main aux élus
                 </p>
                 <div className="space-y-4">
                   <p>
-                    Ce communiqué retrace le lancement de la mobilisation avant
-                    le dernier vote du conseil municipal. Depuis, le dossier
-                    retourne chez l’architecte pour être adapté à l’enveloppe
-                    prévue.
+                    Ce communiqué retrace le lancement de la mobilisation avant le dernier vote du
+                    conseil municipal. Depuis, le dossier retourne chez l’architecte pour être
+                    adapté à l’enveloppe prévue.
                   </p>
                   <p>
-                    Samedi matin, une réunion publique a scellé le lancement
-                    officiel du collectif citoyen « Un nid tout neuf pour nos
-                    écureuils ». L’initiative rencontre un écho immédiat : 51
-                    personnes ont déjà rejoint la démarche, et de nouvelles
-                    adhésions sont attendues dès la semaine prochaine auprès des
-                    familles et des citoyens. Le maire et trois adjoints étaient
-                    d'ailleurs présents pour saluer cette dynamique.
+                    Samedi matin, une réunion publique a scellé le lancement officiel du collectif
+                    citoyen « Un nid tout neuf pour nos écureuils ». L’initiative rencontre un écho
+                    immédiat : 51 personnes ont déjà rejoint la démarche, et de nouvelles adhésions
+                    sont attendues dès la semaine prochaine auprès des familles et des citoyens. Le
+                    maire et trois adjoints étaient d'ailleurs présents pour saluer cette dynamique.
                   </p>
                   <p>
-                    Loin de toute opposition, le collectif se positionne comme
-                    un relais constructif et un appui aux décisions. Sa vocation
-                    : faciliter la communication et créer du lien entre les
-                    usagers des lieux, l'équipe éducative, la municipalité et
-                    l'ensemble des citoyens, tout en veillant au respect du
-                    calendrier pour traiter sans délai les urgences du bâtiment
-                    (radon, amiante, électricité, sanitaires, accessibilité).
+                    Loin de toute opposition, le collectif se positionne comme un relais constructif
+                    et un appui aux décisions. Sa vocation : faciliter la communication et créer du
+                    lien entre les usagers des lieux, l'équipe éducative, la municipalité et
+                    l'ensemble des citoyens, tout en veillant au respect du calendrier pour traiter
+                    sans délai les urgences du bâtiment (radon, amiante, électricité, sanitaires,
+                    accessibilité).
                   </p>
                   <p>
-                    La pétition citoyenne est maintenant close. Le collectif
-                    poursuit le dialogue avec la municipalité et suivra la suite
-                    des travaux de l’architecte.
+                    La pétition citoyenne est maintenant close. Le collectif poursuit le dialogue
+                    avec la municipalité et suivra la suite des travaux de l’architecte.
                   </p>
                 </div>
               </div>
@@ -842,18 +782,13 @@ export default function LandingPage() {
 
         {/* Ils parlent de nous */}
         {presseArticles.length > 0 && (
-          <section
-            className="py-20 bg-stone-50 px-4 border-b border-stone-200"
-            id="presse"
-          >
+          <section className="py-20 bg-stone-50 px-4 border-b border-stone-200" id="presse">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-stone-900 mb-4">
-                  Ils parlent de nous
-                </h2>
+                <h2 className="text-3xl font-bold text-stone-900 mb-4">Ils parlent de nous</h2>
                 <p className="text-stone-600 max-w-2xl mx-auto text-lg">
-                  Revue de presse et articles relayant notre mobilisation pour
-                  l'école de Kergrist-Moëlou.
+                  Revue de presse et articles relayant notre mobilisation pour l'école de
+                  Kergrist-Moëlou.
                 </p>
               </div>
 
@@ -883,14 +818,11 @@ export default function LandingPage() {
                       <div className="flex items-center text-xs text-stone-500 mb-2.5">
                         <time dateTime={article.date}>
                           {article.date
-                            ? new Date(article.date).toLocaleDateString(
-                                "fr-FR",
-                                {
-                                  day: "numeric",
-                                  month: "long",
-                                  year: "numeric",
-                                },
-                              )
+                            ? new Date(article.date).toLocaleDateString("fr-FR", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })
                             : "Récemment"}
                         </time>
                       </div>
@@ -930,8 +862,8 @@ export default function LandingPage() {
                   Rejoignez le collectif
                 </h2>
                 <p className="text-stone-600">
-                  Inscrivez-vous pour être tenu informé des avancées et
-                  participer aux prochaines actions de concertation.
+                  Inscrivez-vous pour être tenu informé des avancées et participer aux prochaines
+                  actions de concertation.
                 </p>
               </div>
 
@@ -944,8 +876,7 @@ export default function LandingPage() {
                     Merci pour votre engagement !
                   </h3>
                   <p className="text-emerald-700">
-                    Votre inscription a bien été prise en compte. Nous vous
-                    contacterons très vite.
+                    Votre inscription a bien été prise en compte. Nous vous contacterons très vite.
                   </p>
                   <button
                     onClick={() => setFormStatus("idle")}
@@ -961,9 +892,7 @@ export default function LandingPage() {
                     className="opacity-0 absolute -z-10 w-0 h-0 overflow-hidden"
                     aria-hidden="true"
                   >
-                    <label htmlFor="bot_field">
-                      Ne remplissez pas ce champ
-                    </label>
+                    <label htmlFor="bot_field">Ne remplissez pas ce champ</label>
                     <input
                       type="text"
                       id="bot_field"
@@ -1008,10 +937,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-stone-700"
-                    >
+                    <label htmlFor="email" className="block text-sm font-medium text-stone-700">
                       Adresse e-mail
                     </label>
                     <input
@@ -1024,10 +950,7 @@ export default function LandingPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium text-stone-700"
-                    >
+                    <label htmlFor="phone" className="block text-sm font-medium text-stone-700">
                       Téléphone (optionnel)
                     </label>
                     <input
@@ -1049,8 +972,8 @@ export default function LandingPage() {
                       />
                     </div>
                     <label htmlFor="consent" className="text-sm text-stone-600">
-                      Je souhaite adhérer au collectif et être informé(e) des
-                      prochaines réunions et actions.
+                      Je souhaite adhérer au collectif et être informé(e) des prochaines réunions et
+                      actions.
                     </label>
                   </div>
 
@@ -1092,9 +1015,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 text-stone-200">
             <Leaf size={24} className="text-emerald-500" />
-            <span className="font-semibold text-lg">
-              Collectif Citoyen Kergrist-Moëlou
-            </span>
+            <span className="font-semibold text-lg">Collectif Citoyen Kergrist-Moëlou</span>
           </div>
 
           <div className="text-center md:text-right text-sm space-y-1">

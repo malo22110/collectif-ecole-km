@@ -1,6 +1,6 @@
-import fs from 'fs';
+import fs from "fs";
 
-const content = fs.readFileSync('app/historique/page.tsx', 'utf8');
+const content = fs.readFileSync("app/historique/page.tsx", "utf8");
 
 const regex = /\{\/\* ENJEUX FINANCIERS \*\/\}.*?<\/div>[\s]*<\/div>/s;
 const match = content.match(regex);

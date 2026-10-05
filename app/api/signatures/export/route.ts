@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebaseAdmin";
-import {
-  buildSignaturesCsv,
-  type SignatureExportRow,
-} from "@/lib/signaturesCsv";
+import { buildSignaturesCsv, type SignatureExportRow } from "@/lib/signaturesCsv";
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +13,8 @@ const ADMIN_EMAILS = [
 export async function GET(request: Request) {
   // [SPEC-CORRECTEUR-EXPORT-01] Export all petition records only to admins and petition proofreaders.
   try {
-    const token = request.headers
-      .get("Authorization")
-      ?.match(/^Bearer\s+(.+)$/i)?.[1];
-    if (!token)
-      return NextResponse.json(
-        { error: "Authentification requise." },
-        { status: 401 },
-      );
+    const token = request.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+    if (!token) return NextResponse.json({ error: "Authentification requise." }, { status: 401 });
 
     let decodedToken;
     try {
@@ -33,17 +24,11 @@ export async function GET(request: Request) {
     }
 
     if (!decodedToken.email) {
-      return NextResponse.json(
-        { error: "Adresse e-mail absente du compte." },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Adresse e-mail absente du compte." }, { status: 401 });
     }
 
     const email = decodedToken.email.toLowerCase();
-    const memberSnapshot = await adminDb
-      .collection("membres")
-      .doc(decodedToken.email)
-      .get();
+    const memberSnapshot = await adminDb.collection("membres").doc(decodedToken.email).get();
     const memberData = memberSnapshot.data();
     const roles = Array.isArray(memberData?.roles)
       ? memberData.roles
@@ -53,9 +38,7 @@ export async function GET(request: Request) {
     const isAdmin = ADMIN_EMAILS.includes(email) || roles.includes("admin");
     const hasExportRole =
       isAdmin ||
-      (memberSnapshot.exists &&
-        memberData?.status === "validated" &&
-        roles.includes("correcteur"));
+      (memberSnapshot.exists && memberData?.status === "validated" && roles.includes("correcteur"));
 
     if (!hasExportRole) {
       return NextResponse.json(

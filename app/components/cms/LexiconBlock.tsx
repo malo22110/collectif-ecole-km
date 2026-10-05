@@ -20,9 +20,17 @@ export default function LexiconBlock({ data }: LexiconBlockProps) {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {data.items.map((item, idx) => (
-            <div key={idx} className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:border-emerald-200 transition-colors">
+            <div
+              key={idx}
+              className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:border-emerald-200 transition-colors"
+            >
               <h3 className="font-bold text-stone-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-stone-600" dangerouslySetInnerHTML={{ __html: item.desc.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+              <p
+                className="text-sm text-stone-600"
+                dangerouslySetInnerHTML={{
+                  __html: item.desc.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
+                }}
+              />
             </div>
           ))}
         </div>

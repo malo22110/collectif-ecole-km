@@ -3,14 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  Heart,
-  Loader2,
-  MapPinned,
-  Plus,
-  Settings2,
-} from "lucide-react";
+import { ArrowLeft, Heart, Loader2, MapPinned, Plus, Settings2 } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type { TourLieuDit } from "@/lib/tourneeGeo";
@@ -46,9 +39,7 @@ export default function TourneesPage() {
   const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [view, setView] = useState<HubView>("loading");
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
-    null,
-  );
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const mapPlaceAdder = useRef<((placeId: string) => void) | null>(null);
   const [canCreateCampaign, setCanCreateCampaign] = useState(false);
   const [showStatistics, setShowStatistics] = useState(false);
@@ -63,9 +54,7 @@ export default function TourneesPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (!user) {
-        setPageError(
-          "Connectez-vous avec un compte membre validé pour consulter les campagnes.",
-        );
+        setPageError("Connectez-vous avec un compte membre validé pour consulter les campagnes.");
         setView("campaigns");
         return;
       }
@@ -84,13 +73,9 @@ export default function TourneesPage() {
           preferencesResponse.json(),
         ]);
         if (!placesResponse.ok)
-          throw new Error(
-            placesData.error || "Impossible de charger la carte.",
-          );
+          throw new Error(placesData.error || "Impossible de charger la carte.");
         if (!preferencesResponse.ok)
-          throw new Error(
-            preferencesData.error || "Impossible de charger vos préférences.",
-          );
+          throw new Error(preferencesData.error || "Impossible de charger vos préférences.");
         if (!active) return;
         setLocations(placesData.locations || []);
         const preferences = preferencesData as PrivatePreferences;
@@ -117,19 +102,11 @@ export default function TourneesPage() {
     const includedIds = new Set(campaignMap.placeIds);
     return locations.filter((place) => includedIds.has(place.id));
   }, [campaignMap, locations]);
-  const favoriteSet = useMemo(
-    () => new Set(favoritePlaceIds),
-    [favoritePlaceIds],
-  );
+  const favoriteSet = useMemo(() => new Set(favoritePlaceIds), [favoritePlaceIds]);
   const routePlaceKey = campaignMap?.routePlaceIds.join("|") || "";
 
   useEffect(() => {
-    if (
-      view !== "campaign" ||
-      !currentUser ||
-      !campaignMap?.origin ||
-      !routePlaceKey
-    ) {
+    if (view !== "campaign" || !currentUser || !campaignMap?.origin || !routePlaceKey) {
       setRoadRoute(null);
       setRoadRouteError("");
       setRoadRouteLoading(false);
@@ -159,16 +136,12 @@ export default function TourneesPage() {
         );
         const result = await response.json().catch(() => null);
         if (!response.ok)
-          throw new Error(
-            result?.error || "Impossible de calculer l’itinéraire routier.",
-          );
+          throw new Error(result?.error || "Impossible de calculer l’itinéraire routier.");
         if (
           !Array.isArray(result?.geometry) ||
           !result.geometry.every(
             (point: unknown) =>
-              Array.isArray(point) &&
-              point.length === 2 &&
-              point.every(Number.isFinite),
+              Array.isArray(point) && point.length === 2 && point.every(Number.isFinite),
           )
         ) {
           throw new Error("Le service routier a renvoyé un tracé invalide.");
@@ -180,13 +153,7 @@ export default function TourneesPage() {
             durationSeconds: Number(result.durationSeconds) || 0,
           });
       } catch (routeError) {
-        if (
-          active &&
-          !(
-            routeError instanceof DOMException &&
-            routeError.name === "AbortError"
-          )
-        ) {
+        if (active && !(routeError instanceof DOMException && routeError.name === "AbortError")) {
           setRoadRouteError(
             routeError instanceof Error
               ? routeError.message
@@ -223,8 +190,7 @@ export default function TourneesPage() {
           headers,
           cache: "no-store",
         });
-        if (!currentResponse.ok)
-          throw new Error("Impossible de charger vos favoris.");
+        if (!currentResponse.ok) throw new Error("Impossible de charger vos favoris.");
         const current = await currentResponse.json();
         const favorites: string[] = Array.isArray(current.favoritePlaceIds)
           ? current.favoritePlaceIds
@@ -234,10 +200,7 @@ export default function TourneesPage() {
           : favorites.length < 20
             ? [...favorites, placeId]
             : favorites;
-        if (
-          nextFavorites.length === favorites.length &&
-          !favorites.includes(placeId)
-        )
+        if (nextFavorites.length === favorites.length && !favorites.includes(placeId))
           throw new Error("Vous pouvez enregistrer jusqu’à 20 lieux favoris.");
         const saveResponse = await fetch("/api/member-place-preferences", {
           method: "PUT",
@@ -249,8 +212,7 @@ export default function TourneesPage() {
             savedAddress: current.savedAddress || null,
           }),
         });
-        if (!saveResponse.ok)
-          throw new Error("Impossible d’enregistrer ce favori.");
+        if (!saveResponse.ok) throw new Error("Impossible d’enregistrer ce favori.");
         setFavoritePlaceIds(nextFavorites);
         setPageError("");
       } catch (favoriteError) {
@@ -276,16 +238,10 @@ export default function TourneesPage() {
     (state: CampaignMapState | null) => setCampaignMap(state),
     [],
   );
-  const registerMapPlaceAdder = useCallback(
-    (handler: (placeId: string) => void) => {
-      mapPlaceAdder.current = handler;
-    },
-    [],
-  );
-  const handleFavoritesChange = useCallback(
-    (ids: string[]) => setFavoritePlaceIds(ids),
-    [],
-  );
+  const registerMapPlaceAdder = useCallback((handler: (placeId: string) => void) => {
+    mapPlaceAdder.current = handler;
+  }, []);
+  const handleFavoritesChange = useCallback((ids: string[]) => setFavoritePlaceIds(ids), []);
   const completeSetup = useCallback(() => setView("campaigns"), []);
   const openCampaign = useCallback((campaignId: string) => {
     setSelectedCampaignId(campaignId);
@@ -336,15 +292,9 @@ export default function TourneesPage() {
               {view !== "campaigns" && (
                 <button
                   type="button"
-                  onClick={() =>
-                    view === "campaign"
-                      ? backToCampaigns()
-                      : setView("campaigns")
-                  }
+                  onClick={() => (view === "campaign" ? backToCampaigns() : setView("campaigns"))}
                   aria-label={
-                    view === "campaign"
-                      ? "Retour aux campagnes"
-                      : "Retour aux campagnes en cours"
+                    view === "campaign" ? "Retour aux campagnes" : "Retour aux campagnes en cours"
                   }
                   className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700"
                 >
@@ -355,9 +305,7 @@ export default function TourneesPage() {
                 <MapPinned size={21} aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
-                <h1 className="truncate text-xl font-black text-stone-900 sm:text-2xl">
-                  {title}
-                </h1>
+                <h1 className="truncate text-xl font-black text-stone-900 sm:text-2xl">{title}</h1>
                 <p className="mt-0.5 text-xs text-stone-600">
                   {view === "campaign"
                     ? "Carte et actions de cette campagne"
@@ -400,9 +348,7 @@ export default function TourneesPage() {
               <section className="space-y-4" aria-label="Campagnes disponibles">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-stone-800">
-                      Vos lieux favoris
-                    </p>
+                    <p className="text-sm font-semibold text-stone-800">Vos lieux favoris</p>
                     <p className="mt-1 text-xs text-stone-500">
                       {favoritePlaceIds.length
                         ? `${favoritePlaceIds.length} lieu(x) enregistré(s)`
@@ -414,11 +360,7 @@ export default function TourneesPage() {
                     onClick={() => setView("preferences")}
                     className="min-h-11 shrink-0 px-3 text-sm font-semibold text-emerald-900 underline underline-offset-2"
                   >
-                    <Heart
-                      size={15}
-                      aria-hidden="true"
-                      className="mr-1 inline"
-                    />
+                    <Heart size={15} aria-hidden="true" className="mr-1 inline" />
                     Modifier
                   </button>
                 </div>
@@ -441,16 +383,12 @@ export default function TourneesPage() {
 
             {view === "campaign" && (
               <>
-                <section
-                  id="places-map-section"
-                  className="scroll-mt-3 space-y-3"
-                >
+                <section id="places-map-section" className="scroll-mt-3 space-y-3">
                   {campaignMap && (
                     <p className="text-xs text-stone-600">
-                      La carte est limitée aux secteurs de cette campagne. Les
-                      marqueurs représentent des lieux-dits, pas des domiciles.
-                      Le calcul routier transmet le départ et les étapes au
-                      service de routage configuré, dans l’ordre de votre
+                      La carte est limitée aux secteurs de cette campagne. Les marqueurs
+                      représentent des lieux-dits, pas des domiciles. Le calcul routier transmet le
+                      départ et les étapes au service de routage configuré, dans l’ordre de votre
                       tournée.
                     </p>
                   )}
@@ -462,39 +400,28 @@ export default function TourneesPage() {
                     >
                       {roadRouteLoading ? (
                         <>
-                          <Loader2
-                            size={16}
-                            className="animate-spin"
-                            aria-hidden="true"
-                          />
+                          <Loader2 size={16} className="animate-spin" aria-hidden="true" />
                           Calcul de l’itinéraire dans l’ordre de votre tournée…
                         </>
                       ) : roadRoute ? (
                         <>
                           <MapPinned size={16} aria-hidden="true" />
                           <strong>
-                            {(roadRoute.distanceMeters / 1000).toLocaleString(
-                              "fr-FR",
-                              { maximumFractionDigits: 1 },
-                            )}{" "}
+                            {(roadRoute.distanceMeters / 1000).toLocaleString("fr-FR", {
+                              maximumFractionDigits: 1,
+                            })}{" "}
                             km
                           </strong>
                           <span>·</span>
-                          <strong>
-                            {Math.round(roadRoute.durationSeconds / 60)} min
-                          </strong>
-                          <span className="text-xs">
-                            · ordre de la tournée respecté
-                          </span>
+                          <strong>{Math.round(roadRoute.durationSeconds / 60)} min</strong>
+                          <span className="text-xs">· ordre de la tournée respecté</span>
                         </>
                       ) : roadRouteError ? (
                         <>
                           <span>{roadRouteError}</span>
                           <button
                             type="button"
-                            onClick={() =>
-                              setRoadRouteRetry((value) => value + 1)
-                            }
+                            onClick={() => setRoadRouteRetry((value) => value + 1)}
                             className="font-semibold underline underline-offset-2"
                           >
                             Réessayer
@@ -502,9 +429,8 @@ export default function TourneesPage() {
                         </>
                       ) : !campaignMap.origin ? (
                         <span>
-                          Définissez votre position de départ pour tracer la
-                          route. L’ordre des étapes restera celui de votre
-                          tournée.
+                          Définissez votre position de départ pour tracer la route. L’ordre des
+                          étapes restera celui de votre tournée.
                         </span>
                       ) : null}
                     </div>
@@ -527,9 +453,7 @@ export default function TourneesPage() {
                       assignmentStatuses={campaignMap.assignmentStatuses}
                       campaignMode
                       campaignJoined={campaignMap.joined}
-                      onAddToRoute={(placeId) =>
-                        mapPlaceAdder.current?.(placeId)
-                      }
+                      onAddToRoute={(placeId) => mapPlaceAdder.current?.(placeId)}
                       routeGeometry={roadRoute?.geometry}
                       showHouseholdCounts={showStatistics}
                       selectedPlace={selectedPlace}

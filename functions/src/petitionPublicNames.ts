@@ -6,12 +6,9 @@ interface PublicSignatureName {
 }
 
 // [SPEC-PET-SCAN-05] Paper signatures and collective assent records are shown generically in public summaries.
-export function formatPublicRecentSigner(
-  signature: PublicSignatureName,
-): string {
+export function formatPublicRecentSigner(signature: PublicSignatureName): string {
   if (signature.source === "papier") return "Signataire papier";
-  if (signature.source === "accord_collectif")
-    return "Accord de principe enregistré";
+  if (signature.source === "accord_collectif") return "Accord de principe enregistré";
 
   const prenom = signature.prenom || "Anonyme";
   const nom = signature.nom || "";

@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  detectSupportedUploadType,
-  sanitizeUploadFileName,
-} from "./uploadValidation.ts";
+import { detectSupportedUploadType, sanitizeUploadFileName } from "./uploadValidation.ts";
 
 export const campaignIdSchema = z
   .string()
@@ -26,10 +23,7 @@ export const campaignInputSchema = z
   .strict();
 
 // [SPEC-TRACTATION-07] Campaign edits must retain every place that already has a shared assignment.
-export function canUpdateCampaignPlaces(
-  assignedPlaceIds: string[],
-  requestedPlaceIds: string[],
-) {
+export function canUpdateCampaignPlaces(assignedPlaceIds: string[], requestedPlaceIds: string[]) {
   const requested = new Set(requestedPlaceIds);
   return assignedPlaceIds.every((placeId) => requested.has(placeId));
 }
@@ -110,9 +104,7 @@ const ADMIN_EMAILS = new Set([
 
 export function getMemberRoles(memberData: Record<string, unknown>) {
   if (Array.isArray(memberData.roles))
-    return memberData.roles.filter(
-      (role): role is string => typeof role === "string",
-    );
+    return memberData.roles.filter((role): role is string => typeof role === "string");
   return typeof memberData.role === "string" ? [memberData.role] : [];
 }
 
@@ -121,15 +113,10 @@ export function isValidatedMember(memberData: Record<string, unknown>) {
 }
 
 // [SPEC-TRACTATION-02] Campaign creation depends on server-stored role grants, not request input.
-export function canCreateCampaign(
-  memberData: Record<string, unknown>,
-  email: string,
-) {
+export function canCreateCampaign(memberData: Record<string, unknown>, email: string) {
   const roles = getMemberRoles(memberData);
   return (
-    roles.includes("admin") ||
-    roles.includes("tractation") ||
-    ADMIN_EMAILS.has(email.toLowerCase())
+    roles.includes("admin") || roles.includes("tractation") || ADMIN_EMAILS.has(email.toLowerCase())
   );
 }
 

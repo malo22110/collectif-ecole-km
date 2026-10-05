@@ -20,9 +20,7 @@ export default function HistoriqueAdmin({
   const [isDirty, setIsDirty] = useState(false);
   const [isSimplified, setIsSimplified] = useState(false);
   // Onglet admin : éditeur ou révisions en attente
-  const [adminTab, setAdminTab] = useState<"editor" | "reviews" | "history">(
-    "editor",
-  );
+  const [adminTab, setAdminTab] = useState<"editor" | "reviews" | "history">("editor");
   const [editorReloadKey, setEditorReloadKey] = useState(0);
 
   const handleDirtyChange = useCallback(
@@ -48,9 +46,7 @@ export default function HistoriqueAdmin({
     <div className="mt-8 border-t border-stone-200 pt-6">
       {/* Barre de contrôle globale */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 className="text-xl font-bold text-stone-900">
-          Édition de la page Historique
-        </h2>
+        <h2 className="text-xl font-bold text-stone-900">Édition de la page Historique</h2>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Toggle résumé / détails pour la preview (mode visuel uniquement) */}
@@ -117,9 +113,7 @@ export default function HistoriqueAdmin({
 
       {/* Contenu selon onglet */}
       {adminTab === "history" ? (
-        <CmsRevisionHistory
-          onRestored={() => setEditorReloadKey((key) => key + 1)}
-        />
+        <CmsRevisionHistory onRestored={() => setEditorReloadKey((key) => key + 1)} />
       ) : adminTab === "reviews" ? (
         <DraftReviewPanel />
       ) : mode === "expert" ? (

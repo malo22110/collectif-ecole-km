@@ -15,10 +15,7 @@ test("retrouve un passage de PV avec le titre source et masque les coordonnées"
   const result = searchCouncilMinutes(corpus, "subvention rénovation école");
   assert.equal(result.totalMatchingDocuments, 1);
   assert.equal(result.documents[0].title, "PV DU 14 décembre 2023.pdf");
-  assert.match(
-    result.documents[0].excerpts[0].text,
-    /subvention de 12 000 euros/,
-  );
+  assert.match(result.documents[0].excerpts[0].text, /subvention de 12 000 euros/);
   assert.doesNotMatch(JSON.stringify(result), /mairie@example|02 96 00 00 00/);
   assert.equal(result.source, "public/context.txt");
 });
@@ -35,15 +32,10 @@ test("borne les résultats et ne retourne rien sans correspondance", () => {
   const result = searchCouncilMinutes(documents.join("\n"), "rénovation école");
   assert.equal(result.totalMatchingDocuments, 7);
   assert.ok(result.documents.length <= 4);
-  assert.ok(
-    result.documents.every((document) => document.excerpts.length <= 4),
-  );
+  assert.ok(result.documents.every((document) => document.excerpts.length <= 4));
   assert.ok(JSON.stringify(result).length < 10000);
 
-  const empty = searchCouncilMinutes(
-    documents.join("\n"),
-    "délibération introuvable",
-  );
+  const empty = searchCouncilMinutes(documents.join("\n"), "délibération introuvable");
   assert.equal(empty.totalMatchingDocuments, 0);
   assert.deepEqual(empty.documents, []);
 });

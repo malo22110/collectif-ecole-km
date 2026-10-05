@@ -33,15 +33,12 @@ function normalizeForClassification(value: string) {
 
 function compareSigners(first: PetitionSigner, second: PetitionSigner) {
   return (
-    first.nom.localeCompare(second.nom, "fr") ||
-    first.prenom.localeCompare(second.prenom, "fr")
+    first.nom.localeCompare(second.nom, "fr") || first.prenom.localeCompare(second.prenom, "fr")
   );
 }
 
 // [SPEC-PET-EXPORT-02] Include every consolidated signature in the requested geographic and audience order.
-export function groupPetitionSigners(
-  signers: PetitionSigner[],
-): PetitionSignerGroup[] {
+export function groupPetitionSigners(signers: PetitionSigner[]): PetitionSignerGroup[] {
   const groups: PetitionSignerGroup[] = [
     { key: "kergrist", title: "Habitants de Kergrist-Moëlou", signers: [] },
     { key: "parents", title: "Parents d’élèves", signers: [] },
@@ -80,11 +77,7 @@ export function findPotentialPetitionDuplicatePairs(
 
   for (let firstIndex = 0; firstIndex < numberedSigners.length; firstIndex++) {
     const first = numberedSigners[firstIndex];
-    for (
-      let secondIndex = firstIndex + 1;
-      secondIndex < numberedSigners.length;
-      secondIndex++
-    ) {
+    for (let secondIndex = firstIndex + 1; secondIndex < numberedSigners.length; secondIndex++) {
       const second = numberedSigners[secondIndex];
       if (
         isPotentialPetitionDuplicate(

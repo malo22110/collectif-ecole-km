@@ -9,12 +9,13 @@ const collectionName = "lieuxDits";
 const shouldApply = process.argv.includes("--apply");
 
 function makeDocumentId(name, index) {
-  const base = name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "") || `lieu-${index + 1}`;
+  const base =
+    name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || `lieu-${index + 1}`;
   return `${base}-${String(index + 1).padStart(3, "0")}`;
 }
 
@@ -25,11 +26,13 @@ async function main() {
   }
 
   const serviceAccount = JSON.parse(await fs.readFile(serviceAccountPath, "utf8"));
-  const app = getApps()[0] || initializeApp({ credential: cert(serviceAccount), projectId: serviceAccount.project_id });
+  const app =
+    getApps()[0] ||
+    initializeApp({ credential: cert(serviceAccount), projectId: serviceAccount.project_id });
   const db = getFirestore(app, "ecole-db");
   const collection = db.collection(collectionName);
   const existingSnapshot = await collection.get();
-  const existingIds = new Set(existingSnapshot.docs.map(document => document.id));
+  const existingIds = new Set(existingSnapshot.docs.map((document) => document.id));
 
   const planned = locations.map((location, index) => {
     if (typeof location.nom !== "string" || !location.nom.trim()) {
@@ -39,7 +42,10 @@ async function main() {
       throw new Error(`Nombre de foyers invalide pour ${location.nom}.`);
     }
     const hasCoordinates = Number.isFinite(location.lat) && Number.isFinite(location.lon);
-    if (hasCoordinates && (location.lat < -90 || location.lat > 90 || location.lon < -180 || location.lon > 180)) {
+    if (
+      hasCoordinates &&
+      (location.lat < -90 || location.lat > 90 || location.lon < -180 || location.lon > 180)
+    ) {
       throw new Error(`Coordonnées hors limites pour ${location.nom}.`);
     }
 
@@ -53,20 +59,26 @@ async function main() {
         geocodeStatus: hasCoordinates ? "located" : "unlocated",
         householdStatus: location.foyers === 0 ? "zero" : "positive",
         source: "base-adresse-nationale",
-        updatedAt: FieldValue.serverTimestamp()
-      }
+        updatedAt: FieldValue.serverTimestamp(),
+      },
     };
   });
 
-  const toCreate = planned.filter(item => !existingIds.has(item.id));
-  const locatedCount = toCreate.filter(item => item.data.geocodeStatus === "located").length;
-  const zeroHouseholdCount = toCreate.filter(item => item.data.householdStatus === "zero").length;
+  const toCreate = planned.filter((item) => !existingIds.has(item.id));
+  const locatedCount = toCreate.filter((item) => item.data.geocodeStatus === "located").length;
+  const zeroHouseholdCount = toCreate.filter((item) => item.data.householdStatus === "zero").length;
 
-  console.log(`Lieux fournis: ${locations.length}; déjà présents: ${planned.length - toCreate.length}; à ajouter: ${toCreate.length}.`);
-  console.log(`Coordonnées disponibles: ${locatedCount}; lieux à zéro foyer: ${zeroHouseholdCount}.`);
+  console.log(
+    `Lieux fournis: ${locations.length}; déjà présents: ${planned.length - toCreate.length}; à ajouter: ${toCreate.length}.`,
+  );
+  console.log(
+    `Coordonnées disponibles: ${locatedCount}; lieux à zéro foyer: ${zeroHouseholdCount}.`,
+  );
 
   if (!shouldApply) {
-    console.log("Simulation seulement. Relancez avec --apply pour ajouter les documents manquants.");
+    console.log(
+      "Simulation seulement. Relancez avec --apply pour ajouter les documents manquants.",
+    );
     await app.delete();
     return;
   }
@@ -79,11 +91,13 @@ async function main() {
     await batch.commit();
   }
 
-  console.log(`Ajout terminé : ${toCreate.length} document(s) créé(s) dans ${collectionName}. Les documents déjà présents n'ont pas été modifiés.`);
+  console.log(
+    `Ajout terminé : ${toCreate.length} document(s) créé(s) dans ${collectionName}. Les documents déjà présents n'ont pas été modifiés.`,
+  );
   await app.delete();
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error("Échec du seed des lieux-dits :", error.message);
   process.exitCode = 1;
 });

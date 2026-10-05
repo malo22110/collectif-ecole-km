@@ -83,12 +83,8 @@ function extractDocuments(source: string) {
     const endIndex = starts[index + 1]?.index ?? source.length;
     const segment = source.slice(startIndex, endIndex);
     const endMarker = segment.search(/^--- FIN DU DOCUMENT : .*? ---\s*$/m);
-    const content = (
-      endMarker >= 0 ? segment.slice(0, endMarker) : segment
-    ).trim();
-    const title = (start.title || "Procès-verbal municipal")
-      .replace(/\s+/g, " ")
-      .trim();
+    const content = (endMarker >= 0 ? segment.slice(0, endMarker) : segment).trim();
+    const title = (start.title || "Procès-verbal municipal").replace(/\s+/g, " ").trim();
     if (content) documents.push({ title, content });
   }
   return documents;
@@ -99,9 +95,9 @@ function scoreLine(line: string, terms: string[]) {
   return terms.reduce(
     (score, term) =>
       score +
-      (new RegExp(
-        `(^|[^a-z0-9])${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z0-9]|$)`,
-      ).test(normalized)
+      (new RegExp(`(^|[^a-z0-9])${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z0-9]|$)`).test(
+        normalized,
+      )
         ? 1
         : 0),
     0,
@@ -110,15 +106,9 @@ function scoreLine(line: string, terms: string[]) {
 
 function redactContactDetails(value: string) {
   return value
-    .replace(
-      /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
-      "[adresse e-mail masquée]",
-    )
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[adresse e-mail masquée]")
     .replace(/(?:https?:\/\/|www\.)\S+/gi, "[lien retiré]")
-    .replace(
-      /(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}\b/g,
-      "[numéro de téléphone masqué]",
-    )
+    .replace(/(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}\b/g, "[numéro de téléphone masqué]")
     .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
     .trim();
 }
@@ -147,8 +137,7 @@ function excerptsForDocument(content: string, terms: string[]) {
   const groups: number[][] = [];
   for (const index of indices) {
     const previous = groups[groups.length - 1];
-    if (previous && index <= previous[previous.length - 1] + 1)
-      previous.push(index);
+    if (previous && index <= previous[previous.length - 1] + 1) previous.push(index);
     else groups.push([index]);
   }
 
@@ -177,10 +166,7 @@ function excerptsForDocument(content: string, terms: string[]) {
 }
 
 // [SPEC-ASSISTANT-CMS-03] Search council minutes on demand and return only bounded relevant excerpts with their document source.
-export function searchCouncilMinutes(
-  source: string,
-  query: string,
-): CouncilMinutesSearchResult {
+export function searchCouncilMinutes(source: string, query: string): CouncilMinutesSearchResult {
   const normalizedQuery = query.trim().slice(0, MAX_QUERY_LENGTH);
   const terms = queryTerms(normalizedQuery);
   if (terms.length === 0)
@@ -199,8 +185,7 @@ export function searchCouncilMinutes(
     .filter((document) => document.score > 0)
     .sort(
       (first, second) =>
-        second.score - first.score ||
-        first.title.localeCompare(second.title, "fr"),
+        second.score - first.score || first.title.localeCompare(second.title, "fr"),
     );
 
   let remaining = MAX_TOTAL_CHARS;

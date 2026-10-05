@@ -31,12 +31,8 @@ export function classifyPetitionAgreementMember(
   const matchingEntries = entries.filter(
     (entry) => entry.email.trim().toLowerCase() === memberEmail,
   );
-  const hasAgreement = matchingEntries.some(
-    (entry) => entry.source === "accord_collectif",
-  );
-  const isAlreadySigned = matchingEntries.some(
-    (entry) => entry.source !== "accord_collectif",
-  );
+  const hasAgreement = matchingEntries.some((entry) => entry.source === "accord_collectif");
+  const isAlreadySigned = matchingEntries.some((entry) => entry.source !== "accord_collectif");
   const hasPotentialPaperSignature = entries.some(
     (entry) =>
       entry.source === "papier" &&

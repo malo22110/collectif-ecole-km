@@ -20,11 +20,8 @@ export function toPublicPlaceAssignment(
   }
 
   const storedName =
-    typeof assignment.claimedByName === "string"
-      ? assignment.claimedByName.trim()
-      : "";
-  const fallbackName =
-    typeof fallbackDisplayName === "string" ? fallbackDisplayName.trim() : "";
+    typeof assignment.claimedByName === "string" ? assignment.claimedByName.trim() : "";
+  const fallbackName = typeof fallbackDisplayName === "string" ? fallbackDisplayName.trim() : "";
 
   return {
     status: assignment.status,

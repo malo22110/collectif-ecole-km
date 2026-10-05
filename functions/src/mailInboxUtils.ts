@@ -5,20 +5,14 @@ export const MAX_INBOX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
 export const MAX_INBOX_ATTACHMENTS = 5;
 export const MAX_INBOX_TEXT_LENGTH = 50_000;
 
-export function getInboxMessageId(
-  messageId: string | undefined,
-  uidValidity: number,
-  uid: number,
-) {
+export function getInboxMessageId(messageId: string | undefined, uidValidity: number, uid: number) {
   const identity = messageId?.trim().toLowerCase() || `${uidValidity}:${uid}`;
   return createHash("sha256").update(identity).digest("hex");
 }
 
 export function getMailMessageIndexId(messageId: string | undefined) {
   const normalized = (messageId || "").trim().toLowerCase();
-  return normalized
-    ? createHash("sha256").update(normalized).digest("hex")
-    : "";
+  return normalized ? createHash("sha256").update(normalized).digest("hex") : "";
 }
 
 export function sanitizeInboxFileName(fileName: string | undefined) {

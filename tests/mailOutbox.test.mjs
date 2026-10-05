@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  getPersonalTestRecipient,
-  resolveMailRecipients,
-} from "../lib/mailOutboxUtils.ts";
+import { getPersonalTestRecipient, resolveMailRecipients } from "../lib/mailOutboxUtils.ts";
 import { isMailDueForDelivery } from "../functions/src/mailQueue.ts";
 
 // [SPEC-MAIL-03] The all audience contains members and signers, never press contacts.
@@ -46,9 +43,7 @@ test("Les audiences Membres, non-signataires et Journalistes restent séparées"
     ["a@example.fr", "b@example.fr"],
   );
   assert.deepEqual(
-    resolveMailRecipients("membres_non_signataires", sources).map(
-      (item) => item.email,
-    ),
+    resolveMailRecipients("membres_non_signataires", sources).map((item) => item.email),
     ["a@example.fr"],
   );
   assert.deepEqual(
@@ -69,19 +64,10 @@ test("la reprise accepte les envois immédiats et échus, mais pas les envois fu
   const now = new Date("2026-10-05T12:00:00.000Z");
   assert.equal(isMailDueForDelivery(undefined, now), true);
   assert.equal(isMailDueForDelivery(null, now), true);
+  assert.equal(isMailDueForDelivery(new Date("2026-10-05T11:59:00.000Z"), now), true);
   assert.equal(
-    isMailDueForDelivery(new Date("2026-10-05T11:59:00.000Z"), now),
+    isMailDueForDelivery({ toDate: () => new Date("2026-10-05T12:00:00.000Z") }, now),
     true,
   );
-  assert.equal(
-    isMailDueForDelivery(
-      { toDate: () => new Date("2026-10-05T12:00:00.000Z") },
-      now,
-    ),
-    true,
-  );
-  assert.equal(
-    isMailDueForDelivery(new Date("2026-10-05T12:01:00.000Z"), now),
-    false,
-  );
+  assert.equal(isMailDueForDelivery(new Date("2026-10-05T12:01:00.000Z"), now), false);
 });

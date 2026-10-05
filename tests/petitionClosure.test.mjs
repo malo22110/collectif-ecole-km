@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const source = (file) =>
-  readFile(new URL(`../${file}`, import.meta.url), "utf8");
+const source = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
 // [SPEC-PET-CLOSE-01] Public sign-in must not be possible through the UI or Firestore rules.
 test("la page publique archive la pétition sans formulaire ni création Firestore", async () => {
@@ -16,19 +15,10 @@ test("la page publique archive la pétition sans formulaire ni création Firesto
   assert.doesNotMatch(page, /<form|setDoc\(|addDoc\(/);
   assert.match(normalizedPage, /La pétition est close/);
   assert.match(normalizedPage, /Pétition Citoyenne pour la Sauvegarde de l/);
-  assert.match(
-    normalizedPage,
-    /Valorisons les études engagées vers un projet maîtrisé/,
-  );
-  assert.match(
-    normalizedPage,
-    /réévaluation à la baisse du dossier de rénovation déjà engagé/,
-  );
-  assert.match(page, /550 000 € HT/);
-  assert.match(
-    rules,
-    /match \/signatures\/\{sigId\}[\s\S]*?allow create: if false;/,
-  );
+  assert.match(normalizedPage, /Valorisons les études engagées vers un projet maîtrisé/);
+  assert.match(normalizedPage, /réévaluation à la baisse du dossier de rénovation déjà engagé/);
+  assert.match(normalizedPage, /550 000 € HT/);
+  assert.match(rules, /match \/signatures\/\{sigId\}[\s\S]*?allow create: if false;/);
   assert.doesNotMatch(
     home,
     /Signer la pétition|Signer la pétition maintenant|Prochain conseil municipal/,
@@ -49,8 +39,5 @@ test("les imports papier et les accords de principe restent fermés côté serve
     normalizedAgreements,
     /if \(PETITION_CLOSED\) return NextResponse\.json\([\s\S]{0,300}\{ status: 410 \}/,
   );
-  assert.doesNotMatch(
-    hub,
-    /Numériser une pétition|Imprimer la pétition|Membres à relancer/,
-  );
+  assert.doesNotMatch(hub, /Numériser une pétition|Imprimer la pétition|Membres à relancer/);
 });

@@ -43,37 +43,18 @@ export async function PUT(
       { status: 400 },
     );
   }
-  if (
-    !request.headers
-      .get("Content-Type")
-      ?.toLowerCase()
-      .includes("application/json")
-  ) {
-    return Response.json(
-      { error: "Format de requête invalide." },
-      { status: 415 },
-    );
+  if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
+    return Response.json({ error: "Format de requête invalide." }, { status: 415 });
   }
 
   try {
-    const parsed = placeAssignmentInputSchema.safeParse(
-      await readJsonBody(request),
-    );
+    const parsed = placeAssignmentInputSchema.safeParse(await readJsonBody(request));
     if (!parsed.success)
-      return Response.json(
-        { error: "Action de réservation invalide." },
-        { status: 400 },
-      );
+      return Response.json({ error: "Action de réservation invalide." }, { status: 400 });
 
-    const campaignRef = tractationDb
-      .collection("tractationCampaigns")
-      .doc(campaignId);
-    const participantRef = campaignRef
-      .collection("participants")
-      .doc(authorization.member.uid);
-    const assignmentRef = campaignRef
-      .collection("placeAssignments")
-      .doc(placeId);
+    const campaignRef = tractationDb.collection("tractationCampaigns").doc(campaignId);
+    const participantRef = campaignRef.collection("participants").doc(authorization.member.uid);
+    const assignmentRef = campaignRef.collection("placeAssignments").doc(placeId);
     const sourcePlaceRef = tractationDb.collection("lieuxDits").doc(placeId);
     let result: {
       status: "claimed" | "completed" | null;
@@ -85,61 +66,39 @@ export async function PUT(
     };
 
     await tractationDb.runTransaction(async (transaction) => {
-      const [campaign, participant, assignment, sourcePlace] =
-        await Promise.all([
-          transaction.get(campaignRef),
-          transaction.get(participantRef),
-          transaction.get(assignmentRef),
-          transaction.get(sourcePlaceRef),
-        ]);
+      const [campaign, participant, assignment, sourcePlace] = await Promise.all([
+        transaction.get(campaignRef),
+        transaction.get(participantRef),
+        transaction.get(assignmentRef),
+        transaction.get(sourcePlaceRef),
+      ]);
 
-      if (!campaign.exists)
-        throw new PlaceAssignmentError(404, "Campagne introuvable.");
+      if (!campaign.exists) throw new PlaceAssignmentError(404, "Campagne introuvable.");
       if (campaign.get("status") !== "active")
-        throw new PlaceAssignmentError(
-          409,
-          "Cette campagne n'est plus ouverte.",
-        );
+        throw new PlaceAssignmentError(409, "Cette campagne n'est plus ouverte.");
       const campaignPlaces = campaign.get("lieuDits");
       const selectedPlace = Array.isArray(campaignPlaces)
-        ? campaignPlaces.find(
-            (place) =>
-              place && typeof place === "object" && place.id === placeId,
-          )
+        ? campaignPlaces.find((place) => place && typeof place === "object" && place.id === placeId)
         : undefined;
       if (!selectedPlace)
-        throw new PlaceAssignmentError(
-          404,
-          "Ce lieu ne fait pas partie de la campagne.",
-        );
+        throw new PlaceAssignmentError(404, "Ce lieu ne fait pas partie de la campagne.");
 
       const current = assignment.data();
       const action = parsed.data.action;
       if (action === "claim") {
         if (!participant.exists)
-          throw new PlaceAssignmentError(
-            403,
-            "Rejoignez la campagne avant de réserver un lieu.",
-          );
+          throw new PlaceAssignmentError(403, "Rejoignez la campagne avant de réserver un lieu.");
         if (
           !hasEligibleHouseholds(sourcePlace.get("foyers")) ||
-          !hasEligibleHouseholds(
-            (selectedPlace as Record<string, unknown>).foyers,
-          )
+          !hasEligibleHouseholds((selectedPlace as Record<string, unknown>).foyers)
         ) {
           throw new PlaceAssignmentError(
             400,
             "Ce secteur n'a aucun foyer recensé et ne peut pas être réservé.",
           );
         }
-        if (
-          assignment.exists &&
-          current?.claimedByUid !== authorization.member.uid
-        ) {
-          throw new PlaceAssignmentError(
-            409,
-            "Ce lieu a déjà été pris par un autre membre.",
-          );
+        if (assignment.exists && current?.claimedByUid !== authorization.member.uid) {
+          throw new PlaceAssignmentError(409, "Ce lieu a déjà été pris par un autre membre.");
         }
         if (!assignment.exists) {
           transaction.create(assignmentRef, {
@@ -187,17 +146,11 @@ export async function PUT(
 
       let assignmentOwnerParticipant = participant;
       let assignmentOwnerParticipantRef = participantRef;
-      if (
-        action === "release" &&
-        typeof current?.claimedByUid === "string" &&
-        !isMine
-      ) {
+      if (action === "release" && typeof current?.claimedByUid === "string" && !isMine) {
         assignmentOwnerParticipantRef = campaignRef
           .collection("participants")
           .doc(current.claimedByUid);
-        assignmentOwnerParticipant = await transaction.get(
-          assignmentOwnerParticipantRef,
-        );
+        assignmentOwnerParticipant = await transaction.get(assignmentOwnerParticipantRef);
       }
 
       if (action === "reopen") {

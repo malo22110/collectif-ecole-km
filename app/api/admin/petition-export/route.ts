@@ -41,20 +41,14 @@ export async function GET(request: Request) {
     const authorization = request.headers.get("Authorization");
     const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
     if (!token) {
-      return NextResponse.json(
-        { error: "Authentification requise." },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Authentification requise." }, { status: 401 });
     }
 
     let email: string;
     try {
       const decodedToken = await adminAuth.verifyIdToken(token, true);
       if (!decodedToken.email) {
-        return NextResponse.json(
-          { error: "Adresse e-mail absente du compte." },
-          { status: 401 },
-        );
+        return NextResponse.json({ error: "Adresse e-mail absente du compte." }, { status: 401 });
       }
       email = decodedToken.email;
     } catch {
@@ -70,57 +64,40 @@ export async function GET(request: Request) {
         : [];
 
     if (!memberSnapshot.exists || !roles.includes("admin")) {
-      return NextResponse.json(
-        { error: "Accès réservé aux administrateurs." },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Accès réservé aux administrateurs." }, { status: 403 });
     }
 
     const capturedAt = new Date();
     const signaturesSnapshot = await adminDb
       .collection("signatures")
-      .select(
-        "prenom",
-        "nom",
-        "email",
-        "ville",
-        "qualite",
-        "source",
-        "potentialDuplicate",
-      )
+      .select("prenom", "nom", "email", "ville", "qualite", "source", "potentialDuplicate")
       .get();
 
-    const signers: PetitionSigner[] = signaturesSnapshot.docs.map(
-      (document) => {
-        const data = document.data();
-        return {
-          prenom: String(data.prenom || ""),
-          nom: String(data.nom || ""),
-          ville: String(data.ville || ""),
-          qualite: String(data.qualite || ""),
-          source:
-            data.source === "papier"
-              ? "papier"
-              : data.source === "accord_collectif"
-                ? "accord_collectif"
-                : "en ligne",
-          signature:
-            data.source === "papier"
-              ? String(data.email || "Signature recueillie sur papier")
-              : data.source === "accord_collectif"
-                ? "Accord de principe — réunion fondatrice"
-                : String(data.email || document.id),
-          potentialDuplicate: data.potentialDuplicate === true,
-        };
-      },
-    );
+    const signers: PetitionSigner[] = signaturesSnapshot.docs.map((document) => {
+      const data = document.data();
+      return {
+        prenom: String(data.prenom || ""),
+        nom: String(data.nom || ""),
+        ville: String(data.ville || ""),
+        qualite: String(data.qualite || ""),
+        source:
+          data.source === "papier"
+            ? "papier"
+            : data.source === "accord_collectif"
+              ? "accord_collectif"
+              : "en ligne",
+        signature:
+          data.source === "papier"
+            ? String(data.email || "Signature recueillie sur papier")
+            : data.source === "accord_collectif"
+              ? "Accord de principe — réunion fondatrice"
+              : String(data.email || document.id),
+        potentialDuplicate: data.potentialDuplicate === true,
+      };
+    });
     const signerGroups = groupPetitionSigners(signers);
-    const signerCount = signerGroups.reduce(
-      (total, group) => total + group.signers.length,
-      0,
-    );
-    const potentialDuplicates =
-      findPotentialPetitionDuplicatePairs(signerGroups);
+    const signerCount = signerGroups.reduce((total, group) => total + group.signers.length, 0);
+    const potentialDuplicates = findPotentialPetitionDuplicatePairs(signerGroups);
     const petitionStats = calculatePetitionStats(signers);
 
     const extractedAt = new Intl.DateTimeFormat("fr-FR", {
@@ -177,11 +154,7 @@ export async function GET(request: Request) {
         petitionStats.communesVoisines,
         `${petitionStats.communesVoisinesPercent}%`,
       ],
-      [
-        "Autres soutiens",
-        petitionStats.autres,
-        `${petitionStats.autresPercent}%`,
-      ],
+      ["Autres soutiens", petitionStats.autres, `${petitionStats.autresPercent}%`],
       [
         "Qualité déclarée « parent d’élève » (non vérifiée)",
         petitionStats.declaredParentOfPupilQuality,
@@ -288,9 +261,6 @@ export async function GET(request: Request) {
     return htmlResponse(html);
   } catch (error) {
     console.error("Erreur lors de l'export de la pétition:", error);
-    return NextResponse.json(
-      { error: "Impossible de générer l'extraction." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Impossible de générer l'extraction." }, { status: 500 });
   }
 }

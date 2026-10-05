@@ -13,15 +13,15 @@ export default function ExportMembers() {
     try {
       const snapshot = await getDocs(collection(db, "membres"));
       const emails = snapshot.docs
-        .map(doc => doc.data().email)
-        .filter(email => email) // filtrer les potentiels champs vides
+        .map((doc) => doc.data().email)
+        .filter((email) => email) // filtrer les potentiels champs vides
         .join(", ");
 
       const blob = new Blob([emails], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `emails_membres_${new Date().toISOString().split('T')[0]}.txt`;
+      link.download = `emails_membres_${new Date().toISOString().split("T")[0]}.txt`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -39,10 +39,11 @@ export default function ExportMembers() {
       <div>
         <h3 className="font-bold text-stone-900 text-lg">Exporter les e-mails</h3>
         <p className="text-stone-500 text-sm mt-1">
-          Télécharge la liste de tous les e-mails de la base de données (séparés par des virgules) pour un envoi groupé (Cci).
+          Télécharge la liste de tous les e-mails de la base de données (séparés par des virgules)
+          pour un envoi groupé (Cci).
         </p>
       </div>
-      <button 
+      <button
         onClick={handleExport}
         disabled={loading}
         className="flex items-center gap-2 px-6 py-3 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-colors disabled:opacity-50 shrink-0"

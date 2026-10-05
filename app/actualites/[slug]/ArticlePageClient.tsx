@@ -9,14 +9,7 @@ import React, { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Calendar,
-  User,
-  Clock,
-  Paperclip,
-  Download,
-} from "lucide-react";
+import { ArrowLeft, Calendar, User, Clock, Paperclip, Download } from "lucide-react";
 import ShareButton from "@/app/components/ShareButton";
 
 interface Props {
@@ -85,14 +78,11 @@ export default function ArticlePageClient({ id }: Props) {
           <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-stone-500 font-medium pb-8 border-b border-stone-200">
             <div className="flex items-center gap-2">
               <Calendar size={16} />
-              {new Date(article.publishedAt || Date.now()).toLocaleDateString(
-                "fr-FR",
-                {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                },
-              )}
+              {new Date(article.publishedAt || Date.now()).toLocaleDateString("fr-FR", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </div>
             <div className="flex items-center gap-2">
               <User size={16} />
@@ -100,11 +90,7 @@ export default function ArticlePageClient({ id }: Props) {
             </div>
             <div className="flex items-center gap-2">
               <Clock size={16} />
-              {Math.max(
-                1,
-                Math.ceil((article.content?.length || 0) / 1000),
-              )}{" "}
-              min de lecture
+              {Math.max(1, Math.ceil((article.content?.length || 0) / 1000))} min de lecture
             </div>
           </div>
         </div>
@@ -114,49 +100,38 @@ export default function ArticlePageClient({ id }: Props) {
           className="prose prose-stone prose-lg md:prose-xl max-w-none prose-a:text-emerald-600 hover:prose-a:text-emerald-700 prose-headings:font-bold prose-img:rounded-xl"
         />
 
-        {Array.isArray(article.attachments) &&
-          article.attachments.length > 0 && (
-            <section
-              className="mt-10 border-y border-stone-200 py-6"
-              aria-labelledby="article-attachments-heading"
+        {Array.isArray(article.attachments) && article.attachments.length > 0 && (
+          <section
+            className="mt-10 border-y border-stone-200 py-6"
+            aria-labelledby="article-attachments-heading"
+          >
+            <h2
+              id="article-attachments-heading"
+              className="flex items-center gap-2 text-lg font-bold text-stone-900"
             >
-              <h2
-                id="article-attachments-heading"
-                className="flex items-center gap-2 text-lg font-bold text-stone-900"
-              >
-                <Paperclip size={19} aria-hidden="true" />
-                Documents joints
-              </h2>
-              <ul className="mt-3 divide-y divide-stone-200">
-                {article.attachments.map(
-                  (attachment: {
-                    id: string;
-                    fileName: string;
-                    size: number;
-                  }) => (
-                    <li key={attachment.id}>
-                      <a
-                        href={`/api/articles/${encodeURIComponent(article.id)}/attachments?attachmentId=${encodeURIComponent(attachment.id)}`}
-                        className="flex min-h-12 items-center gap-3 py-2 text-sm font-medium text-emerald-900 hover:text-emerald-700"
-                      >
-                        <Download
-                          size={17}
-                          className="shrink-0"
-                          aria-hidden="true"
-                        />
-                        <span className="min-w-0 flex-1 break-words">
-                          {attachment.fileName}
-                        </span>
-                        <span className="shrink-0 text-xs font-normal text-stone-500">
-                          {Math.ceil(attachment.size / 1024)} Ko
-                        </span>
-                      </a>
-                    </li>
-                  ),
-                )}
-              </ul>
-            </section>
-          )}
+              <Paperclip size={19} aria-hidden="true" />
+              Documents joints
+            </h2>
+            <ul className="mt-3 divide-y divide-stone-200">
+              {article.attachments.map(
+                (attachment: { id: string; fileName: string; size: number }) => (
+                  <li key={attachment.id}>
+                    <a
+                      href={`/api/articles/${encodeURIComponent(article.id)}/attachments?attachmentId=${encodeURIComponent(attachment.id)}`}
+                      className="flex min-h-12 items-center gap-3 py-2 text-sm font-medium text-emerald-900 hover:text-emerald-700"
+                    >
+                      <Download size={17} className="shrink-0" aria-hidden="true" />
+                      <span className="min-w-0 flex-1 break-words">{attachment.fileName}</span>
+                      <span className="shrink-0 text-xs font-normal text-stone-500">
+                        {Math.ceil(attachment.size / 1024)} Ko
+                      </span>
+                    </a>
+                  </li>
+                ),
+              )}
+            </ul>
+          </section>
+        )}
 
         <div className="mt-12 pt-8 border-t border-stone-200 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-stone-500 font-medium">
@@ -177,8 +152,8 @@ export default function ArticlePageClient({ id }: Props) {
             Envie de soutenir le projet ?
           </h3>
           <p className="text-emerald-800 mb-8 max-w-lg mx-auto">
-            Rejoignez le collectif et participez activement à la construction de
-            l'avenir de l'école de Kergrist-Moëlou.
+            Rejoignez le collectif et participez activement à la construction de l'avenir de l'école
+            de Kergrist-Moëlou.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link

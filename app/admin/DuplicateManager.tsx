@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, getDocs, deleteDoc, doc, updateDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ShieldAlert, Trash2, CheckCircle2, RefreshCw, AlertTriangle, Users } from "lucide-react";
 
@@ -16,28 +24,37 @@ interface MembreDoc {
 }
 
 export default function DuplicateManager() {
-
   const handleSyncPetitionStats = async () => {
-    setLogs(prev => [...prev, "Calcul et synchronisation du compteur 'stats/petition'..."]);
+    setLogs((prev) => [...prev, "Calcul et synchronisation du compteur 'stats/petition'..."]);
     try {
       const snap = await getDocs(collection(db, "signatures"));
       const count = snap.size;
       const recent: string[] = [];
-      snap.docs.slice(-10).reverse().forEach(docSnap => {
-        const d = docSnap.data();
-        if (d.prenom && d.nom) {
-          const qual = d.qualite ? ` (${d.qualite})` : '';
-          recent.push(`${d.prenom} ${d.nom.charAt(0)}.${qual}`);
-        }
-      });
+      snap.docs
+        .slice(-10)
+        .reverse()
+        .forEach((docSnap) => {
+          const d = docSnap.data();
+          if (d.prenom && d.nom) {
+            const qual = d.qualite ? ` (${d.qualite})` : "";
+            recent.push(`${d.prenom} ${d.nom.charAt(0)}.${qual}`);
+          }
+        });
 
-      await setDoc(doc(db, "stats", "petition"), {
-        count: count,
-        recent: recent,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        doc(db, "stats", "petition"),
+        {
+          count: count,
+          recent: recent,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
 
-      setLogs(prev => [...prev, `[SYNCHRO SUCCESS] Compteur 'stats/petition' mis à jour à ${count} signatures.`]);
+      setLogs((prev) => [
+        ...prev,
+        `[SYNCHRO SUCCESS] Compteur 'stats/petition' mis à jour à ${count} signatures.`,
+      ]);
       alert(`Compteur pétition synchronisé avec succès à ${count} signatures !`);
     } catch (err: any) {
       console.error(err);
@@ -45,13 +62,12 @@ export default function DuplicateManager() {
     }
   };
 
-
   const handleSyncMemberStats = async () => {
-    setLogs(prev => [...prev, "Calcul et synchronisation du compteur 'stats/membres'..."]);
+    setLogs((prev) => [...prev, "Calcul et synchronisation du compteur 'stats/membres'..."]);
     try {
       const snap = await getDocs(collection(db, "membres"));
       let validatedCount = 0;
-      snap.forEach(docSnap => {
+      snap.forEach((docSnap) => {
         const d = docSnap.data();
         if (d.status === "validated" || d.adherent === true) {
           validatedCount++;
@@ -59,12 +75,19 @@ export default function DuplicateManager() {
       });
 
       const finalCount = Math.max(validatedCount, 51);
-      await setDoc(doc(db, "stats", "membres"), {
-        count: finalCount,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        doc(db, "stats", "membres"),
+        {
+          count: finalCount,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
 
-      setLogs(prev => [...prev, `[SYNCHRO SUCCESS] Compteur 'stats/membres' mis à jour à ${finalCount} membres.`]);
+      setLogs((prev) => [
+        ...prev,
+        `[SYNCHRO SUCCESS] Compteur 'stats/membres' mis à jour à ${finalCount} membres.`,
+      ]);
       alert(`Compteur membres synchronisé avec succès à ${finalCount} membres mobilisés !`);
     } catch (err: any) {
       console.error(err);
@@ -90,7 +113,7 @@ export default function DuplicateManager() {
 
       const map: Record<string, MembreDoc[]> = {};
 
-      snap.forEach(docSnap => {
+      snap.forEach((docSnap) => {
         const data = docSnap.data() as Omit<MembreDoc, "id">;
         const emailClean = (data.email || "").trim().toLowerCase();
 
@@ -118,21 +141,24 @@ export default function DuplicateManager() {
       setDuplicatesGrouped(dupes);
 
       if (dupeCount === 0) {
-        setLogs(prev => [...prev, "✅ Aucun doublon d'adresse e-mail détecté."]);
+        setLogs((prev) => [...prev, "✅ Aucun doublon d'adresse e-mail détecté."]);
       } else {
-        setLogs(prev => [...prev, `⚠️ ${dupeCount} adresse(s) e-mail associée(s) à plusieurs fiches.`]);
+        setLogs((prev) => [
+          ...prev,
+          `⚠️ ${dupeCount} adresse(s) e-mail associée(s) à plusieurs fiches.`,
+        ]);
       }
-
     } catch (err: any) {
       console.error(err);
-      setLogs(prev => [...prev, `❌ Erreur : ${err.message}`]);
+      setLogs((prev) => [...prev, `❌ Erreur : ${err.message}`]);
     } finally {
       setAnalyzing(false);
     }
   };
 
   const handleAutoClean = async (email: string, docs: MembreDoc[]) => {
-    if (!confirm(`Conserver la meilleure fiche pour ${email} et supprimer les autres doublons ?`)) return;
+    if (!confirm(`Conserver la meilleure fiche pour ${email} et supprimer les autres doublons ?`))
+      return;
 
     setCleaning(true);
     try {
@@ -150,8 +176,11 @@ export default function DuplicateManager() {
         await deleteDoc(doc(db, "membres", d.id));
       }
 
-      setLogs(prev => [...prev, `[NETTOYÉ] ${email} : Conservé doc ID ${toKeep.id}, supprimé ${toDelete.length} doublon(s).`]);
-      
+      setLogs((prev) => [
+        ...prev,
+        `[NETTOYÉ] ${email} : Conservé doc ID ${toKeep.id}, supprimé ${toDelete.length} doublon(s).`,
+      ]);
+
       // Re-run analysis
       await handleAnalyze();
     } catch (err: any) {
@@ -166,7 +195,7 @@ export default function DuplicateManager() {
     if (!confirm(`Supprimer définitivement cette fiche (${docId}) ?`)) return;
     try {
       await deleteDoc(doc(db, "membres", docId));
-      setLogs(prev => [...prev, `[SUPPRIMÉ] Doc ID ${docId} (${email})`]);
+      setLogs((prev) => [...prev, `[SUPPRIMÉ] Doc ID ${docId} (${email})`]);
       await handleAnalyze();
     } catch (err: any) {
       alert(`Erreur : ${err.message}`);
@@ -211,28 +240,38 @@ export default function DuplicateManager() {
               setAnalyzing(true);
               setLogs(["Démarrage de la sauvegarde complète..."]);
               try {
-                const collectionsToBackup = ["membres", "signatures", "commentaires", "articles", "presse", "faqs", "stats"];
+                const collectionsToBackup = [
+                  "membres",
+                  "signatures",
+                  "commentaires",
+                  "articles",
+                  "presse",
+                  "faqs",
+                  "stats",
+                ];
                 const backupData: any = {};
                 for (const col of collectionsToBackup) {
-                  setLogs(prev => [...prev, `Sauvegarde de ${col}...`]);
+                  setLogs((prev) => [...prev, `Sauvegarde de ${col}...`]);
                   const snap = await getDocs(collection(db, col));
                   backupData[col] = {};
-                  snap.forEach(d => {
+                  snap.forEach((d) => {
                     backupData[col][d.id] = d.data();
                   });
                 }
-                const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+                const blob = new Blob([JSON.stringify(backupData, null, 2)], {
+                  type: "application/json",
+                });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `backup_ecole_kergrist_${new Date().toISOString().split('T')[0]}.json`;
+                a.download = `backup_ecole_kergrist_${new Date().toISOString().split("T")[0]}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                setLogs(prev => [...prev, `[SUCCÈS] Sauvegarde téléchargée !`]);
+                setLogs((prev) => [...prev, `[SUCCÈS] Sauvegarde téléchargée !`]);
               } catch (e: any) {
-                setLogs(prev => [...prev, `[ERREUR] ${e.message}`]);
+                setLogs((prev) => [...prev, `[ERREUR] ${e.message}`]);
               }
               setAnalyzing(false);
             }}
@@ -241,7 +280,7 @@ export default function DuplicateManager() {
           >
             <RefreshCw size={16} className={analyzing ? "animate-spin" : ""} /> Sauvegarder la Base
           </button>
-          
+
           <button
             onClick={async () => {
               setAnalyzing(true);
@@ -250,18 +289,21 @@ export default function DuplicateManager() {
                 const snap = await getDocs(collection(db, "membres"));
                 let migrated = 0;
                 for (const d of snap.docs) {
-                  if (!d.id.includes('@')) {
+                  if (!d.id.includes("@")) {
                     const data = d.data();
                     const emailId = data.email.trim().toLowerCase();
-                    setLogs(prev => [...prev, `Migration de ${emailId}...`]);
+                    setLogs((prev) => [...prev, `Migration de ${emailId}...`]);
                     await setDoc(doc(db, "membres", emailId), data);
                     await deleteDoc(doc(db, "membres", d.id));
                     migrated++;
                   }
                 }
-                setLogs(prev => [...prev, `[SUCCÈS] ${migrated} membres migrés vers des ID emails.`]);
+                setLogs((prev) => [
+                  ...prev,
+                  `[SUCCÈS] ${migrated} membres migrés vers des ID emails.`,
+                ]);
               } catch (e: any) {
-                setLogs(prev => [...prev, `[ERREUR] ${e.message}`]);
+                setLogs((prev) => [...prev, `[ERREUR] ${e.message}`]);
               }
               setAnalyzing(false);
             }}
@@ -276,16 +318,30 @@ export default function DuplicateManager() {
       {totalDocs !== null && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-stone-50 p-4 rounded-xl border border-stone-200">
-            <span className="text-xs text-stone-500 font-bold uppercase tracking-wider block mb-1">Total fiches</span>
+            <span className="text-xs text-stone-500 font-bold uppercase tracking-wider block mb-1">
+              Total fiches
+            </span>
             <span className="text-2xl font-black text-stone-900">{totalDocs}</span>
           </div>
           <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
-            <span className="text-xs text-emerald-700 font-bold uppercase tracking-wider block mb-1">Emails uniques</span>
+            <span className="text-xs text-emerald-700 font-bold uppercase tracking-wider block mb-1">
+              Emails uniques
+            </span>
             <span className="text-2xl font-black text-emerald-800">{uniqueCount}</span>
           </div>
-          <div className={`p-4 rounded-xl border ${Object.keys(duplicatesGrouped).length > 0 ? "bg-amber-50 border-amber-200" : "bg-stone-50 border-stone-200"}`}>
-            <span className={`text-xs font-bold uppercase tracking-wider block mb-1 ${Object.keys(duplicatesGrouped).length > 0 ? "text-amber-700" : "text-stone-500"}`}>Doublons e-mail</span>
-            <span className={`text-2xl font-black ${Object.keys(duplicatesGrouped).length > 0 ? "text-amber-800" : "text-stone-900"}`}>{Object.keys(duplicatesGrouped).length}</span>
+          <div
+            className={`p-4 rounded-xl border ${Object.keys(duplicatesGrouped).length > 0 ? "bg-amber-50 border-amber-200" : "bg-stone-50 border-stone-200"}`}
+          >
+            <span
+              className={`text-xs font-bold uppercase tracking-wider block mb-1 ${Object.keys(duplicatesGrouped).length > 0 ? "text-amber-700" : "text-stone-500"}`}
+            >
+              Doublons e-mail
+            </span>
+            <span
+              className={`text-2xl font-black ${Object.keys(duplicatesGrouped).length > 0 ? "text-amber-800" : "text-stone-900"}`}
+            >
+              {Object.keys(duplicatesGrouped).length}
+            </span>
           </div>
         </div>
       )}
@@ -297,12 +353,13 @@ export default function DuplicateManager() {
             <AlertTriangle className="text-amber-500" size={18} />
             Détail des doublons détectés
           </h4>
-          
+
           {Object.entries(duplicatesGrouped).map(([email, docs]) => (
             <div key={email} className="bg-amber-50/40 border border-amber-200 p-4 rounded-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-2 border-b border-amber-200/60">
                 <div className="font-bold text-amber-900 text-base">
-                  {email} <span className="text-xs font-normal text-amber-700">({docs.length} fiches)</span>
+                  {email}{" "}
+                  <span className="text-xs font-normal text-amber-700">({docs.length} fiches)</span>
                 </div>
                 <button
                   onClick={() => handleAutoClean(email, docs)}
@@ -314,12 +371,19 @@ export default function DuplicateManager() {
               </div>
 
               <div className="space-y-2">
-                {docs.map(d => (
-                  <div key={d.id} className="bg-white p-3 rounded-lg border border-amber-100 flex items-center justify-between text-xs sm:text-sm">
+                {docs.map((d) => (
+                  <div
+                    key={d.id}
+                    className="bg-white p-3 rounded-lg border border-amber-100 flex items-center justify-between text-xs sm:text-sm"
+                  >
                     <div>
-                      <span className="font-bold text-stone-800">{d.prenom} {d.nom}</span>
+                      <span className="font-bold text-stone-800">
+                        {d.prenom} {d.nom}
+                      </span>
                       <span className="text-stone-400 mx-2">•</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status === "validated" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status === "validated" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}
+                      >
                         {d.status}
                       </span>
                       {d.dateInscription && (

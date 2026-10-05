@@ -40,8 +40,7 @@ async function readOfficialHtml(url: string, fetcher: typeof fetch) {
       const { value, done } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > MAX_HTML_BYTES)
-        throw new Error("Page institutionnelle trop volumineuse.");
+      if (size > MAX_HTML_BYTES) throw new Error("Page institutionnelle trop volumineuse.");
       chunks.push(value);
     }
   } finally {
@@ -54,10 +53,7 @@ async function readOfficialHtml(url: string, fetcher: typeof fetch) {
 }
 
 // [SPEC-ASSISTANT-LEGAL-01] Only live official government pages actually fetched may be cited; no claims of legal validity follow from site search alone.
-export async function searchOfficialSources(
-  query: string,
-  fetcher: typeof fetch = fetch,
-) {
+export async function searchOfficialSources(query: string, fetcher: typeof fetch = fetch) {
   const searchUrl = `${ORIGIN}/recherche?search_api_fulltext=${encodeURIComponent(query)}`;
   const $ = load(await readOfficialHtml(searchUrl, fetcher));
   const candidates = $("main .view-content .views-row .fr-card__title a")
@@ -65,13 +61,9 @@ export async function searchOfficialSources(
     .map((element) => {
       const link = $(element);
       const url = officialUrl(link.attr("href") || "");
-      return url
-        ? { title: link.text().replace(/\s+/g, " ").trim().slice(0, 180), url }
-        : null;
+      return url ? { title: link.text().replace(/\s+/g, " ").trim().slice(0, 180), url } : null;
     })
-    .filter((result): result is { title: string; url: string } =>
-      Boolean(result?.title),
-    )
+    .filter((result): result is { title: string; url: string } => Boolean(result?.title))
     .slice(0, MAX_RESULTS);
 
   const sources = [];
@@ -82,19 +74,12 @@ export async function searchOfficialSources(
       const content = page(
         "main article, main .field--name-body, main .fr-container .fr-col",
       ).first();
-      const text = (content.length ? content : page("main"))
-        .text()
-        .replace(/\s+/g, " ")
-        .trim();
+      const text = (content.length ? content : page("main")).text().replace(/\s+/g, " ").trim();
       if (!text || !page("main h1").length) continue;
       sources.push({
         title:
-          page("main h1")
-            .first()
-            .text()
-            .replace(/\s+/g, " ")
-            .trim()
-            .slice(0, 180) || candidate.title,
+          page("main h1").first().text().replace(/\s+/g, " ").trim().slice(0, 180) ||
+          candidate.title,
         url: candidate.url,
         excerpt: text.slice(0, 2400),
       });

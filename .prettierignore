@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.firebase/
+out/
+functions/lib/
+scratch/
+secrets/
+.agents/
+.claude/
+*.tsbuildinfo
+public/context.txt
+liste_emails_membres.txt
+membres.json
+membres_all.json
+lieux-dits-geolocalises.json
+data/pv_municipaux/

@@ -72,8 +72,7 @@ export default function NumeriserPetitionPage() {
       }),
     });
     const data = await response.json();
-    if (!response.ok)
-      throw new Error(data.error || "La demande n'a pas abouti.");
+    if (!response.ok) throw new Error(data.error || "La demande n'a pas abouti.");
     return data;
   };
 
@@ -118,20 +117,14 @@ export default function NumeriserPetitionPage() {
       }
     } catch (scanError) {
       const message =
-        scanError instanceof Error
-          ? scanError.message
-          : "La lecture Gemini a échoué.";
+        scanError instanceof Error ? scanError.message : "La lecture Gemini a échoué.";
       setError(message);
     } finally {
       setProcessing(false);
     }
   };
 
-  const updateEntry = (
-    index: number,
-    field: keyof ScanEntry,
-    value: string,
-  ) => {
+  const updateEntry = (index: number, field: keyof ScanEntry, value: string) => {
     setEntries((current) =>
       current.map((entry, entryIndex) =>
         entryIndex === index
@@ -168,19 +161,14 @@ export default function NumeriserPetitionPage() {
   };
 
   const removeEntry = (index: number) => {
-    setEntries((current) =>
-      current.filter((_, entryIndex) => entryIndex !== index),
-    );
+    setEntries((current) => current.filter((_, entryIndex) => entryIndex !== index));
     setMatches([]);
     setReviewed(false);
   };
 
   const reviewDuplicates = async () => {
     setError("");
-    if (
-      entries.length === 0 ||
-      entries.some((entry) => entry.fullName.trim().length < 2)
-    ) {
+    if (entries.length === 0 || entries.some((entry) => entry.fullName.trim().length < 2)) {
       setError("Chaque ligne doit contenir au moins un prénom et un nom.");
       return;
     }
@@ -219,9 +207,7 @@ export default function NumeriserPetitionPage() {
       if (fileInput.current) fileInput.current.value = "";
     } catch (importError) {
       setError(
-        importError instanceof Error
-          ? importError.message
-          : "L'ajout des signatures a échoué.",
+        importError instanceof Error ? importError.message : "L'ajout des signatures a échoué.",
       );
     } finally {
       setSaving(false);
@@ -234,12 +220,11 @@ export default function NumeriserPetitionPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         <header>
           <h1 className="flex items-center gap-3 text-2xl font-black text-stone-900 md:text-3xl">
-            <ScanText className="text-emerald-700" size={30} /> Numériser une
-            pétition papier
+            <ScanText className="text-emerald-700" size={30} /> Numériser une pétition papier
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-stone-600">
-            Photographiez une page, relisez les champs reconnus et vérifiez les
-            correspondances possibles avant d'ajouter les signataires.
+            Photographiez une page, relisez les champs reconnus et vérifiez les correspondances
+            possibles avant d'ajouter les signataires.
           </p>
         </header>
 
@@ -248,8 +233,8 @@ export default function NumeriserPetitionPage() {
             <div>
               <h2 className="font-bold text-stone-900">1. Photo de la page</h2>
               <p className="mt-1 text-sm text-stone-600">
-                Une photo à la fois. Pour un formulaire de plusieurs pages,
-                recommencez après chaque ajout.
+                Une photo à la fois. Pour un formulaire de plusieurs pages, recommencez après chaque
+                ajout.
               </p>
             </div>
             <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg bg-emerald-800 px-5 py-3 font-semibold text-white hover:bg-emerald-900 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-emerald-700">
@@ -280,26 +265,18 @@ export default function NumeriserPetitionPage() {
               </figure>
               <div className="self-center rounded-lg bg-white p-5 ring-1 ring-stone-200">
                 {processing ? (
-                  <div
-                    role="status"
-                    className="flex items-center gap-3 text-stone-700"
-                  >
-                    <Loader2
-                      className="animate-spin text-emerald-700"
-                      size={22}
-                    />
+                  <div role="status" className="flex items-center gap-3 text-stone-700">
+                    <Loader2 className="animate-spin text-emerald-700" size={22} />
                     <p className="font-semibold">Lecture en cours…</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <p className="text-sm text-stone-700">
-                      La photo reste sur cet appareil jusqu'à ce que vous
-                      lanciez le scanner.
+                      La photo reste sur cet appareil jusqu'à ce que vous lanciez le scanner.
                     </p>
                     <p className="text-xs leading-relaxed text-stone-600">
-                      La photo sert à préparer la transcription. Elle n'est pas
-                      publiée sur le site et les autres membres ne la voient
-                      pas.
+                      La photo sert à préparer la transcription. Elle n'est pas publiée sur le site
+                      et les autres membres ne la voient pas.
                     </p>
                     <button
                       type="button"
@@ -314,13 +291,12 @@ export default function NumeriserPetitionPage() {
                         À propos des données transmises
                       </summary>
                       <p className="mt-2 leading-relaxed">
-                        En cliquant sur le bouton, la photo recadrée est envoyée
-                        à Google Gemini via Firebase AI Logic pour analyse. Elle
-                        n'est pas publiée, visible par les autres membres ni
-                        enregistrée par notre application. Seules les lignes que
-                        vous relisez et confirmez sont ajoutées à la liste des
-                        signataires. Le traitement par Google est soumis à ses
-                        conditions de service et de confidentialité.
+                        En cliquant sur le bouton, la photo recadrée est envoyée à Google Gemini via
+                        Firebase AI Logic pour analyse. Elle n'est pas publiée, visible par les
+                        autres membres ni enregistrée par notre application. Seules les lignes que
+                        vous relisez et confirmez sont ajoutées à la liste des signataires. Le
+                        traitement par Google est soumis à ses conditions de service et de
+                        confidentialité.
                       </p>
                     </details>
                   </div>
@@ -335,15 +311,11 @@ export default function NumeriserPetitionPage() {
             role="status"
             className="flex items-start gap-3 border-y border-emerald-300 bg-emerald-50 px-5 py-4 text-emerald-950"
           >
-            <CheckCircle2
-              className="mt-0.5 shrink-0 text-emerald-700"
-              size={21}
-            />
+            <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-700" size={21} />
             <p>
               <strong>{result.importedCount} signature(s) ajoutée(s).</strong>{" "}
-              {result.potentialDuplicateCount} entrée(s) marquée(s) comme
-              doublon potentiel. Elles restent dans la base pour vérification
-              des homonymes.
+              {result.potentialDuplicateCount} entrée(s) marquée(s) comme doublon potentiel. Elles
+              restent dans la base pour vérification des homonymes.
             </p>
           </div>
         )}
@@ -356,8 +328,8 @@ export default function NumeriserPetitionPage() {
                   2. Relire la transcription ({entries.length}/60)
                 </h2>
                 <p className="mt-1 text-sm text-stone-600">
-                  Corrigez chaque ligne. L’OCR manuscrit peut se tromper, en
-                  particulier sur les noms.
+                  Corrigez chaque ligne. L’OCR manuscrit peut se tromper, en particulier sur les
+                  noms.
                 </p>
               </div>
               <button
@@ -372,15 +344,13 @@ export default function NumeriserPetitionPage() {
 
             {entries.length === 0 && (
               <p className="text-sm text-stone-600">
-                Aucune ligne détectée. Vous pouvez les saisir une par une en
-                gardant la photo sous les yeux.
+                Aucune ligne détectée. Vous pouvez les saisir une par une en gardant la photo sous
+                les yeux.
               </p>
             )}
             <div className="space-y-3">
               {entries.map((entry, index) => {
-                const duplicateMatch = matches.find(
-                  (match) => match.entryIndex === index,
-                );
+                const duplicateMatch = matches.find((match) => match.entryIndex === index);
                 return (
                   <article
                     key={`${index}-${entry.fullName}`}
@@ -390,9 +360,7 @@ export default function NumeriserPetitionPage() {
                       Prénom et nom
                       <input
                         value={entry.fullName}
-                        onChange={(event) =>
-                          updateEntry(index, "fullName", event.target.value)
-                        }
+                        onChange={(event) => updateEntry(index, "fullName", event.target.value)}
                         maxLength={160}
                         className="input-base mt-1"
                         autoComplete="off"
@@ -402,9 +370,7 @@ export default function NumeriserPetitionPage() {
                       Commune
                       <input
                         value={entry.ville}
-                        onChange={(event) =>
-                          updateEntry(index, "ville", event.target.value)
-                        }
+                        onChange={(event) => updateEntry(index, "ville", event.target.value)}
                         maxLength={120}
                         className="input-base mt-1"
                         placeholder="Kergrist-Moëlou ou autre"
@@ -415,9 +381,7 @@ export default function NumeriserPetitionPage() {
                       Lien avec l'école
                       <input
                         value={entry.qualite}
-                        onChange={(event) =>
-                          updateEntry(index, "qualite", event.target.value)
-                        }
+                        onChange={(event) => updateEntry(index, "qualite", event.target.value)}
                         maxLength={160}
                         className="input-base mt-1"
                         placeholder="Parent, habitant, ancien élève…"
@@ -449,21 +413,16 @@ export default function NumeriserPetitionPage() {
                           {duplicateMatch.candidates.length})
                         </p>
                         <ul className="mt-2 space-y-1">
-                          {duplicateMatch.candidates.map(
-                            (candidate, candidateIndex) => (
-                              <li
-                                key={`${candidate.fullName}-${candidate.ville}-${candidateIndex}`}
-                              >
-                                {candidate.fullName} ·{" "}
-                                {candidate.ville || "commune non précisée"} ·{" "}
-                                {candidate.source}
-                              </li>
-                            ),
-                          )}
+                          {duplicateMatch.candidates.map((candidate, candidateIndex) => (
+                            <li key={`${candidate.fullName}-${candidate.ville}-${candidateIndex}`}>
+                              {candidate.fullName} · {candidate.ville || "commune non précisée"} ·{" "}
+                              {candidate.source}
+                            </li>
+                          ))}
                         </ul>
                         <p className="mt-2">
-                          Il peut s'agir d'un homonyme. La nouvelle signature
-                          sera conservée et marquée pour vérification.
+                          Il peut s'agir d'un homonyme. La nouvelle signature sera conservée et
+                          marquée pour vérification.
                         </p>
                       </div>
                     )}
@@ -477,9 +436,7 @@ export default function NumeriserPetitionPage() {
                 type="button"
                 onClick={reviewDuplicates}
                 disabled={
-                  processing ||
-                  saving ||
-                  entries.some((entry) => entry.fullName.trim().length < 2)
+                  processing || saving || entries.some((entry) => entry.fullName.trim().length < 2)
                 }
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-stone-300 bg-white px-5 py-3 font-semibold text-stone-800 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -506,8 +463,8 @@ export default function NumeriserPetitionPage() {
             </div>
             {reviewed && matches.length === 0 && (
               <p role="status" className="text-sm text-emerald-800">
-                Aucun doublon potentiel trouvé par comparaison du nom et de la
-                commune. Les lignes seront tout de même ajoutées séparément.
+                Aucun doublon potentiel trouvé par comparaison du nom et de la commune. Les lignes
+                seront tout de même ajoutées séparément.
               </p>
             )}
           </section>

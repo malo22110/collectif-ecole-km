@@ -22,11 +22,7 @@ export default function PetitionHubPage() {
       try {
         const snapshot = await getDoc(doc(db, "membres", user.email));
         const data = snapshot.data();
-        const roles = Array.isArray(data?.roles)
-          ? data.roles
-          : data?.role
-            ? [data.role]
-            : [];
+        const roles = Array.isArray(data?.roles) ? data.roles : data?.role ? [data.role] : [];
         setCanCorrect(roles.includes("admin") || roles.includes("correcteur"));
       } catch {
         setCanCorrect(false);
@@ -61,17 +57,12 @@ export default function PetitionHubPage() {
   return (
     <main className="mx-auto min-h-full w-full max-w-6xl space-y-6 p-4 md:p-8">
       <header className="border-b border-stone-200 pb-5">
-        <p className="mb-2 text-sm font-semibold uppercase text-emerald-800">
-          Espace membre
-        </p>
-        <h1 className="text-2xl font-bold text-stone-900 md:text-3xl">
-          Pétition close
-        </h1>
+        <p className="mb-2 text-sm font-semibold uppercase text-emerald-800">Espace membre</p>
+        <h1 className="text-2xl font-bold text-stone-900 md:text-3xl">Pétition close</h1>
         <p className="mt-2 max-w-2xl text-sm text-stone-600">
-          La collecte est terminée après le vote du conseil municipal. Le
-          dossier retourne chez l’architecte pour être ajusté à l’enveloppe
-          prévue. Les signatures restent consultables et rectifiables par les
-          personnes habilitées.
+          La collecte est terminée après le vote du conseil municipal. Le dossier retourne chez
+          l’architecte pour être ajusté à l’enveloppe prévue. Les signatures restent consultables et
+          rectifiables par les personnes habilitées.
         </p>
       </header>
       {!rolesLoaded ? (
@@ -86,15 +77,9 @@ export default function PetitionHubPage() {
               href={href}
               className="group flex min-h-40 flex-col border border-stone-200 bg-white p-5 hover:border-emerald-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700"
             >
-              <Icon
-                size={20}
-                className="mb-3 text-emerald-800"
-                aria-hidden="true"
-              />
+              <Icon size={20} className="mb-3 text-emerald-800" aria-hidden="true" />
               <h2 className="font-bold text-stone-900">{title}</h2>
-              <p className="mt-1 flex-1 text-sm text-stone-600">
-                {description}
-              </p>
+              <p className="mt-1 flex-1 text-sm text-stone-600">{description}</p>
               <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-900">
                 {action}
                 <ArrowRight size={16} aria-hidden="true" />

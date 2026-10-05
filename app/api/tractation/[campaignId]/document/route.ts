@@ -19,41 +19,23 @@ export const dynamic = "force-dynamic";
 const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
 
 // [SPEC-TRACTATION-03] All valid members may download campaign materials through an authenticated route.
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ campaignId: string }> },
-) {
+export async function GET(request: Request, context: { params: Promise<{ campaignId: string }> }) {
   const authorization = await authorizeTractationMember(request);
   if (!authorization.member) return authorization.response;
 
   const { campaignId } = await context.params;
   if (!campaignIdSchema.safeParse(campaignId).success) {
-    return Response.json(
-      { error: "Identifiant de campagne invalide." },
-      { status: 400 },
-    );
+    return Response.json({ error: "Identifiant de campagne invalide." }, { status: 400 });
   }
 
   try {
-    const campaign = await tractationDb
-      .collection("tractationCampaigns")
-      .doc(campaignId)
-      .get();
+    const campaign = await tractationDb.collection("tractationCampaigns").doc(campaignId).get();
     const attachment = campaign.data()?.attachment;
-    if (
-      !campaign.exists ||
-      !attachment ||
-      typeof attachment.storagePath !== "string"
-    ) {
+    if (!campaign.exists || !attachment || typeof attachment.storagePath !== "string") {
       return Response.json({ error: "Document introuvable." }, { status: 404 });
     }
-    if (
-      !attachment.storagePath.startsWith(`tractationCampaigns/${campaignId}/`)
-    ) {
-      return Response.json(
-        { error: "Chemin de document invalide." },
-        { status: 500 },
-      );
+    if (!attachment.storagePath.startsWith(`tractationCampaigns/${campaignId}/`)) {
+      return Response.json({ error: "Chemin de document invalide." }, { status: 500 });
     }
 
     const file = tractationBucket.file(attachment.storagePath);
@@ -63,23 +45,14 @@ export async function GET(
     if (
       size < 1 ||
       size > MAX_DOCUMENT_BYTES ||
-      !["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(
-        contentType,
-      )
+      !["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(contentType)
     ) {
-      return Response.json(
-        { error: "Le document enregistré n'est pas valide." },
-        { status: 500 },
-      );
+      return Response.json({ error: "Le document enregistré n'est pas valide." }, { status: 500 });
     }
 
     const [contents] = await file.download();
-    const safeName = sanitizeCampaignFileName(
-      String(attachment.fileName || "document"),
-    );
-    const asciiName = safeName
-      .replace(/[^\x20-\x7e]/g, "_")
-      .replace(/["\\]/g, "_");
+    const safeName = sanitizeCampaignFileName(String(attachment.fileName || "document"));
+    const asciiName = safeName.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
     return new Response(new Uint8Array(contents), {
       headers: {
         "Content-Type": contentType,
@@ -91,12 +64,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === 404
-    ) {
+    if (error && typeof error === "object" && "code" in error && error.code === 404) {
       return Response.json({ error: "Document introuvable." }, { status: 404 });
     }
     return errorResponse(error, "Impossible de télécharger le document.");
@@ -104,39 +72,26 @@ export async function GET(
 }
 
 // [SPEC-TRACTATION-03] Uploads require the campaign role, a bounded body, and a verified PDF/image signature.
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ campaignId: string }> },
-) {
+export async function POST(request: Request, context: { params: Promise<{ campaignId: string }> }) {
   const authorization = await authorizeTractationMember(request, true);
   if (!authorization.member) return authorization.response;
 
   const { campaignId } = await context.params;
   if (!campaignIdSchema.safeParse(campaignId).success) {
-    return Response.json(
-      { error: "Identifiant de campagne invalide." },
-      { status: 400 },
-    );
+    return Response.json({ error: "Identifiant de campagne invalide." }, { status: 400 });
   }
 
   try {
-    const campaignRef = tractationDb
-      .collection("tractationCampaigns")
-      .doc(campaignId);
+    const campaignRef = tractationDb.collection("tractationCampaigns").doc(campaignId);
     const campaign = await campaignRef.get();
-    if (!campaign.exists)
-      return Response.json({ error: "Campagne introuvable." }, { status: 404 });
+    if (!campaign.exists) return Response.json({ error: "Campagne introuvable." }, { status: 404 });
     if (campaign.get("status") !== "active")
-      return Response.json(
-        { error: "Cette campagne n'est plus ouverte." },
-        { status: 409 },
-      );
+      return Response.json({ error: "Cette campagne n'est plus ouverte." }, { status: 409 });
 
     const contents = await readLimitedBody(request, MAX_DOCUMENT_BYTES);
     const detectedType = detectCampaignDocumentType(contents);
     const declaredType =
-      request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() ||
-      "";
+      request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() || "";
     if (
       !detectedType ||
       (declaredType &&
@@ -145,8 +100,7 @@ export async function POST(
     ) {
       return Response.json(
         {
-          error:
-            "Choisissez un document PDF ou une image JPEG, PNG ou WebP valide.",
+          error: "Choisissez un document PDF ou une image JPEG, PNG ou WebP valide.",
         },
         { status: 415 },
       );
@@ -156,10 +110,7 @@ export async function POST(
     try {
       suppliedName = decodeURIComponent(suppliedName);
     } catch {
-      return Response.json(
-        { error: "Nom de fichier invalide." },
-        { status: 400 },
-      );
+      return Response.json({ error: "Nom de fichier invalide." }, { status: 400 });
     }
     const fileName = sanitizeCampaignFileName(suppliedName);
     const storagePath = `tractationCampaigns/${campaignId}/${newStorageObjectId()}.${detectedType.extension}`;
@@ -191,18 +142,12 @@ export async function POST(
       throw error;
     }
 
-    if (
-      previousAttachment &&
-      typeof previousAttachment.storagePath === "string"
-    ) {
+    if (previousAttachment && typeof previousAttachment.storagePath === "string") {
       await tractationBucket
         .file(previousAttachment.storagePath)
         .delete({ ignoreNotFound: true })
         .catch((error) => {
-          console.warn(
-            "Ancienne pièce jointe non supprimée après remplacement:",
-            error,
-          );
+          console.warn("Ancienne pièce jointe non supprimée après remplacement:", error);
         });
     }
 

@@ -114,9 +114,7 @@ export default function ArticleManager() {
   const [isSaving, setIsSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
-  const [pendingPublishStatus, setPendingPublishStatus] = useState<
-    Article["status"] | null
-  >(null);
+  const [pendingPublishStatus, setPendingPublishStatus] = useState<Article["status"] | null>(null);
   const [saveError, setSaveError] = useState("");
 
   const editor = useEditor({
@@ -124,8 +122,7 @@ export default function ArticleManager() {
     content: currentArticle.content || "",
     editorProps: {
       attributes: {
-        class:
-          "prose prose-stone max-w-none focus:outline-none min-h-[300px] p-4",
+        class: "prose prose-stone max-w-none focus:outline-none min-h-[300px] p-4",
       },
     },
     onUpdate: ({ editor }) => {
@@ -162,17 +159,11 @@ export default function ArticleManager() {
     if (editor) editor.commands.setContent("");
   };
 
-  const handleAttachmentSelection = (
-    files: FileList | null,
-    input: HTMLInputElement,
-  ) => {
+  const handleAttachmentSelection = (files: FileList | null, input: HTMLInputElement) => {
     if (!files?.length) return;
     const selectedFiles = Array.from(files);
     const existingCount = currentArticle.attachments?.length || 0;
-    if (
-      existingCount + attachmentFiles.length + selectedFiles.length >
-      MAX_ARTICLE_ATTACHMENTS
-    ) {
+    if (existingCount + attachmentFiles.length + selectedFiles.length > MAX_ARTICLE_ATTACHMENTS) {
       setSaveError(
         `Un article peut contenir au maximum ${MAX_ARTICLE_ATTACHMENTS} pièces jointes.`,
       );
@@ -185,15 +176,11 @@ export default function ArticleManager() {
         file.size > MAX_ARTICLE_ATTACHMENT_BYTES ||
         Boolean(
           file.type &&
-          !SUPPORTED_UPLOAD_TYPES.includes(
-            file.type as (typeof SUPPORTED_UPLOAD_TYPES)[number],
-          ),
+          !SUPPORTED_UPLOAD_TYPES.includes(file.type as (typeof SUPPORTED_UPLOAD_TYPES)[number]),
         ),
     );
     if (invalidFile) {
-      setSaveError(
-        "Chaque pièce jointe doit être un PDF, JPEG, PNG ou WebP de 10 Mio maximum.",
-      );
+      setSaveError("Chaque pièce jointe doit être un PDF, JPEG, PNG ou WebP de 10 Mio maximum.");
       input.value = "";
       return;
     }
@@ -202,10 +189,7 @@ export default function ArticleManager() {
     input.value = "";
   };
 
-  const downloadAttachment = async (
-    articleId: string,
-    attachment: ArticleAttachment,
-  ) => {
+  const downloadAttachment = async (articleId: string, attachment: ArticleAttachment) => {
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error("Votre session a expiré. Reconnectez-vous.");
@@ -216,9 +200,7 @@ export default function ArticleManager() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok)
-        throw new Error(
-          data?.error || "Impossible de télécharger la pièce jointe.",
-        );
+        throw new Error(data?.error || "Impossible de télécharger la pièce jointe.");
       const objectUrl = URL.createObjectURL(await response.blob());
       const link = document.createElement("a");
       link.href = objectUrl;
@@ -227,9 +209,7 @@ export default function ArticleManager() {
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     } catch (error) {
       setSaveError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de télécharger la pièce jointe.",
+        error instanceof Error ? error.message : "Impossible de télécharger la pièce jointe.",
       );
     }
   };
@@ -251,21 +231,14 @@ export default function ArticleManager() {
         },
       );
       const data = await response.json().catch(() => null);
-      if (!response.ok)
-        throw new Error(
-          data?.error || "Impossible de retirer la pièce jointe.",
-        );
+      if (!response.ok) throw new Error(data?.error || "Impossible de retirer la pièce jointe.");
       setCurrentArticle((current) => ({
         ...current,
-        attachments: (current.attachments || []).filter(
-          (item) => item.id !== attachment.id,
-        ),
+        attachments: (current.attachments || []).filter((item) => item.id !== attachment.id),
       }));
     } catch (error) {
       setSaveError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de retirer la pièce jointe.",
+        error instanceof Error ? error.message : "Impossible de retirer la pièce jointe.",
       );
     }
   };
@@ -291,19 +264,13 @@ export default function ArticleManager() {
             initialQuality: 0.8,
           };
           const compressedFile = await imageCompression(imageFile, options);
-          const fileRef = ref(
-            storage,
-            `articles/${Date.now()}_${compressedFile.name}`,
-          );
+          const fileRef = ref(storage, `articles/${Date.now()}_${compressedFile.name}`);
           await uploadBytes(fileRef, compressedFile);
           finalImageUrl = await getDownloadURL(fileRef);
         } catch (error) {
           console.error("Erreur lors de la compression de l'image:", error);
           // Fallback on original if compression fails
-          const fileRef = ref(
-            storage,
-            `articles/${Date.now()}_${imageFile.name}`,
-          );
+          const fileRef = ref(storage, `articles/${Date.now()}_${imageFile.name}`);
           await uploadBytes(fileRef, imageFile);
           finalImageUrl = await getDownloadURL(fileRef);
         }
@@ -317,12 +284,10 @@ export default function ArticleManager() {
         .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric with hyphen
         .replace(/(^-|-$)+/g, ""); // Remove leading/trailing hyphens
 
-      const desiredStatus =
-        pendingPublishStatus || currentArticle.status || "draft";
+      const desiredStatus = pendingPublishStatus || currentArticle.status || "draft";
       const statusAfterUploads =
         pendingPublishStatus ||
-        (attachmentFiles.length &&
-        (!articleId || currentArticle.status !== "published")
+        (attachmentFiles.length && (!articleId || currentArticle.status !== "published")
           ? desiredStatus
           : null);
       deferredStatus = statusAfterUploads;
@@ -330,8 +295,7 @@ export default function ArticleManager() {
         title: currentArticle.title || "Nouvel article",
         slug: currentArticle.slug || slug, // Keep existing slug if present, otherwise use generated
         content: currentArticle.content || "",
-        publishedAt:
-          currentArticle.publishedAt || new Date().toISOString().split("T")[0],
+        publishedAt: currentArticle.publishedAt || new Date().toISOString().split("T")[0],
         status: statusAfterUploads ? ("draft" as const) : desiredStatus,
         authorEmail: currentArticle.authorEmail || auth.currentUser?.email,
         ...(finalImageUrl && { imageUrl: finalImageUrl }),
@@ -340,10 +304,7 @@ export default function ArticleManager() {
       if (articleId) {
         await updateDoc(doc(db, "articles", articleId), articleData);
       } else {
-        const createdArticle = await addDoc(
-          collection(db, "articles"),
-          articleData,
-        );
+        const createdArticle = await addDoc(collection(db, "articles"), articleData);
         articleId = createdArticle.id;
         setCurrentArticle((current) => ({ ...current, id: createdArticle.id }));
         if (statusAfterUploads) setPendingPublishStatus(statusAfterUploads);
@@ -351,8 +312,7 @@ export default function ArticleManager() {
 
       if (articleId && attachmentFiles.length) {
         const token = await auth.currentUser?.getIdToken();
-        if (!token)
-          throw new Error("Votre session a expiré. Reconnectez-vous.");
+        if (!token) throw new Error("Votre session a expiré. Reconnectez-vous.");
         for (const file of attachmentFiles) {
           const response = await fetch(
             `/api/articles/${encodeURIComponent(articleId)}/attachments`,
@@ -367,10 +327,7 @@ export default function ArticleManager() {
             },
           );
           const data = await response.json().catch(() => null);
-          if (!response.ok)
-            throw new Error(
-              data?.error || `Impossible d’envoyer ${file.name}.`,
-            );
+          if (!response.ok) throw new Error(data?.error || `Impossible d’envoyer ${file.name}.`);
           uploadedFileCount += 1;
         }
         setAttachmentFiles([]);
@@ -386,14 +343,9 @@ export default function ArticleManager() {
       closeEditor();
     } catch (error) {
       console.error("Erreur de sauvegarde:", error);
-      if (uploadedFileCount)
-        setAttachmentFiles((current) => current.slice(uploadedFileCount));
+      if (uploadedFileCount) setAttachmentFiles((current) => current.slice(uploadedFileCount));
       if (deferredStatus) setPendingPublishStatus(deferredStatus);
-      setSaveError(
-        error instanceof Error
-          ? error.message
-          : "Erreur lors de la sauvegarde.",
-      );
+      setSaveError(error instanceof Error ? error.message : "Erreur lors de la sauvegarde.");
     } finally {
       setIsSaving(false);
     }
@@ -405,32 +357,24 @@ export default function ArticleManager() {
         const article = articles.find((item) => item.id === id);
         if (article?.attachments?.length) {
           const token = await auth.currentUser?.getIdToken();
-          if (!token)
-            throw new Error("Votre session a expiré. Reconnectez-vous.");
+          if (!token) throw new Error("Votre session a expiré. Reconnectez-vous.");
           for (const attachment of article.attachments) {
-            const response = await fetch(
-              `/api/articles/${encodeURIComponent(id)}/attachments`,
-              {
-                method: "DELETE",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ attachmentId: attachment.id }),
+            const response = await fetch(`/api/articles/${encodeURIComponent(id)}/attachments`, {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
               },
-            );
+              body: JSON.stringify({ attachmentId: attachment.id }),
+            });
             if (!response.ok)
-              throw new Error(
-                "Impossible de supprimer toutes les pièces jointes de l’article.",
-              );
+              throw new Error("Impossible de supprimer toutes les pièces jointes de l’article.");
           }
         }
         await deleteDoc(doc(db, "articles", id));
       } catch (error) {
         window.alert(
-          error instanceof Error
-            ? error.message
-            : "Impossible de supprimer cet article.",
+          error instanceof Error ? error.message : "Impossible de supprimer cet article.",
         );
       }
     }
@@ -471,9 +415,7 @@ export default function ArticleManager() {
               required
               type="text"
               value={currentArticle.title || ""}
-              onChange={(e) =>
-                setCurrentArticle({ ...currentArticle, title: e.target.value })
-              }
+              onChange={(e) => setCurrentArticle({ ...currentArticle, title: e.target.value })}
               className="input-base"
             />
           </div>
@@ -516,9 +458,7 @@ export default function ArticleManager() {
           </div>
 
           <div>
-            <label className="input-label">
-              Image mise en avant (Optionnelle)
-            </label>
+            <label className="input-label">Image mise en avant (Optionnelle)</label>
             <input
               type="file"
               accept="image/*"
@@ -527,8 +467,7 @@ export default function ArticleManager() {
             />
             {currentArticle.imageUrl && !imageFile && (
               <div className="mt-2 text-sm text-stone-500">
-                Image actuelle :{" "}
-                {currentArticle.imageUrl.split("/").pop()?.split("?")[0]}
+                Image actuelle : {currentArticle.imageUrl.split("/").pop()?.split("?")[0]}
               </div>
             )}
           </div>
@@ -538,15 +477,12 @@ export default function ArticleManager() {
             aria-labelledby="article-attachments-title"
           >
             <div>
-              <h3
-                id="article-attachments-title"
-                className="font-semibold text-stone-900"
-              >
+              <h3 id="article-attachments-title" className="font-semibold text-stone-900">
                 Pièces jointes
               </h3>
               <p className="mt-1 text-sm text-stone-600">
-                PDF, JPEG, PNG ou WebP, 10 Mio maximum par fichier et{" "}
-                {MAX_ARTICLE_ATTACHMENTS} fichiers par article.
+                PDF, JPEG, PNG ou WebP, 10 Mio maximum par fichier et {MAX_ARTICLE_ATTACHMENTS}{" "}
+                fichiers par article.
               </p>
             </div>
             <label className="block text-sm font-medium text-stone-700">
@@ -557,15 +493,11 @@ export default function ArticleManager() {
                 accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp"
                 disabled={
                   isSaving ||
-                  (currentArticle.attachments?.length || 0) +
-                    attachmentFiles.length >=
+                  (currentArticle.attachments?.length || 0) + attachmentFiles.length >=
                     MAX_ARTICLE_ATTACHMENTS
                 }
                 onChange={(event) =>
-                  handleAttachmentSelection(
-                    event.currentTarget.files,
-                    event.currentTarget,
-                  )
+                  handleAttachmentSelection(event.currentTarget.files, event.currentTarget)
                 }
                 className="mt-1 block w-full text-sm file:mr-4 file:min-h-10 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-800 hover:file:bg-emerald-100"
               />
@@ -577,11 +509,7 @@ export default function ArticleManager() {
                     key={`${file.name}:${file.size}:${index}`}
                     className="flex min-h-12 items-center gap-3 py-2 text-sm"
                   >
-                    <Paperclip
-                      size={16}
-                      className="shrink-0 text-stone-500"
-                      aria-hidden="true"
-                    />
+                    <Paperclip size={16} className="shrink-0 text-stone-500" aria-hidden="true" />
                     <span className="min-w-0 flex-1 truncate">{file.name}</span>
                     <span className="shrink-0 text-xs text-stone-500">
                       {Math.ceil(file.size / 1024)} Ko
@@ -609,26 +537,15 @@ export default function ArticleManager() {
                 aria-label="Pièces jointes déjà enregistrées"
               >
                 {currentArticle.attachments?.map((attachment) => (
-                  <li
-                    key={attachment.id}
-                    className="flex min-h-12 items-center gap-3 py-2 text-sm"
-                  >
-                    <Paperclip
-                      size={16}
-                      className="shrink-0 text-emerald-700"
-                      aria-hidden="true"
-                    />
-                    <span className="min-w-0 flex-1 truncate">
-                      {attachment.fileName}
-                    </span>
+                  <li key={attachment.id} className="flex min-h-12 items-center gap-3 py-2 text-sm">
+                    <Paperclip size={16} className="shrink-0 text-emerald-700" aria-hidden="true" />
+                    <span className="min-w-0 flex-1 truncate">{attachment.fileName}</span>
                     <span className="shrink-0 text-xs text-stone-500">
                       {Math.ceil(attachment.size / 1024)} Ko
                     </span>
                     <button
                       type="button"
-                      onClick={() =>
-                        void downloadAttachment(currentArticle.id!, attachment)
-                      }
+                      onClick={() => void downloadAttachment(currentArticle.id!, attachment)}
                       aria-label={`Télécharger ${attachment.fileName}`}
                       className="grid size-10 shrink-0 place-items-center rounded text-stone-700 hover:bg-stone-100"
                     >
@@ -648,8 +565,8 @@ export default function ArticleManager() {
               </ul>
             )}
             <p className="text-xs text-stone-500">
-              Les fichiers sont téléversés de façon sécurisée. Ils apparaissent
-              sur la page de l’article lorsqu’il est publié.
+              Les fichiers sont téléversés de façon sécurisée. Ils apparaissent sur la page de
+              l’article lorsqu’il est publié.
             </p>
           </section>
 
@@ -704,9 +621,7 @@ export default function ArticleManager() {
 
       <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
         {articles.length === 0 ? (
-          <div className="p-8 text-center text-stone-500">
-            Aucun article pour le moment.
-          </div>
+          <div className="p-8 text-center text-stone-500">Aucun article pour le moment.</div>
         ) : (
           <div className="divide-y divide-stone-100">
             {articles.map((article) => (
@@ -727,18 +642,14 @@ export default function ArticleManager() {
                     </div>
                   )}
                   <div>
-                    <h3 className="font-bold text-stone-900">
-                      {article.title}
-                    </h3>
+                    <h3 className="font-bold text-stone-900">{article.title}</h3>
                     <div className="flex items-center gap-2 text-sm text-stone-500 mt-1">
                       <span>{article.publishedAt}</span>
                       <span>•</span>
                       <span
                         className={`px-2 py-0.5 rounded-full text-xs font-medium ${article.status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-700"}`}
                       >
-                        {article.status === "published"
-                          ? "Publié"
-                          : "Brouillon"}
+                        {article.status === "published" ? "Publié" : "Brouillon"}
                       </span>
                       {(article.attachments?.length || 0) > 0 && (
                         <span className="inline-flex items-center gap-1 text-xs text-stone-600">

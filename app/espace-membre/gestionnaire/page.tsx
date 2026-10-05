@@ -6,14 +6,7 @@
 
 import React, { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import {
-  doc,
-  getDoc,
-  collection,
-  onSnapshot,
-  updateDoc,
-  deleteField,
-} from "firebase/firestore";
+import { doc, getDoc, collection, onSnapshot, updateDoc, deleteField } from "firebase/firestore";
 import { ShieldAlert, ShieldCheck, Check, X, Clock } from "lucide-react";
 
 interface Membre {
@@ -59,9 +52,7 @@ export default function GestionnairePage() {
             : snap.data().role
               ? [snap.data().role]
               : [];
-          setHasAccess(
-            roles.includes("admin") || roles.includes("gestionnaire"),
-          );
+          setHasAccess(roles.includes("admin") || roles.includes("gestionnaire"));
         } else {
           setHasAccess(false);
         }
@@ -78,9 +69,7 @@ export default function GestionnairePage() {
       const withRequests = snap.docs
         .map((d) => ({ id: d.id, ...d.data() }) as Membre)
         .filter(
-          (m) =>
-            (Array.isArray(m.roleRequests) && m.roleRequests.length > 0) ||
-            m.roleRequest,
+          (m) => (Array.isArray(m.roleRequests) && m.roleRequests.length > 0) || m.roleRequest,
         );
       setPendingRequests(withRequests);
     });
@@ -129,19 +118,13 @@ export default function GestionnairePage() {
   };
 
   if (hasAccess === null)
-    return (
-      <div className="p-8 text-center text-stone-500">
-        Vérification des droits...
-      </div>
-    );
+    return <div className="p-8 text-center text-stone-500">Vérification des droits...</div>;
   if (!hasAccess)
     return (
       <div className="p-8 text-center flex flex-col items-center">
         <ShieldAlert size={48} className="mb-4 text-red-500" />
         <h2 className="text-xl font-bold text-red-700">Accès refusé</h2>
-        <p className="text-stone-500">
-          Vous n'avez pas les droits pour accéder à cette page.
-        </p>
+        <p className="text-stone-500">Vous n'avez pas les droits pour accéder à cette page.</p>
       </div>
     );
 
@@ -154,16 +137,13 @@ export default function GestionnairePage() {
         </h1>
       </div>
       <p className="text-stone-500 text-sm mb-8">
-        Approuvez ou refusez les demandes de rôles soumises par les membres du
-        collectif.
+        Approuvez ou refusez les demandes de rôles soumises par les membres du collectif.
       </p>
 
       {pendingRequests.length === 0 ? (
         <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center">
           <Check size={40} className="text-emerald-400 mx-auto mb-4" />
-          <p className="text-stone-500 font-medium">
-            Aucune demande en attente. Tout est à jour !
-          </p>
+          <p className="text-stone-500 font-medium">Aucune demande en attente. Tout est à jour !</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden shadow-sm">
@@ -201,9 +181,7 @@ export default function GestionnairePage() {
                     </div>
                     <div className="text-stone-500 text-sm">{membre.email}</div>
                     <div className="flex flex-wrap items-center gap-2 mt-2">
-                      <span className="text-xs text-stone-400 mr-1">
-                        Rôles actuels :
-                      </span>
+                      <span className="text-xs text-stone-400 mr-1">Rôles actuels :</span>
                       {currentRoles.length > 0 ? (
                         currentRoles.map((r) => (
                           <span
@@ -214,9 +192,7 @@ export default function GestionnairePage() {
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-stone-400 italic">
-                          membre
-                        </span>
+                        <span className="text-xs text-stone-400 italic">membre</span>
                       )}
                     </div>
                   </div>

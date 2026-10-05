@@ -63,10 +63,7 @@ export type CampaignMapState = {
   title: string;
   joined: boolean;
   placeIds: string[];
-  assignmentStatuses: Record<
-    string,
-    { status: "claimed" | "completed"; memberName?: string }
-  >;
+  assignmentStatuses: Record<string, { status: "claimed" | "completed"; memberName?: string }>;
   routePlaceIds: string[];
   origin: GeoPoint | null;
 };
@@ -107,11 +104,7 @@ async function request(user: User, url: string, init: RequestInit = {}) {
   return data;
 }
 
-function googleMapsRouteUrl(
-  origin: GeoPoint,
-  destination: GeoPoint,
-  waypoints: GeoPoint[],
-) {
+function googleMapsRouteUrl(origin: GeoPoint, destination: GeoPoint, waypoints: GeoPoint[]) {
   const query = new URLSearchParams({
     api: "1",
     origin: `${origin.lat},${origin.lon}`,
@@ -119,10 +112,7 @@ function googleMapsRouteUrl(
     travelmode: "driving",
   });
   if (waypoints.length)
-    query.set(
-      "waypoints",
-      waypoints.map((point) => `${point.lat},${point.lon}`).join("|"),
-    );
+    query.set("waypoints", waypoints.map((point) => `${point.lat},${point.lon}`).join("|"));
   return `https://www.google.com/maps/dir/?${query.toString()}`;
 }
 
@@ -145,32 +135,22 @@ export default function TractationPanel({
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  const [replacementFiles, setReplacementFiles] = useState<
-    Record<string, File | null>
-  >({});
+  const [replacementFiles, setReplacementFiles] = useState<Record<string, File | null>>({});
   const [routeDrafts, setRouteDrafts] = useState<Record<string, string[]>>({});
-  const [routeOrigins, setRouteOrigins] = useState<
-    Record<string, GeoPoint | null>
-  >({});
+  const [routeOrigins, setRouteOrigins] = useState<Record<string, GeoPoint | null>>({});
   const [locatingCampaign, setLocatingCampaign] = useState<string | null>(null);
   const [claimingRoute, setClaimingRoute] = useState<string | null>(null);
   const [mapCampaignId, setMapCampaignId] = useState<string | null>(null);
-  const [missionCampaignId, setMissionCampaignId] = useState<string | null>(
-    null,
-  );
+  const [missionCampaignId, setMissionCampaignId] = useState<string | null>(null);
   const [missionSheet, setMissionSheet] = useState<"select" | "run">("select");
   const [missionSearch, setMissionSearch] = useState("");
-  const [missionPlaceFilter, setMissionPlaceFilter] = useState<
-    "all" | "favorites"
-  >("all");
+  const [missionPlaceFilter, setMissionPlaceFilter] = useState<"all" | "favorites">("all");
   const [showRouteDetails, setShowRouteDetails] = useState(false);
   const routeDetailsTouchStart = useRef<{
     y: number;
     scrollTop: number;
   } | null>(null);
-  const [editingCampaignId, setEditingCampaignId] = useState<string | null>(
-    null,
-  );
+  const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editMessage, setEditMessage] = useState("");
   const [editPlaceIds, setEditPlaceIds] = useState<string[]>([]);
@@ -180,13 +160,8 @@ export default function TractationPanel({
   const load = useCallback(
     async (currentUser: User, cursor?: string | null) => {
       const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
-      const data = (await request(
-        currentUser,
-        `/api/tractation${query}`,
-      )) as PageData;
-      setCampaigns((previous) =>
-        cursor ? [...previous, ...data.campaigns] : data.campaigns,
-      );
+      const data = (await request(currentUser, `/api/tractation${query}`)) as PageData;
+      setCampaigns((previous) => (cursor ? [...previous, ...data.campaigns] : data.campaigns));
       if (!cursor) setAvailablePlaces(data.places || []);
       setCanCreate(data.canCreate);
       setNextCursor(data.nextCursor);
@@ -207,11 +182,7 @@ export default function TractationPanel({
       void load(currentUser)
         .catch((err) => {
           if (active)
-            setError(
-              err instanceof Error
-                ? err.message
-                : "Impossible de charger les campagnes.",
-            );
+            setError(err instanceof Error ? err.message : "Impossible de charger les campagnes.");
         })
         .finally(() => {
           if (active) setLoading(false);
@@ -245,21 +216,14 @@ export default function TractationPanel({
       routePlaceIds: campaign.myRoutePlaceIds || [],
       origin: getRouteOrigin(campaign.id),
     });
-  }, [
-    mapCampaignId,
-    campaigns,
-    routeOrigins,
-    suggestionOrigin,
-    onCampaignMapChange,
-  ]);
+  }, [mapCampaignId, campaigns, routeOrigins, suggestionOrigin, onCampaignMapChange]);
 
   useEffect(() => {
     onRegisterMapPlaceAdder?.((placeId) => {
       const campaign = campaigns.find((item) => item.id === selectedCampaignId);
       if (!campaign || !campaign.joined) return;
       const place = campaign.lieuDits.find((item) => item.id === placeId);
-      if (!place || !place.hasCoordinates || campaign.assignedPlaces?.[placeId])
-        return;
+      if (!place || !place.hasCoordinates || campaign.assignedPlaces?.[placeId]) return;
       setMissionCampaignId(campaign.id);
       setMapCampaignId(campaign.id);
       setMissionSheet("select");
@@ -267,19 +231,12 @@ export default function TractationPanel({
       setError("");
       setRouteDrafts((current) => {
         const currentIds = current[campaign.id] ?? getRouteDraft(campaign);
-        if (currentIds.includes(placeId) || currentIds.length >= 200)
-          return current;
+        if (currentIds.includes(placeId) || currentIds.length >= 200) return current;
         return { ...current, [campaign.id]: [...currentIds, placeId] };
       });
-      if (typeof navigator !== "undefined" && "vibrate" in navigator)
-        navigator.vibrate(16);
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(16);
     });
-  }, [
-    campaigns,
-    selectedCampaignId,
-    onRegisterMapPlaceAdder,
-    favoritePlaceIds,
-  ]);
+  }, [campaigns, selectedCampaignId, onRegisterMapPlaceAdder, favoritePlaceIds]);
 
   useEffect(() => {
     setMapCampaignId(selectedCampaignId);
@@ -290,13 +247,11 @@ export default function TractationPanel({
     favoritePlaceIds.filter(
       (id) =>
         campaign.lieuDits.some(
-          (place) =>
-            place.id === id && place.foyers > 0 && place.hasCoordinates,
+          (place) => place.id === id && place.foyers > 0 && place.hasCoordinates,
         ) && !campaign.assignedPlaces?.[id],
     );
 
-  const getRouteOrigin = (campaignId: string) =>
-    routeOrigins[campaignId] || suggestionOrigin;
+  const getRouteOrigin = (campaignId: string) => routeOrigins[campaignId] || suggestionOrigin;
 
   const getRouteSegments = (campaign: Campaign) => {
     const origin = getRouteOrigin(campaign.id);
@@ -310,8 +265,7 @@ export default function TractationPanel({
     return buildTourRouteSegments(origin, stops);
   };
 
-  const missionCampaign =
-    campaigns.find((campaign) => campaign.id === missionCampaignId) || null;
+  const missionCampaign = campaigns.find((campaign) => campaign.id === missionCampaignId) || null;
   const resumableCampaign =
     campaigns.find(
       (campaign) =>
@@ -327,21 +281,17 @@ export default function TractationPanel({
   const missionRoute = missionCampaign?.myRoutePlaceIds || [];
   const missionNextPlace = missionCampaign
     ? missionRoute.find(
-        (placeId) =>
-          missionCampaign.assignedPlaces?.[placeId]?.status !== "completed",
+        (placeId) => missionCampaign.assignedPlaces?.[placeId]?.status !== "completed",
       )
     : undefined;
   const missionSelectedPlace =
-    missionCampaign?.lieuDits.find(
-      (place) => place.id === selectedMapPlace?.id,
-    ) || null;
+    missionCampaign?.lieuDits.find((place) => place.id === selectedMapPlace?.id) || null;
   const missionPlaceQuery = missionSearch.trim().toLocaleLowerCase("fr");
   const missionPlaces =
     missionCampaign?.lieuDits.filter(
       (place) =>
         (missionPlaceFilter === "all" || favoritePlaceIds.includes(place.id)) &&
-        (!missionPlaceQuery ||
-          place.nom.toLocaleLowerCase("fr").includes(missionPlaceQuery)),
+        (!missionPlaceQuery || place.nom.toLocaleLowerCase("fr").includes(missionPlaceQuery)),
     ) || [];
 
   useEffect(() => {
@@ -438,9 +388,7 @@ export default function TractationPanel({
       await load(user);
     } catch (saveError) {
       setError(
-        saveError instanceof Error
-          ? saveError.message
-          : "Impossible de modifier cette campagne.",
+        saveError instanceof Error ? saveError.message : "Impossible de modifier cette campagne.",
       );
     } finally {
       setSavingCampaign(false);
@@ -455,8 +403,7 @@ export default function TractationPanel({
     )
       return;
     toggleRouteDraftPlace(campaign, missionSelectedPlace.id);
-    if (typeof navigator !== "undefined" && "vibrate" in navigator)
-      navigator.vibrate(12);
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(12);
   };
 
   const toggleRouteDraftPlace = (campaign: Campaign, placeId: string) => {
@@ -473,11 +420,7 @@ export default function TractationPanel({
     });
   };
 
-  const moveRouteDraftPlace = (
-    campaign: Campaign,
-    index: number,
-    direction: -1 | 1,
-  ) => {
+  const moveRouteDraftPlace = (campaign: Campaign, index: number, direction: -1 | 1) => {
     setRouteDrafts((current) => {
       const ids = [...(current[campaign.id] ?? getRouteDraft(campaign))];
       const destination = index + direction;
@@ -544,18 +487,14 @@ export default function TractationPanel({
       ) {
         setRouteDrafts((current) => ({
           ...current,
-          [campaign.id]: getRouteDraft(campaign).filter(
-            (id) => id !== routeError.placeId,
-          ),
+          [campaign.id]: getRouteDraft(campaign).filter((id) => id !== routeError.placeId),
         }));
         setError(
           `${routeError.message} Le secteur concerné a été retiré; vous pouvez valider le reste de votre tournée.`,
         );
       } else {
         setError(
-          routeError instanceof Error
-            ? routeError.message
-            : "Impossible de prendre cette tournée.",
+          routeError instanceof Error ? routeError.message : "Impossible de prendre cette tournée.",
         );
       }
       await load(user).catch(() => undefined);
@@ -580,11 +519,7 @@ export default function TractationPanel({
       const campaign = campaigns.find((item) => item.id === campaignId);
       if (campaign) openMission({ ...campaign, joined: true });
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Impossible de rejoindre la campagne.",
-      );
+      setError(err instanceof Error ? err.message : "Impossible de rejoindre la campagne.");
     } finally {
       setBusy("");
     }
@@ -600,15 +535,11 @@ export default function TractationPanel({
     setBusy(key);
     setError("");
     try {
-      const result = (await request(
-        user,
-        `/api/tractation/${campaign.id}/places/${place.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action }),
-        },
-      )) as {
+      const result = (await request(user, `/api/tractation/${campaign.id}/places/${place.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })) as {
         status: PlaceAssignment["status"] | null;
         isMine: boolean;
         memberName?: string;
@@ -625,15 +556,11 @@ export default function TractationPanel({
                       [place.id]: {
                         status: result.status,
                         isMine: result.isMine,
-                        memberName:
-                          result.memberName ||
-                          item.assignedPlaces[place.id]?.memberName,
+                        memberName: result.memberName || item.assignedPlaces[place.id]?.memberName,
                       },
                     }
                   : Object.fromEntries(
-                      Object.entries(item.assignedPlaces).filter(
-                        ([id]) => id !== place.id,
-                      ),
+                      Object.entries(item.assignedPlaces).filter(([id]) => id !== place.id),
                     ),
                 myRoutePlaceIds:
                   action === "release"
@@ -642,17 +569,11 @@ export default function TractationPanel({
               },
         ),
       );
-      if (
-        action === "complete" &&
-        typeof navigator !== "undefined" &&
-        "vibrate" in navigator
-      )
+      if (action === "complete" && typeof navigator !== "undefined" && "vibrate" in navigator)
         navigator.vibrate([18, 35, 18]);
       if (action === "release") setMissionSheet("select");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Impossible de réserver ce lieu.",
-      );
+      setError(err instanceof Error ? err.message : "Impossible de réserver ce lieu.");
       if (user) await load(user).catch(() => undefined);
     } finally {
       setBusy("");
@@ -668,8 +589,7 @@ export default function TractationPanel({
         headers: { Authorization: `Bearer ${await user.getIdToken()}` },
         cache: "no-store",
       });
-      if (!response.ok)
-        throw new Error("Impossible de télécharger le document.");
+      if (!response.ok) throw new Error("Impossible de télécharger le document.");
       const objectUrl = URL.createObjectURL(await response.blob());
       const link = document.createElement("a");
       link.href = objectUrl;
@@ -677,11 +597,7 @@ export default function TractationPanel({
       link.click();
       URL.revokeObjectURL(objectUrl);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Impossible de télécharger le document.",
-      );
+      setError(err instanceof Error ? err.message : "Impossible de télécharger le document.");
     } finally {
       setBusy("");
     }
@@ -692,9 +608,7 @@ export default function TractationPanel({
     const selectedFile = replacementFiles[campaignId]!;
     if (
       selectedFile.size > 10 * 1024 * 1024 ||
-      !["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(
-        selectedFile.type,
-      )
+      !["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(selectedFile.type)
     ) {
       setError("Choisissez un PDF ou une image de 10 Mio maximum.");
       return;
@@ -714,11 +628,7 @@ export default function TractationPanel({
       setReplacementFiles((previous) => ({ ...previous, [campaignId]: null }));
       await load(user);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Impossible d'envoyer le document.",
-      );
+      setError(err instanceof Error ? err.message : "Impossible d'envoyer le document.");
     } finally {
       setBusy("");
     }
@@ -730,10 +640,7 @@ export default function TractationPanel({
       aria-labelledby="ongoing-campaigns-title"
     >
       <div className="flex items-center justify-between gap-3">
-        <h2
-          id="ongoing-campaigns-title"
-          className="text-lg font-bold text-stone-900"
-        >
+        <h2 id="ongoing-campaigns-title" className="text-lg font-bold text-stone-900">
           {selectedCampaignId ? "Détails de la campagne" : "Campagnes en cours"}
         </h2>
         <span className="text-xs text-stone-500">{campaigns.length}</span>
@@ -758,23 +665,15 @@ export default function TractationPanel({
       ) : (
         <div
           className={
-            selectedCampaignId
-              ? ""
-              : "divide-y divide-stone-200 border-y border-stone-200"
+            selectedCampaignId ? "" : "divide-y divide-stone-200 border-y border-stone-200"
           }
         >
           {campaigns
-            .filter(
-              (campaign) =>
-                !selectedCampaignId || campaign.id === selectedCampaignId,
-            )
+            .filter((campaign) => !selectedCampaignId || campaign.id === selectedCampaignId)
             .map((campaign) => {
-              const takenCount = Object.keys(
-                campaign.assignedPlaces || {},
-              ).length;
+              const takenCount = Object.keys(campaign.assignedPlaces || {}).length;
               const completedCount = campaign.lieuDits.filter(
-                (place) =>
-                  campaign.assignedPlaces?.[place.id]?.status === "completed",
+                (place) => campaign.assignedPlaces?.[place.id]?.status === "completed",
               ).length;
               const progressPercent = campaign.lieuDits.length
                 ? Math.round((completedCount / campaign.lieuDits.length) * 100)
@@ -797,9 +696,8 @@ export default function TractationPanel({
                           {campaign.title}
                         </span>
                         <span className="mt-1 block text-xs text-stone-600">
-                          {completedCount}/{campaign.lieuDits.length} secteurs
-                          terminés · {campaign.lieuDits.length - takenCount}{" "}
-                          disponibles
+                          {completedCount}/{campaign.lieuDits.length} secteurs terminés ·{" "}
+                          {campaign.lieuDits.length - takenCount} disponibles
                         </span>
                         <span className="mt-2 block h-2 overflow-hidden rounded-full bg-stone-100">
                           <span
@@ -824,9 +722,7 @@ export default function TractationPanel({
                       className="btn-primary min-h-12 w-full justify-center px-4 text-base"
                     >
                       <MapPinned size={18} aria-hidden="true" />
-                      {campaign.joined
-                        ? "Ouvrir la campagne"
-                        : "Découvrir la campagne"}
+                      {campaign.joined ? "Ouvrir la campagne" : "Découvrir la campagne"}
                     </button>
                   </article>
                 );
@@ -886,9 +782,7 @@ export default function TractationPanel({
                             minLength={3}
                             maxLength={120}
                             value={editTitle}
-                            onChange={(event) =>
-                              setEditTitle(event.currentTarget.value)
-                            }
+                            onChange={(event) => setEditTitle(event.currentTarget.value)}
                             className="input-base mt-1 min-h-11"
                           />
                         </label>
@@ -899,9 +793,7 @@ export default function TractationPanel({
                             maxLength={4000}
                             rows={5}
                             value={editMessage}
-                            onChange={(event) =>
-                              setEditMessage(event.currentTarget.value)
-                            }
+                            onChange={(event) => setEditMessage(event.currentTarget.value)}
                             className="input-base mt-1 resize-y"
                           />
                         </label>
@@ -915,9 +807,7 @@ export default function TractationPanel({
                           <input
                             type="search"
                             value={editPlaceSearch}
-                            onChange={(event) =>
-                              setEditPlaceSearch(event.currentTarget.value)
-                            }
+                            onChange={(event) => setEditPlaceSearch(event.currentTarget.value)}
                             aria-label="Rechercher un secteur à cibler"
                             placeholder="Rechercher un lieu-dit"
                             className="input-base mt-2 min-h-11"
@@ -929,19 +819,13 @@ export default function TractationPanel({
                                   !editPlaceSearch.trim() ||
                                   place.nom
                                     .toLocaleLowerCase("fr")
-                                    .includes(
-                                      editPlaceSearch
-                                        .trim()
-                                        .toLocaleLowerCase("fr"),
-                                    ),
+                                    .includes(editPlaceSearch.trim().toLocaleLowerCase("fr")),
                               )
                               .map((place) => {
-                                const assignment =
-                                  campaign.assignedPlaces?.[place.id];
+                                const assignment = campaign.assignedPlaces?.[place.id];
                                 const checked = editPlaceIds.includes(place.id);
                                 const locked = Boolean(assignment && checked);
-                                const isBusy =
-                                  busy === `${campaign.id}:${place.id}`;
+                                const isBusy = busy === `${campaign.id}:${place.id}`;
                                 return (
                                   <li key={place.id}>
                                     <div className="grid min-w-0 gap-1 rounded-md px-2 py-1 hover:bg-stone-50">
@@ -952,16 +836,9 @@ export default function TractationPanel({
                                           type="checkbox"
                                           checked={checked}
                                           disabled={
-                                            locked ||
-                                            (!checked &&
-                                              editPlaceIds.length >= 200)
+                                            locked || (!checked && editPlaceIds.length >= 200)
                                           }
-                                          onChange={() =>
-                                            toggleCampaignPlace(
-                                              campaign,
-                                              place.id,
-                                            )
-                                          }
+                                          onChange={() => toggleCampaignPlace(campaign, place.id)}
                                           className="size-5 shrink-0 accent-emerald-700"
                                         />
                                         <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">
@@ -981,8 +858,7 @@ export default function TractationPanel({
                                                 Gérer
                                               </summary>
                                               <div className="absolute right-0 z-40 mt-1 grid w-48 max-w-[calc(100vw-2rem)] gap-1 rounded-md border border-stone-200 bg-white p-1 shadow-lg">
-                                                {assignment.status ===
-                                                "claimed" ? (
+                                                {assignment.status === "claimed" ? (
                                                   <button
                                                     type="button"
                                                     disabled={isBusy}
@@ -1045,8 +921,7 @@ export default function TractationPanel({
                               })}
                           </ul>
                           <p className="mt-1 text-xs text-stone-500">
-                            Un secteur déjà pris ou terminé ne peut pas être
-                            retiré.
+                            Un secteur déjà pris ou terminé ne peut pas être retiré.
                           </p>
                         </fieldset>
                         {error && (
@@ -1067,23 +942,15 @@ export default function TractationPanel({
                           </button>
                           <button
                             type="submit"
-                            disabled={
-                              savingCampaign || editPlaceIds.length === 0
-                            }
+                            disabled={savingCampaign || editPlaceIds.length === 0}
                             className="btn-primary min-h-12 justify-center px-4"
                           >
                             {savingCampaign ? (
-                              <Loader2
-                                size={17}
-                                className="animate-spin"
-                                aria-hidden="true"
-                              />
+                              <Loader2 size={17} className="animate-spin" aria-hidden="true" />
                             ) : (
                               <Save size={17} aria-hidden="true" />
                             )}
-                            {savingCampaign
-                              ? "Enregistrement…"
-                              : "Enregistrer les modifications"}
+                            {savingCampaign ? "Enregistrement…" : "Enregistrer les modifications"}
                           </button>
                         </div>
                       </form>
@@ -1100,9 +967,7 @@ export default function TractationPanel({
                         className="btn-primary min-h-10 px-4 py-2 text-sm"
                       >
                         <Users size={16} />
-                        {busy === campaign.id
-                          ? "Inscription…"
-                          : "Rejoindre cette campagne"}
+                        {busy === campaign.id ? "Inscription…" : "Rejoindre cette campagne"}
                       </button>
                     )}
                     {campaign.attachment && (
@@ -1122,8 +987,7 @@ export default function TractationPanel({
                       </legend>
                       <div className="grid gap-1 sm:grid-cols-2">
                         {campaign.lieuDits.map((place) => {
-                          const assignment =
-                            campaign.assignedPlaces?.[place.id];
+                          const assignment = campaign.assignedPlaces?.[place.id];
                           const isBusy = busy === `${campaign.id}:${place.id}`;
                           const routeStep = myRoutePlaceIds.indexOf(place.id);
                           return (
@@ -1134,35 +998,25 @@ export default function TractationPanel({
                               <label
                                 className={`flex min-w-0 flex-1 items-center gap-3 ${campaign.joined && (!assignment || assignment.isMine) ? "cursor-pointer" : "cursor-default"}`}
                               >
-                                {!myRoutePlaceIds.length &&
-                                  campaign.joined &&
-                                  !assignment && (
-                                    <input
-                                      type="checkbox"
-                                      checked={routeDraft.includes(place.id)}
-                                      disabled={
-                                        !place.hasCoordinates ||
-                                        (routeDraft.length >= 200 &&
-                                          !routeDraft.includes(place.id))
-                                      }
-                                      onChange={() =>
-                                        toggleRouteDraftPlace(
-                                          campaign,
-                                          place.id,
-                                        )
-                                      }
-                                      aria-label={`${routeDraft.includes(place.id) ? "Retirer de" : "Ajouter à"} ma tournée : ${place.nom}`}
-                                      className="size-4 accent-emerald-700"
-                                    />
-                                  )}
+                                {!myRoutePlaceIds.length && campaign.joined && !assignment && (
+                                  <input
+                                    type="checkbox"
+                                    checked={routeDraft.includes(place.id)}
+                                    disabled={
+                                      !place.hasCoordinates ||
+                                      (routeDraft.length >= 200 && !routeDraft.includes(place.id))
+                                    }
+                                    onChange={() => toggleRouteDraftPlace(campaign, place.id)}
+                                    aria-label={`${routeDraft.includes(place.id) ? "Retirer de" : "Ajouter à"} ma tournée : ${place.nom}`}
+                                    className="size-4 accent-emerald-700"
+                                  />
+                                )}
                                 {routeStep >= 0 && (
                                   <span className="grid size-6 shrink-0 place-items-center rounded-full bg-emerald-800 text-xs font-bold text-white">
                                     {routeStep + 1}
                                   </span>
                                 )}
-                                <span className="min-w-0 truncate text-sm">
-                                  {place.nom}
-                                </span>
+                                <span className="min-w-0 truncate text-sm">{place.nom}</span>
                               </label>
                               {assignment && (
                                 <span
@@ -1176,102 +1030,67 @@ export default function TractationPanel({
                                 </span>
                               )}
                               {assignment &&
-                                (canCreate ||
-                                  (campaign.joined && assignment.isMine)) &&
+                                (canCreate || (campaign.joined && assignment.isMine)) &&
                                 assignment.status === "claimed" && (
                                   <button
                                     type="button"
                                     disabled={isBusy}
                                     onClick={() =>
-                                      void updateAssignment(
-                                        campaign,
-                                        place,
-                                        "complete",
-                                      )
+                                      void updateAssignment(campaign, place, "complete")
                                     }
                                     className="min-h-10 shrink-0 px-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
                                   >
                                     {isBusy ? (
-                                      <Loader2
-                                        size={14}
-                                        className="animate-spin"
-                                      />
+                                      <Loader2 size={14} className="animate-spin" />
                                     ) : (
                                       "Marquer fait"
                                     )}
                                   </button>
                                 )}
                               {assignment &&
-                                (canCreate ||
-                                  (campaign.joined && assignment.isMine)) &&
+                                (canCreate || (campaign.joined && assignment.isMine)) &&
                                 assignment.status === "claimed" && (
                                   <button
                                     type="button"
                                     disabled={isBusy}
                                     onClick={() =>
-                                      void updateAssignment(
-                                        campaign,
-                                        place,
-                                        "release",
-                                      )
+                                      void updateAssignment(campaign, place, "release")
                                     }
                                     aria-label={`${assignment.isMine ? "Libérer" : "Désattribuer"} ${place.nom}`}
                                     className="min-h-10 shrink-0 px-2 text-xs font-semibold text-stone-600 hover:bg-stone-100"
                                   >
-                                    {assignment.isMine
-                                      ? "Libérer"
-                                      : "Désattribuer"}
+                                    {assignment.isMine ? "Libérer" : "Désattribuer"}
                                   </button>
                                 )}
                               {assignment &&
-                                (canCreate ||
-                                  (campaign.joined && assignment.isMine)) &&
+                                (canCreate || (campaign.joined && assignment.isMine)) &&
                                 assignment.status === "completed" && (
                                   <button
                                     type="button"
                                     disabled={isBusy}
-                                    onClick={() =>
-                                      void updateAssignment(
-                                        campaign,
-                                        place,
-                                        "reopen",
-                                      )
-                                    }
+                                    onClick={() => void updateAssignment(campaign, place, "reopen")}
                                     aria-label={`Marquer ${place.nom} comme non fait`}
                                     className="min-h-10 shrink-0 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-50"
                                   >
                                     {isBusy ? (
-                                      <Loader2
-                                        size={14}
-                                        className="animate-spin"
-                                      />
+                                      <Loader2 size={14} className="animate-spin" />
                                     ) : (
                                       "Marquer non fait"
                                     )}
                                   </button>
                                 )}
-                              {campaign.joined &&
-                                !assignment &&
-                                !place.hasCoordinates && (
-                                  <button
-                                    type="button"
-                                    disabled={isBusy}
-                                    onClick={() =>
-                                      void updateAssignment(
-                                        campaign,
-                                        place,
-                                        "claim",
-                                      )
-                                    }
-                                    className="min-h-10 shrink-0 px-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
-                                  >
-                                    Prendre le lieu
-                                  </button>
-                                )}
+                              {campaign.joined && !assignment && !place.hasCoordinates && (
+                                <button
+                                  type="button"
+                                  disabled={isBusy}
+                                  onClick={() => void updateAssignment(campaign, place, "claim")}
+                                  className="min-h-10 shrink-0 px-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
+                                >
+                                  Prendre le lieu
+                                </button>
+                              )}
                               {!assignment && (
-                                <span className="shrink-0 text-xs text-stone-500">
-                                  Disponible
-                                </span>
+                                <span className="shrink-0 text-xs text-stone-500">Disponible</span>
                               )}
                               {isBusy && (
                                 <Loader2
@@ -1296,9 +1115,7 @@ export default function TractationPanel({
                           Ma tournée ·{" "}
                           {
                             myRoutePlaceIds.filter(
-                              (id) =>
-                                campaign.assignedPlaces?.[id]?.status ===
-                                "completed",
+                              (id) => campaign.assignedPlaces?.[id]?.status === "completed",
                             ).length
                           }
                           /{myRoutePlaceIds.length} faits
@@ -1306,8 +1123,8 @@ export default function TractationPanel({
                         {routeSegments.length > 0 ? (
                           <>
                             <p className="text-xs leading-5 text-stone-600">
-                              Google Maps recevra votre départ et les lieux de
-                              chaque étape lorsque vous ouvrirez un itinéraire.
+                              Google Maps recevra votre départ et les lieux de chaque étape lorsque
+                              vous ouvrirez un itinéraire.
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {routeSegments.map((segment, index) => (
@@ -1323,16 +1140,15 @@ export default function TractationPanel({
                                   className="btn-secondary min-h-10 px-3 py-2 text-sm"
                                 >
                                   <ArrowUpRight size={15} />
-                                  Ouvrir l’étape {index + 1}/
-                                  {routeSegments.length}
+                                  Ouvrir l’étape {index + 1}/{routeSegments.length}
                                 </a>
                               ))}
                             </div>
                           </>
                         ) : (
                           <p className="text-xs text-stone-600">
-                            Définissez un départ GPS ou recherchez une adresse
-                            pour ouvrir l’itinéraire.
+                            Définissez un départ GPS ou recherchez une adresse pour ouvrir
+                            l’itinéraire.
                           </p>
                         )}
                       </section>
@@ -1340,17 +1156,14 @@ export default function TractationPanel({
                     {canCreate && (
                       <div className="flex flex-col gap-2 border-t border-stone-100 pt-3 sm:flex-row sm:items-end">
                         <label className="input-label min-w-0 flex-1">
-                          {campaign.attachment
-                            ? "Remplacer le document"
-                            : "Ajouter un document"}
+                          {campaign.attachment ? "Remplacer le document" : "Ajouter un document"}
                           <input
                             type="file"
                             accept="application/pdf,image/jpeg,image/png,image/webp"
                             onChange={(event) =>
                               setReplacementFiles((previous) => ({
                                 ...previous,
-                                [campaign.id]:
-                                  event.currentTarget.files?.[0] || null,
+                                [campaign.id]: event.currentTarget.files?.[0] || null,
                               }))
                             }
                             className="mt-1 block w-full text-sm"
@@ -1360,8 +1173,7 @@ export default function TractationPanel({
                           type="button"
                           onClick={() => void replaceDocument(campaign.id)}
                           disabled={
-                            !replacementFiles[campaign.id] ||
-                            busy === `upload:${campaign.id}`
+                            !replacementFiles[campaign.id] || busy === `upload:${campaign.id}`
                           }
                           className="btn-secondary min-h-10 px-3 py-2 text-sm"
                         >
@@ -1386,54 +1198,42 @@ export default function TractationPanel({
         </button>
       )}
 
-      {resumableCampaign &&
-        !missionCampaign &&
-        editingCampaignId !== resumableCampaign.id && (
-          <>
-            <div className="h-24 lg:hidden" aria-hidden="true" />
-            <footer className="fixed inset-x-0 bottom-0 z-[900] border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(28,25,23,0.14)] backdrop-blur lg:hidden">
-              <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
-                <p className="min-w-0 flex-1 text-xs leading-5 text-stone-600">
-                  {
-                    resumableCampaign.myRoutePlaceIds.filter(
-                      (id) =>
-                        resumableCampaign.assignedPlaces?.[id]?.status ===
-                        "completed",
-                    ).length
-                  }
-                  /{resumableCampaign.myRoutePlaceIds.length} secteurs terminés
-                </p>
-                <button
-                  type="button"
-                  onClick={() => openMission(resumableCampaign)}
-                  className="btn-primary min-h-14 shrink-0 justify-center px-5 text-base"
-                >
-                  <Navigation size={19} aria-hidden="true" />
-                  {resumableRouteInProgress
-                    ? "Reprendre ma tournée"
-                    : "Nouvelle tournée"}
-                </button>
-              </div>
-            </footer>
-          </>
-        )}
+      {resumableCampaign && !missionCampaign && editingCampaignId !== resumableCampaign.id && (
+        <>
+          <div className="h-24 lg:hidden" aria-hidden="true" />
+          <footer className="fixed inset-x-0 bottom-0 z-[900] border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(28,25,23,0.14)] backdrop-blur lg:hidden">
+            <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+              <p className="min-w-0 flex-1 text-xs leading-5 text-stone-600">
+                {
+                  resumableCampaign.myRoutePlaceIds.filter(
+                    (id) => resumableCampaign.assignedPlaces?.[id]?.status === "completed",
+                  ).length
+                }
+                /{resumableCampaign.myRoutePlaceIds.length} secteurs terminés
+              </p>
+              <button
+                type="button"
+                onClick={() => openMission(resumableCampaign)}
+                className="btn-primary min-h-14 shrink-0 justify-center px-5 text-base"
+              >
+                <Navigation size={19} aria-hidden="true" />
+                {resumableRouteInProgress ? "Reprendre ma tournée" : "Nouvelle tournée"}
+              </button>
+            </div>
+          </footer>
+        </>
+      )}
 
       {/* [SPEC-TRACTATION-06] Keep the complete mobile mission flow in a thumb-reachable sheet. */}
       {showRouteDetails && missionCampaign && (
-        <div
-          className="fixed inset-0 z-[950] bg-stone-950/20 lg:hidden"
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 z-[950] bg-stone-950/20 lg:hidden" aria-hidden="true" />
       )}
       {missionCampaign && (
         <section
           className="fixed inset-x-0 bottom-0 z-[1000] flex max-h-[72dvh] flex-col rounded-t-2xl border border-stone-300 bg-white shadow-[0_-12px_36px_rgba(28,25,23,0.2)] lg:hidden"
           aria-label={`Mission ${missionCampaign.title}`}
         >
-          <div
-            className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-stone-300"
-            aria-hidden="true"
-          />
+          <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-stone-300" aria-hidden="true" />
           <header className="flex items-center gap-3 border-b border-stone-200 px-4 py-3">
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold text-stone-900">
@@ -1462,15 +1262,12 @@ export default function TractationPanel({
             {missionSheet === "select" && (
               <div className="space-y-3">
                 <p className="text-xs leading-5 text-stone-600">
-                  Choisissez parmi tous les secteurs de cette campagne. Vos
-                  favoris sont présélectionnés, mais ne limitent pas votre
-                  tournée.
+                  Choisissez parmi tous les secteurs de cette campagne. Vos favoris sont
+                  présélectionnés, mais ne limitent pas votre tournée.
                 </p>
                 <div className="flex gap-2">
                   <label className="relative min-w-0 flex-1">
-                    <span className="sr-only">
-                      Rechercher un secteur dans la campagne
-                    </span>
+                    <span className="sr-only">Rechercher un secteur dans la campagne</span>
                     <MapPinned
                       size={17}
                       aria-hidden="true"
@@ -1479,9 +1276,7 @@ export default function TractationPanel({
                     <input
                       type="search"
                       value={missionSearch}
-                      onChange={(event) =>
-                        setMissionSearch(event.currentTarget.value)
-                      }
+                      onChange={(event) => setMissionSearch(event.currentTarget.value)}
                       placeholder="Chercher un secteur"
                       className="input-base min-h-12 pl-9"
                     />
@@ -1494,11 +1289,7 @@ export default function TractationPanel({
                     className="grid size-12 shrink-0 place-items-center rounded-lg border border-stone-300 bg-white text-emerald-900 disabled:opacity-50"
                   >
                     {locatingCampaign === missionCampaign.id ? (
-                      <Loader2
-                        size={20}
-                        className="animate-spin"
-                        aria-hidden="true"
-                      />
+                      <Loader2 size={20} className="animate-spin" aria-hidden="true" />
                     ) : (
                       <Compass size={21} aria-hidden="true" />
                     )}
@@ -1528,9 +1319,7 @@ export default function TractationPanel({
                     Mes favoris (
                     {
                       favoritePlaceIds.filter((id) =>
-                        missionCampaign.lieuDits.some(
-                          (place) => place.id === id,
-                        ),
+                        missionCampaign.lieuDits.some((place) => place.id === id),
                       ).length
                     }
                     )
@@ -1559,11 +1348,7 @@ export default function TractationPanel({
                       onClick={() => addSelectedMapPlace(missionCampaign)}
                       disabled={
                         !missionSelectedPlace.hasCoordinates ||
-                        Boolean(
-                          missionCampaign.assignedPlaces?.[
-                            missionSelectedPlace.id
-                          ],
-                        ) ||
+                        Boolean(missionCampaign.assignedPlaces?.[missionSelectedPlace.id]) ||
                         missionDraft.includes(missionSelectedPlace.id) ||
                         missionDraft.length >= 200
                       }
@@ -1579,8 +1364,7 @@ export default function TractationPanel({
                   aria-label="Secteurs de la campagne"
                 >
                   {missionPlaces.map((place) => {
-                    const assignment =
-                      missionCampaign.assignedPlaces?.[place.id];
+                    const assignment = missionCampaign.assignedPlaces?.[place.id];
                     const inDraft = missionDraft.includes(place.id);
                     const available = !assignment && place.hasCoordinates;
                     const isBusy = busy === `${missionCampaign.id}:${place.id}`;
@@ -1592,10 +1376,7 @@ export default function TractationPanel({
                             onClick={() => {
                               if (!available && !inDraft) return;
                               toggleRouteDraftPlace(missionCampaign, place.id);
-                              if (
-                                typeof navigator !== "undefined" &&
-                                "vibrate" in navigator
-                              )
+                              if (typeof navigator !== "undefined" && "vibrate" in navigator)
                                 navigator.vibrate(12);
                             }}
                             disabled={!available && !inDraft}
@@ -1652,11 +1433,7 @@ export default function TractationPanel({
                                     type="button"
                                     disabled={isBusy}
                                     onClick={() =>
-                                      void updateAssignment(
-                                        missionCampaign,
-                                        place,
-                                        "complete",
-                                      )
+                                      void updateAssignment(missionCampaign, place, "complete")
                                     }
                                     className="min-h-11 rounded px-3 text-left text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
                                   >
@@ -1667,11 +1444,7 @@ export default function TractationPanel({
                                     type="button"
                                     disabled={isBusy}
                                     onClick={() =>
-                                      void updateAssignment(
-                                        missionCampaign,
-                                        place,
-                                        "reopen",
-                                      )
+                                      void updateAssignment(missionCampaign, place, "reopen")
                                     }
                                     className="min-h-11 rounded px-3 text-left text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
                                   >
@@ -1682,11 +1455,7 @@ export default function TractationPanel({
                                   type="button"
                                   disabled={isBusy}
                                   onClick={() =>
-                                    void updateAssignment(
-                                      missionCampaign,
-                                      place,
-                                      "release",
-                                    )
+                                    void updateAssignment(missionCampaign, place, "release")
                                   }
                                   className="min-h-11 rounded px-3 text-left text-sm font-semibold text-stone-700 hover:bg-stone-100 disabled:opacity-50"
                                 >
@@ -1704,11 +1473,7 @@ export default function TractationPanel({
                                 type="button"
                                 disabled={isBusy}
                                 onClick={() =>
-                                  void updateAssignment(
-                                    missionCampaign,
-                                    place,
-                                    "reopen",
-                                  )
+                                  void updateAssignment(missionCampaign, place, "reopen")
                                 }
                                 aria-label={`Marquer ${place.nom} comme non fait`}
                                 className="min-h-11 shrink-0 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
@@ -1740,23 +1505,17 @@ export default function TractationPanel({
                       : undefined;
                     const canCorrectCurrent = Boolean(
                       currentAssignment &&
-                      (canCreate ||
-                        (missionCampaign.joined && currentAssignment.isMine)),
+                      (canCreate || (missionCampaign.joined && currentAssignment.isMine)),
                     );
                     const routeIndex = missionRoute.indexOf(missionNextPlace);
-                    const remainingStops = missionRoute
-                      .slice(routeIndex)
-                      .flatMap((id) => {
-                        const stop = missionCampaign.lieuDits.find(
-                          (item) => item.id === id,
-                        );
-                        return stop && stop.lat !== null && stop.lon !== null
-                          ? [{ lat: stop.lat, lon: stop.lon }]
-                          : [];
-                      });
+                    const remainingStops = missionRoute.slice(routeIndex).flatMap((id) => {
+                      const stop = missionCampaign.lieuDits.find((item) => item.id === id);
+                      return stop && stop.lat !== null && stop.lon !== null
+                        ? [{ lat: stop.lat, lon: stop.lon }]
+                        : [];
+                    });
                     const currentSegments =
-                      getRouteOrigin(missionCampaign.id) &&
-                      remainingStops.length
+                      getRouteOrigin(missionCampaign.id) && remainingStops.length
                         ? buildTourRouteSegments(
                             getRouteOrigin(missionCampaign.id)!,
                             remainingStops,
@@ -1766,13 +1525,10 @@ export default function TractationPanel({
                     return (
                       <>
                         <p className="text-xs font-semibold uppercase text-emerald-900">
-                          Prochain secteur · {routeIndex + 1} sur{" "}
-                          {missionRoute.length}
+                          Prochain secteur · {routeIndex + 1} sur {missionRoute.length}
                         </p>
                         <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
-                          <h3 className="text-xl font-black text-stone-900">
-                            {place?.nom}
-                          </h3>
+                          <h3 className="text-xl font-black text-stone-900">{place?.nom}</h3>
                           <p className="mt-1 text-sm text-stone-600">
                             {place?.foyers} foyers recensés
                           </p>
@@ -1788,8 +1544,7 @@ export default function TractationPanel({
                             rel="noreferrer"
                             className="btn-primary flex min-h-14 w-full justify-center text-base"
                           >
-                            <Navigation size={20} aria-hidden="true" />Y aller
-                            avec Google Maps
+                            <Navigation size={20} aria-hidden="true" />Y aller avec Google Maps
                           </a>
                         )}
                         {!currentSegment && (
@@ -1817,17 +1572,9 @@ export default function TractationPanel({
                               <button
                                 type="button"
                                 onClick={() =>
-                                  place &&
-                                  void updateAssignment(
-                                    missionCampaign,
-                                    place,
-                                    "reopen",
-                                  )
+                                  place && void updateAssignment(missionCampaign, place, "reopen")
                                 }
-                                disabled={
-                                  !place ||
-                                  busy === `${missionCampaign.id}:${place.id}`
-                                }
+                                disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
                                 className="min-h-12 w-full rounded-lg border border-amber-300 px-3 text-sm font-semibold text-amber-900 hover:bg-amber-50 disabled:opacity-50"
                               >
                                 {busy === `${missionCampaign.id}:${place?.id}`
@@ -1840,25 +1587,13 @@ export default function TractationPanel({
                           <button
                             type="button"
                             onClick={() =>
-                              place &&
-                              void updateAssignment(
-                                missionCampaign,
-                                place,
-                                "complete",
-                              )
+                              place && void updateAssignment(missionCampaign, place, "complete")
                             }
-                            disabled={
-                              !place ||
-                              busy === `${missionCampaign.id}:${place.id}`
-                            }
+                            disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
                             className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 text-base font-bold text-white disabled:opacity-50"
                           >
                             {busy === `${missionCampaign.id}:${place?.id}` ? (
-                              <Loader2
-                                size={20}
-                                className="animate-spin"
-                                aria-hidden="true"
-                              />
+                              <Loader2 size={20} className="animate-spin" aria-hidden="true" />
                             ) : (
                               <Check size={20} aria-hidden="true" />
                             )}
@@ -1869,17 +1604,9 @@ export default function TractationPanel({
                           <button
                             type="button"
                             onClick={() =>
-                              place &&
-                              void updateAssignment(
-                                missionCampaign,
-                                place,
-                                "release",
-                              )
+                              place && void updateAssignment(missionCampaign, place, "release")
                             }
-                            disabled={
-                              !place ||
-                              busy === `${missionCampaign.id}:${place.id}`
-                            }
+                            disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
                             className="min-h-11 w-full text-sm font-semibold text-stone-600 underline underline-offset-2 disabled:opacity-50"
                           >
                             {currentAssignment?.isMine
@@ -1895,12 +1622,9 @@ export default function TractationPanel({
                     <span className="mx-auto grid size-14 place-items-center rounded-full bg-emerald-100 text-emerald-800">
                       <Check size={28} aria-hidden="true" />
                     </span>
-                    <p className="text-lg font-bold text-stone-900">
-                      Tournée terminée
-                    </p>
+                    <p className="text-lg font-bold text-stone-900">Tournée terminée</p>
                     <p className="text-sm text-stone-600">
-                      Tous les secteurs de cette tournée sont marqués comme
-                      faits.
+                      Tous les secteurs de cette tournée sont marqués comme faits.
                     </p>
                   </div>
                 )}
@@ -1949,15 +1673,10 @@ export default function TractationPanel({
                   {missionDraft.length ? (
                     <ol className="divide-y divide-stone-200">
                       {missionDraft.map((placeId, index) => {
-                        const place = missionCampaign.lieuDits.find(
-                          (item) => item.id === placeId,
-                        );
+                        const place = missionCampaign.lieuDits.find((item) => item.id === placeId);
                         if (!place) return null;
                         return (
-                          <li
-                            key={placeId}
-                            className="flex min-h-12 items-center gap-2 py-1"
-                          >
+                          <li key={placeId} className="flex min-h-12 items-center gap-2 py-1">
                             <span className="grid size-7 shrink-0 place-items-center rounded-full bg-emerald-800 text-xs font-bold text-white">
                               {index + 1}
                             </span>
@@ -1966,9 +1685,7 @@ export default function TractationPanel({
                             </span>
                             <button
                               type="button"
-                              onClick={() =>
-                                moveRouteDraftPlace(missionCampaign, index, -1)
-                              }
+                              onClick={() => moveRouteDraftPlace(missionCampaign, index, -1)}
                               disabled={index === 0}
                               aria-label={`Monter ${place.nom}`}
                               className="grid size-10 shrink-0 place-items-center rounded-md text-stone-700 disabled:opacity-30"
@@ -1977,9 +1694,7 @@ export default function TractationPanel({
                             </button>
                             <button
                               type="button"
-                              onClick={() =>
-                                moveRouteDraftPlace(missionCampaign, index, 1)
-                              }
+                              onClick={() => moveRouteDraftPlace(missionCampaign, index, 1)}
                               disabled={index === missionDraft.length - 1}
                               aria-label={`Descendre ${place.nom}`}
                               className="grid size-10 shrink-0 place-items-center rounded-md text-stone-700 disabled:opacity-30"
@@ -1988,9 +1703,7 @@ export default function TractationPanel({
                             </button>
                             <button
                               type="button"
-                              onClick={() =>
-                                toggleRouteDraftPlace(missionCampaign, placeId)
-                              }
+                              onClick={() => toggleRouteDraftPlace(missionCampaign, placeId)}
                               aria-label={`Retirer ${place.nom} de la tournée`}
                               className="grid size-10 shrink-0 place-items-center rounded-md text-stone-500"
                             >
@@ -2023,11 +1736,7 @@ export default function TractationPanel({
                   aria-controls="mission-route-details"
                   className="flex min-h-14 min-w-0 flex-1 items-center gap-2 rounded-lg px-1 text-left hover:bg-stone-50"
                 >
-                  <ListChecks
-                    size={20}
-                    className="shrink-0 text-stone-700"
-                    aria-hidden="true"
-                  />
+                  <ListChecks size={20} className="shrink-0 text-stone-700" aria-hidden="true" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold text-stone-900">
                       Détails de la tournée
@@ -2037,39 +1746,23 @@ export default function TractationPanel({
                     </span>
                   </span>
                   {showRouteDetails ? (
-                    <ChevronDown
-                      size={18}
-                      className="shrink-0 text-stone-500"
-                      aria-hidden="true"
-                    />
+                    <ChevronDown size={18} className="shrink-0 text-stone-500" aria-hidden="true" />
                   ) : (
-                    <ChevronUp
-                      size={18}
-                      className="shrink-0 text-stone-500"
-                      aria-hidden="true"
-                    />
+                    <ChevronUp size={18} className="shrink-0 text-stone-500" aria-hidden="true" />
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={() => void claimRoute(missionCampaign)}
-                  disabled={
-                    !missionDraft.length || claimingRoute === missionCampaign.id
-                  }
+                  disabled={!missionDraft.length || claimingRoute === missionCampaign.id}
                   className="inline-flex min-h-14 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 text-sm font-bold text-white disabled:bg-stone-300 sm:px-5"
                 >
                   {claimingRoute === missionCampaign.id ? (
-                    <Loader2
-                      size={19}
-                      className="animate-spin"
-                      aria-hidden="true"
-                    />
+                    <Loader2 size={19} className="animate-spin" aria-hidden="true" />
                   ) : (
                     <Check size={19} aria-hidden="true" />
                   )}
-                  {claimingRoute === missionCampaign.id
-                    ? "Réservation…"
-                    : "Prendre ma tournée"}
+                  {claimingRoute === missionCampaign.id ? "Réservation…" : "Prendre ma tournée"}
                 </button>
               </div>
             </footer>

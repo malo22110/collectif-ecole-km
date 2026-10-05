@@ -23,9 +23,7 @@
     "sourceLabel": "PV de Mai 2024",
     "sourceUrl": "#",
     "color": "bg-emerald-500",
-    "produits": [
-      "Accord écrit de l'Architecte des Bâtiments de France (ABF)"
-    ],
+    "produits": ["Accord écrit de l'Architecte des Bâtiments de France (ABF)"],
     "conservable": false,
     "budget": {
       "etudes": "En cours d'évaluation",
@@ -41,9 +39,7 @@
     "sourceLabel": "PV du 19 Juin 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-19-06-2025.pdf",
     "color": "bg-emerald-500",
-    "produits": [
-      "Contrat de Maîtrise d'œuvre"
-    ],
+    "produits": ["Contrat de Maîtrise d'œuvre"],
     "conservable": true,
     "budget": {
       "etudes": "~ 60 500 € HT (Honoraires architectes)",
@@ -59,9 +55,7 @@
     "sourceLabel": "PV du 11 Sept. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-du-11-09-2025.pdf",
     "color": "bg-emerald-500",
-    "produits": [
-      "Arrêtés de subventions Département et Région"
-    ],
+    "produits": ["Arrêtés de subventions Département et Région"],
     "conservable": false,
     "budget": {
       "etudes": "127 110 € HT* (Enveloppe provisionnée actée)",
@@ -77,9 +71,7 @@
     "sourceLabel": "PV du 9 Oct. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-9-10-2025.pdf",
     "color": "bg-emerald-500",
-    "produits": [
-      "Avant-Projet Sommaire (APS) validé"
-    ],
+    "produits": ["Avant-Projet Sommaire (APS) validé"],
     "conservable": false,
     "budget": {
       "etudes": "127 110 € HT*",
@@ -95,9 +87,7 @@
     "sourceLabel": "PV du 27 Nov. 2025",
     "sourceUrl": "https://www.kergrist-moelou.bzh/wp-content/uploads/2026/02/PV-27-11-2025.pdf",
     "color": "bg-emerald-500",
-    "produits": [
-      "Avant-Projet Définitif (APD) validé"
-    ],
+    "produits": ["Avant-Projet Définitif (APD) validé"],
     "conservable": false,
     "budget": {
       "etudes": "127 110 € HT*",
@@ -113,9 +103,7 @@
     "sourceLabel": "PV du 28 avril 2026",
     "sourceUrl": "/docs/pvs/CR 28 04 2026.pdf",
     "color": "bg-emerald-500",
-    "produits": [
-      "Confirmation capacité d'emprunt (400 000 €)"
-    ],
+    "produits": ["Confirmation capacité d'emprunt (400 000 €)"],
     "conservable": true,
     "budget": {
       "etudes": "127 110 € HT*",
@@ -131,9 +119,7 @@
     "sourceLabel": "PV du 9 juin 2026",
     "sourceUrl": "/docs/pvs/PV 09 06 2026 (1).pdf",
     "color": "bg-emerald-500",
-    "produits": [
-      "Pistes concrètes de réduction budgétaire"
-    ],
+    "produits": ["Pistes concrètes de réduction budgétaire"],
     "conservable": true,
     "budget": {
       "etudes": "127 110 € HT*",
@@ -149,10 +135,7 @@
     "sourceLabel": "Charte du Collectif",
     "sourceUrl": "#",
     "color": "bg-amber-500",
-    "produits": [
-      "Blocage de l'optimisation budgétaire",
-      "Lancement du collectif"
-    ],
+    "produits": ["Blocage de l'optimisation budgétaire", "Lancement du collectif"],
     "conservable": false,
     "budget": {
       "etudes": "127 110 € HT* (provision figée) + 2 170 € HT (avenant non voté)",

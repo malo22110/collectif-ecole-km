@@ -24,9 +24,7 @@ const requestSchema = z
     args: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
-const councilMinutesArgsSchema = z
-  .object({ query: z.string().trim().min(2).max(180) })
-  .strict();
+const councilMinutesArgsSchema = z.object({ query: z.string().trim().min(2).max(180) }).strict();
 const officialSourcesArgsSchema = z
   .object({
     query: z
@@ -35,8 +33,7 @@ const officialSourcesArgsSchema = z
       .min(3)
       .max(120)
       .refine(
-        (value) =>
-          !/@|https?:\/\/|www\.|(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/i.test(value),
+        (value) => !/@|https?:\/\/|www\.|(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/i.test(value),
         "Ne transmettez aucune coordonnée personnelle.",
       ),
   })
@@ -93,8 +90,7 @@ async function executeReadOnlyTool(name: string) {
 
   if (name === "get_financial_ledger") {
     const snapshot = await adminDb.collection("pages").doc("historique").get();
-    if (!snapshot.exists)
-      return { source: "CMS /historique", found: false, blocks: [] };
+    if (!snapshot.exists) return { source: "CMS /historique", found: false, blocks: [] };
     return {
       source: "CMS /historique",
       found: true,
@@ -109,17 +105,12 @@ async function executeReadOnlyTool(name: string) {
 
   if (name === "get_action_plan") {
     const snapshot = await adminDb.collection("pages").doc("historique").get();
-    if (!snapshot.exists)
-      return { source: "CMS /historique", found: false, blocks: [] };
+    if (!snapshot.exists) return { source: "CMS /historique", found: false, blocks: [] };
     return {
       source: "CMS /historique",
       found: true,
       retrievedAt: new Date().toISOString(),
-      data: pickCmsBlocks(
-        snapshot.data(),
-        ["timeline", "alert", "conclusion", "text"],
-        26000,
-      ),
+      data: pickCmsBlocks(snapshot.data(), ["timeline", "alert", "conclusion", "text"], 26000),
     };
   }
 
@@ -183,46 +174,26 @@ async function executeReadOnlyTool(name: string) {
 // [SPEC-ASSISTANT-CMS-02] Execute one allowlisted, read-only CMS tool per authenticated request; never expose signature documents.
 export async function POST(request: Request) {
   const access = await verifyValidatedMember(request);
-  if (!access.allowed)
-    return Response.json({ error: access.error }, { status: access.status });
-  if (
-    !request.headers
-      .get("Content-Type")
-      ?.toLowerCase()
-      .includes("application/json")
-  ) {
-    return Response.json(
-      { error: "Format de requête invalide." },
-      { status: 415 },
-    );
+  if (!access.allowed) return Response.json({ error: access.error }, { status: access.status });
+  if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
+    return Response.json({ error: "Format de requête invalide." }, { status: 415 });
   }
   const contentLength = Number(request.headers.get("content-length") || 0);
   if (contentLength > MAX_BODY_BYTES)
-    return Response.json(
-      { error: "Appel d’outil trop volumineux." },
-      { status: 413 },
-    );
+    return Response.json({ error: "Appel d’outil trop volumineux." }, { status: 413 });
 
   try {
     const body = requestSchema.safeParse(await readRequestJson(request));
-    if (!body.success)
-      return Response.json(
-        { error: "Appel d’outil invalide." },
-        { status: 400 },
-      );
+    if (!body.success) return Response.json({ error: "Appel d’outil invalide." }, { status: 400 });
     if (!isAssistantToolName(body.data.name))
-      return Response.json(
-        { error: "Cet outil n’est pas autorisé." },
-        { status: 400 },
-      );
+      return Response.json({ error: "Cet outil n’est pas autorisé." }, { status: 400 });
     let result: unknown;
     if (body.data.name === "search_council_minutes") {
       const args = councilMinutesArgsSchema.safeParse(body.data.args);
       if (!args.success)
         return Response.json(
           {
-            error:
-              "La recherche dans les procès-verbaux doit contenir entre 2 et 180 caractères.",
+            error: "La recherche dans les procès-verbaux doit contenir entre 2 et 180 caractères.",
           },
           { status: 400 },
         );
@@ -243,18 +214,14 @@ export async function POST(request: Request) {
       if (!args.success)
         return Response.json(
           {
-            error:
-              "La recherche institutionnelle doit contenir entre 3 et 120 caractères.",
+            error: "La recherche institutionnelle doit contenir entre 3 et 120 caractères.",
           },
           { status: 400 },
         );
       result = await searchOfficialSources(args.data.query);
     } else {
       if (Object.keys(body.data.args || {}).length > 0)
-        return Response.json(
-          { error: "Cet outil n’accepte aucun argument." },
-          { status: 400 },
-        );
+        return Response.json({ error: "Cet outil n’accepte aucun argument." }, { status: 400 });
       result = await executeReadOnlyTool(body.data.name);
     }
 

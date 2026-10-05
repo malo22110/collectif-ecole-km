@@ -64,8 +64,7 @@ function sanitizeStructuredValue(
     budget.remaining -= text.length;
     return text;
   }
-  if (typeof value === "number")
-    return Number.isFinite(value) ? value : undefined;
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
   if (typeof value === "boolean") return value;
   if (Array.isArray(value)) {
     const result: unknown[] = [];
@@ -83,9 +82,7 @@ function sanitizeStructuredValue(
       return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
     }
     const result: Record<string, unknown> = {};
-    for (const [key, child] of Object.entries(
-      value as Record<string, unknown>,
-    )) {
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
       if (isOmittedKey(key)) continue;
       const safeChild = sanitizeStructuredValue(child, budget, depth + 1);
       if (safeChild !== undefined) result[key] = safeChild;
@@ -97,10 +94,7 @@ function sanitizeStructuredValue(
 }
 
 // [SPEC-ASSISTANT-CMS-02] Return bounded structured CMS fields to function tools without scraping rendered HTML.
-export function sanitizeStructuredCmsData(
-  value: unknown,
-  maxChars = MAX_STRUCTURED_CHARS,
-) {
+export function sanitizeStructuredCmsData(value: unknown, maxChars = MAX_STRUCTURED_CHARS) {
   const budget = {
     remaining: Math.max(0, Math.min(maxChars, MAX_STRUCTURED_CHARS)),
   };
@@ -112,18 +106,13 @@ export function pickCmsBlocks(
   allowedTypes: string[],
   maxChars = MAX_STRUCTURED_CHARS,
 ) {
-  if (!value || typeof value !== "object")
-    return { header: null, version: null, blocks: [] };
+  if (!value || typeof value !== "object") return { header: null, version: null, blocks: [] };
   const page = value as Record<string, unknown>;
   const blocks = Array.isArray(page.blocks) ? page.blocks : [];
   const selected = blocks.flatMap((block) => {
     if (!block || typeof block !== "object") return [];
     const candidate = block as Record<string, unknown>;
-    if (
-      typeof candidate.type !== "string" ||
-      !allowedTypes.includes(candidate.type)
-    )
-      return [];
+    if (typeof candidate.type !== "string" || !allowedTypes.includes(candidate.type)) return [];
     return [{ type: candidate.type, data: candidate.data }];
   });
   return sanitizeStructuredCmsData(

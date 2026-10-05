@@ -21,11 +21,11 @@ export default function SignatairesPage() {
   const [loading, setLoading] = useState(true);
   const [signatures, setSignatures] = useState<Signature[]>([]);
   const [error, setError] = useState("");
-  
+
   const [search, setSearch] = useState("");
   const [filterVille, setFilterVille] = useState("");
   const [filterQualite, setFilterQualite] = useState("");
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -36,10 +36,10 @@ export default function SignatairesPage() {
           const token = await u.getIdToken();
           const res = await fetch("/api/signatures", {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           });
-          
+
           if (!res.ok) {
             const data = await res.json();
             setError(data.error || "Erreur d'accès.");
@@ -59,9 +59,9 @@ export default function SignatairesPage() {
   }, []);
 
   const filteredSignatures = useMemo(() => {
-    return signatures.filter(sig => {
-      const matchSearch = search === "" || 
-        `${sig.prenom} ${sig.nom}`.toLowerCase().includes(search.toLowerCase());
+    return signatures.filter((sig) => {
+      const matchSearch =
+        search === "" || `${sig.prenom} ${sig.nom}`.toLowerCase().includes(search.toLowerCase());
       const matchVille = filterVille === "" || sig.ville.includes(filterVille);
       const matchQualite = filterQualite === "" || sig.qualite.includes(filterQualite);
       return matchSearch && matchVille && matchQualite;
@@ -69,10 +69,13 @@ export default function SignatairesPage() {
   }, [signatures, search, filterVille, filterQualite]);
 
   const totalPages = Math.ceil(filteredSignatures.length / itemsPerPage);
-  const currentItems = filteredSignatures.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const currentItems = filteredSignatures.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
 
-  const villesUniques = Array.from(new Set(signatures.map(s => s.ville))).filter(Boolean);
-  const qualitesUniques = Array.from(new Set(signatures.map(s => s.qualite))).filter(Boolean);
+  const villesUniques = Array.from(new Set(signatures.map((s) => s.ville))).filter(Boolean);
+  const qualitesUniques = Array.from(new Set(signatures.map((s) => s.qualite))).filter(Boolean);
 
   // Reset page to 1 when filters change
   useEffect(() => {
@@ -87,7 +90,8 @@ export default function SignatairesPage() {
           Liste des Signataires
         </h1>
         <p className="text-stone-500 text-sm md:text-base">
-          Consultation de la liste complète. Les adresses e-mail sont masquées par mesure de confidentialité.
+          Consultation de la liste complète. Les adresses e-mail sont masquées par mesure de
+          confidentialité.
         </p>
       </div>
 
@@ -102,41 +106,51 @@ export default function SignatairesPage() {
         </div>
       ) : (
         <div className="flex flex-col flex-1 overflow-hidden">
-          
           {/* Filters Bar */}
           <div className="p-4 md:px-8 py-4 bg-white border-b border-stone-200 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 shrink-0">
             <div className="relative w-full xl:max-w-sm shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Rechercher par nom..." 
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Rechercher par nom..."
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 className="input-base pl-10 py-2 text-sm"
               />
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-              <select 
-                value={filterVille} 
-                onChange={e => setFilterVille(e.target.value)}
+              <select
+                value={filterVille}
+                onChange={(e) => setFilterVille(e.target.value)}
                 className="input-base w-full sm:w-[200px] py-2 text-sm cursor-pointer truncate"
               >
                 <option value="">Toutes les communes</option>
-                {villesUniques.map(v => <option key={v} value={v}>{v}</option>)}
+                {villesUniques.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
               </select>
 
-              <select 
-                value={filterQualite} 
-                onChange={e => setFilterQualite(e.target.value)}
+              <select
+                value={filterQualite}
+                onChange={(e) => setFilterQualite(e.target.value)}
                 className="input-base w-full sm:w-[250px] py-2 text-sm cursor-pointer truncate"
               >
                 <option value="">Tous les liens</option>
-                {qualitesUniques.map(q => <option key={q} value={q}>{q}</option>)}
+                {qualitesUniques.map((q) => (
+                  <option key={q} value={q}>
+                    {q}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
-          
+
           <div className="px-4 md:px-8 py-3 bg-stone-50 border-b border-stone-200 flex justify-between items-center text-xs font-semibold text-stone-500 uppercase tracking-wider shrink-0">
             <span>{filteredSignatures.length} résultat(s) trouvés</span>
           </div>
@@ -154,14 +168,22 @@ export default function SignatairesPage() {
               <tbody className="divide-y divide-stone-100">
                 {currentItems.length > 0 ? (
                   currentItems.map((sig, idx) => (
-                    <tr key={sig.id || idx} className="hover:bg-emerald-50/50 transition-colors group">
+                    <tr
+                      key={sig.id || idx}
+                      className="hover:bg-emerald-50/50 transition-colors group"
+                    >
                       <td className="p-4 md:px-8 font-medium text-stone-900">
                         {sig.prenom} {sig.nom}
                         {sig.source === "papier" && (
-                          <span className="ml-2 inline-flex items-center rounded border border-stone-300 bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-700">Papier</span>
+                          <span className="ml-2 inline-flex items-center rounded border border-stone-300 bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-700">
+                            Papier
+                          </span>
                         )}
                         {sig.potentialDuplicate && (
-                          <span className="ml-2 inline-flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900" title={`${sig.potentialDuplicateCount || 0} correspondance(s) à vérifier`}>
+                          <span
+                            className="ml-2 inline-flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900"
+                            title={`${sig.potentialDuplicateCount || 0} correspondance(s) à vérifier`}
+                          >
                             Potentiel doublon
                           </span>
                         )}
@@ -169,7 +191,13 @@ export default function SignatairesPage() {
                       <td className="p-4 md:px-8 text-stone-600 text-sm">{sig.qualite}</td>
                       <td className="p-4 md:px-8 text-stone-600 text-sm">{sig.ville}</td>
                       <td className="p-4 md:px-8 text-stone-500 text-sm text-right whitespace-nowrap">
-                        {sig.createdAt ? new Date(sig.createdAt).toLocaleDateString("fr-FR", {day: 'numeric', month: 'long', year: 'numeric'}) : "-"}
+                        {sig.createdAt
+                          ? new Date(sig.createdAt).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : "-"}
                       </td>
                     </tr>
                   ))
@@ -187,8 +215,8 @@ export default function SignatairesPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="p-4 md:px-8 border-t border-stone-200 bg-white flex items-center justify-between shrink-0">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
                 className="px-4 py-2 border border-stone-300 rounded-lg text-sm font-medium text-stone-700 disabled:opacity-50 disabled:bg-stone-50 hover:bg-stone-100 transition-colors"
               >
@@ -197,8 +225,8 @@ export default function SignatairesPage() {
               <span className="text-sm font-medium text-stone-600 bg-stone-100 px-4 py-1.5 rounded-full">
                 Page {currentPage} sur {totalPages}
               </span>
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
                 className="px-4 py-2 border border-stone-300 rounded-lg text-sm font-medium text-stone-700 disabled:opacity-50 disabled:bg-stone-50 hover:bg-stone-100 transition-colors"
               >
@@ -206,7 +234,6 @@ export default function SignatairesPage() {
               </button>
             </div>
           )}
-
         </div>
       )}
     </div>

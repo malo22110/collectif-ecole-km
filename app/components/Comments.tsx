@@ -24,31 +24,14 @@ import {
   isSignInWithEmailLink,
   signInWithEmailLink,
 } from "firebase/auth";
-import {
-  MessageSquare,
-  Send,
-  UserCircle,
-  LogOut,
-  Edit2,
-  Trash2,
-  X,
-  Check,
-} from "lucide-react";
+import { MessageSquare, Send, UserCircle, LogOut, Edit2, Trash2, X, Check } from "lucide-react";
 
-export default function Comments({
-  topic,
-  inline,
-}: {
-  topic?: string;
-  inline?: boolean;
-}) {
+export default function Comments({ topic, inline }: { topic?: string; inline?: boolean }) {
   const [comments, setComments] = useState<any[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isMember, setIsMember] = useState(false);
   const [newComment, setNewComment] = useState("");
-  const [authMode, setAuthMode] = useState<"idle" | "login" | "register">(
-    "idle",
-  );
+  const [authMode, setAuthMode] = useState<"idle" | "login" | "register">("idle");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
@@ -70,11 +53,7 @@ export default function Comments({
         signInWithEmailLink(auth, savedEmail, window.location.href)
           .then((result) => {
             window.localStorage.removeItem("emailForSignIn");
-            window.history.replaceState(
-              {},
-              document.title,
-              window.location.pathname,
-            );
+            window.history.replaceState({}, document.title, window.location.pathname);
           })
           .catch((err) => {
             console.error("Erreur Magic Link", err);
@@ -97,10 +76,7 @@ export default function Comments({
             where("status", "==", "validated"),
           );
           const snap = await getDocs(q);
-          if (
-            !snap.empty ||
-            currentUser.email === "contact@collectif-ecole-km.fr"
-          ) {
+          if (!snap.empty || currentUser.email === "contact@collectif-ecole-km.fr") {
             // l'admin peut aussi commenter
             setIsMember(true);
           } else {
@@ -119,10 +95,7 @@ export default function Comments({
 
   // Écouter les commentaires
   useEffect(() => {
-    const q = query(
-      collection(db, "commentaires"),
-      orderBy("createdAt", "asc"),
-    );
+    const q = query(collection(db, "commentaires"), orderBy("createdAt", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setComments(data);
@@ -235,99 +208,95 @@ export default function Comments({
               return acc;
             }, {});
 
-            return (
-              topic ? [[topic, grouped[topic] || []]] : Object.entries(grouped)
-            ).map(([groupTopic, groupComments]: any) => {
-              if (groupComments.length === 0) return null;
-              return (
-                <div key={groupTopic} className="mb-6 last:mb-0">
-                  <div className="space-y-4">
-                    {groupComments.map((c: any) => {
-                      const isMyComment = user && user.email === c.authorEmail;
-                      const isEditing = editingId === c.id;
+            return (topic ? [[topic, grouped[topic] || []]] : Object.entries(grouped)).map(
+              ([groupTopic, groupComments]: any) => {
+                if (groupComments.length === 0) return null;
+                return (
+                  <div key={groupTopic} className="mb-6 last:mb-0">
+                    <div className="space-y-4">
+                      {groupComments.map((c: any) => {
+                        const isMyComment = user && user.email === c.authorEmail;
+                        const isEditing = editingId === c.id;
 
-                      return (
-                        <div
-                          key={c.id}
-                          className="bg-white p-4 rounded-xl shadow-sm border border-stone-100 relative group"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-stone-800 text-sm">
-                                {c.authorName}
-                              </span>
-                              {c.editedAt && (
-                                <span className="text-[10px] text-stone-400 italic">
-                                  (modifié)
+                        return (
+                          <div
+                            key={c.id}
+                            className="bg-white p-4 rounded-xl shadow-sm border border-stone-100 relative group"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-stone-800 text-sm">
+                                  {c.authorName}
                                 </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className="text-xs text-stone-400">
-                                {c.createdAt?.toDate
-                                  ? c.createdAt
-                                      .toDate()
-                                      .toLocaleDateString("fr-FR", {
+                                {c.editedAt && (
+                                  <span className="text-[10px] text-stone-400 italic">
+                                    (modifié)
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-xs text-stone-400">
+                                  {c.createdAt?.toDate
+                                    ? c.createdAt.toDate().toLocaleDateString("fr-FR", {
                                         hour: "2-digit",
                                         minute: "2-digit",
                                       })
-                                  : "À l'instant"}
-                              </span>
-                              {isMyComment && !isEditing && (
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-                                  <button
-                                    onClick={() => handleEdit(c.id, c.text)}
-                                    className="text-stone-400 hover:text-emerald-600 transition-colors"
-                                    title="Modifier"
-                                  >
-                                    <Edit2 size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(c.id)}
-                                    className="text-stone-400 hover:text-rose-600 transition-colors"
-                                    title="Supprimer"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {isEditing ? (
-                            <div className="mt-3">
-                              <textarea
-                                className="w-full p-3 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/30 text-stone-900 text-sm min-h-[80px]"
-                                value={editContent}
-                                onChange={(e) => setEditContent(e.target.value)}
-                              />
-                              <div className="flex justify-end gap-2 mt-2">
-                                <button
-                                  onClick={() => setEditingId(null)}
-                                  className="px-3 py-1.5 text-xs text-stone-500 hover:bg-stone-100 rounded-lg flex items-center gap-1 transition-colors"
-                                >
-                                  <X size={14} /> Annuler
-                                </button>
-                                <button
-                                  onClick={() => handleSaveEdit(c.id)}
-                                  className="px-3 py-1.5 text-xs bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg flex items-center gap-1 transition-colors"
-                                >
-                                  <Check size={14} /> Enregistrer
-                                </button>
+                                    : "À l'instant"}
+                                </span>
+                                {isMyComment && !isEditing && (
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                                    <button
+                                      onClick={() => handleEdit(c.id, c.text)}
+                                      className="text-stone-400 hover:text-emerald-600 transition-colors"
+                                      title="Modifier"
+                                    >
+                                      <Edit2 size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(c.id)}
+                                      className="text-stone-400 hover:text-rose-600 transition-colors"
+                                      title="Supprimer"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                          ) : (
-                            <p className="text-stone-700 whitespace-pre-wrap">
-                              {c.text}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
+
+                            {isEditing ? (
+                              <div className="mt-3">
+                                <textarea
+                                  className="w-full p-3 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/30 text-stone-900 text-sm min-h-[80px]"
+                                  value={editContent}
+                                  onChange={(e) => setEditContent(e.target.value)}
+                                />
+                                <div className="flex justify-end gap-2 mt-2">
+                                  <button
+                                    onClick={() => setEditingId(null)}
+                                    className="px-3 py-1.5 text-xs text-stone-500 hover:bg-stone-100 rounded-lg flex items-center gap-1 transition-colors"
+                                  >
+                                    <X size={14} /> Annuler
+                                  </button>
+                                  <button
+                                    onClick={() => handleSaveEdit(c.id)}
+                                    className="px-3 py-1.5 text-xs bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg flex items-center gap-1 transition-colors"
+                                  >
+                                    <Check size={14} /> Enregistrer
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-stone-700 whitespace-pre-wrap">{c.text}</p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            });
+                );
+              },
+            );
           })()
         )}
       </div>
@@ -338,8 +307,8 @@ export default function Comments({
           {authMode === "idle" ? (
             <div>
               <p className="text-stone-600 mb-4">
-                Connectez-vous avec l'adresse email utilisée lors de votre
-                adhésion pour participer au débat.
+                Connectez-vous avec l'adresse email utilisée lors de votre adhésion pour participer
+                au débat.
               </p>
               {authError && (
                 <p className="text-rose-500 text-sm mb-4 font-bold bg-rose-50 p-2 rounded-lg border border-rose-200">
@@ -351,11 +320,7 @@ export default function Comments({
                   onClick={handleGoogleLogin}
                   className="px-6 py-2 bg-white border-2 border-stone-200 text-stone-700 font-medium rounded-xl hover:bg-stone-50 transition-colors flex items-center justify-center gap-2"
                 >
-                  <img
-                    src="https://www.google.com/favicon.ico"
-                    className="w-4 h-4"
-                    alt="Google"
-                  />
+                  <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
                   Google
                 </button>
                 <button
@@ -367,28 +332,18 @@ export default function Comments({
               </div>
             </div>
           ) : (
-            <form
-              onSubmit={handleSendMagicLink}
-              className="max-w-sm mx-auto text-left"
-            >
+            <form onSubmit={handleSendMagicLink} className="max-w-sm mx-auto text-left">
               <h4 className="font-bold text-stone-900 mb-4 text-center">
                 Connexion sécurisée par email
               </h4>
-              {authError && (
-                <p className="text-red-500 text-sm mb-3 text-center">
-                  {authError}
-                </p>
-              )}
+              {authError && <p className="text-red-500 text-sm mb-3 text-center">{authError}</p>}
 
               {linkSent ? (
                 <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
-                  <p className="text-emerald-800 font-medium mb-2">
-                    Lien envoyé !
-                  </p>
+                  <p className="text-emerald-800 font-medium mb-2">Lien envoyé !</p>
                   <p className="text-sm text-emerald-700">
-                    Consultez votre boîte mail <strong>{email}</strong> et
-                    cliquez sur le lien magique pour vous connecter
-                    automatiquement.
+                    Consultez votre boîte mail <strong>{email}</strong> et cliquez sur le lien
+                    magique pour vous connecter automatiquement.
                   </p>
                   <button
                     type="button"
@@ -401,8 +356,8 @@ export default function Comments({
               ) : (
                 <>
                   <p className="text-sm text-stone-600 mb-4 text-center">
-                    Entrez l'email utilisé lors de votre adhésion. Nous vous
-                    enverrons un lien de connexion magique (sans mot de passe).
+                    Entrez l'email utilisé lors de votre adhésion. Nous vous enverrons un lien de
+                    connexion magique (sans mot de passe).
                   </p>
                   <input
                     type="email"
@@ -435,8 +390,8 @@ export default function Comments({
       ) : !isMember ? (
         <div className="bg-amber-50 p-6 rounded-xl border border-amber-200 text-center">
           <p className="text-amber-800 font-medium mb-3">
-            Votre compte ({user.email}) est en attente de validation par
-            l'administrateur, ou n'est pas inscrit au Collectif.
+            Votre compte ({user.email}) est en attente de validation par l'administrateur, ou n'est
+            pas inscrit au Collectif.
           </p>
           <button
             onClick={() => signOut(auth)}

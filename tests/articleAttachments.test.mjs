@@ -27,8 +27,7 @@ test("valide les métadonnées et les limites des pièces jointes d’article", 
   assert.equal(articleIdSchema.safeParse("../secret").success, false);
   assert.equal(articleAttachmentMetadataSchema.safeParse(valid).success, true);
   assert.equal(
-    articleAttachmentMetadataSchema.safeParse({ ...valid, extension: "png" })
-      .success,
+    articleAttachmentMetadataSchema.safeParse({ ...valid, extension: "png" }).success,
     false,
   );
   assert.equal(
@@ -56,22 +55,16 @@ test("valide les métadonnées et les limites des pièces jointes d’article", 
     ).success,
     false,
   );
-  assert.equal(
-    articleAttachmentDeleteSchema.safeParse({ attachmentId: valid.id }).success,
-    true,
-  );
+  assert.equal(articleAttachmentDeleteSchema.safeParse({ attachmentId: valid.id }).success, true);
   assert.equal(MAX_ARTICLE_ATTACHMENTS, 10);
 });
 
 // [SPEC-ARTICLE-ATTACHMENTS-01] Accept supported file signatures only and sanitize names.
 test("détecte le type réel et neutralise les chemins de fichier", () => {
-  assert.deepEqual(
-    detectSupportedUploadType(new TextEncoder().encode("%PDF-1.7")),
-    { contentType: "application/pdf", extension: "pdf" },
-  );
-  assert.equal(
-    detectSupportedUploadType(new TextEncoder().encode("not a document")),
-    null,
-  );
+  assert.deepEqual(detectSupportedUploadType(new TextEncoder().encode("%PDF-1.7")), {
+    contentType: "application/pdf",
+    extension: "pdf",
+  });
+  assert.equal(detectSupportedUploadType(new TextEncoder().encode("not a document")), null);
   assert.equal(sanitizeUploadFileName("../../rapport.pdf"), "_.._rapport.pdf");
 });

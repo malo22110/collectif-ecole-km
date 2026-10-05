@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import {
-  CircleMarker,
-  MapContainer,
-  Polyline,
-  Popup,
-  TileLayer,
-  useMap,
-} from "react-leaflet";
+import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
 import { Heart } from "lucide-react";
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import type { TourLieuDit } from "@/lib/tourneeGeo";
@@ -20,10 +13,7 @@ interface OpenStreetMapProps {
   favoritePlaceIds?: string[];
   onToggleFavorite?: (placeId: string) => void;
   routePlaceIds?: string[];
-  assignmentStatuses?: Record<
-    string,
-    { status: "claimed" | "completed"; memberName?: string }
-  >;
+  assignmentStatuses?: Record<string, { status: "claimed" | "completed"; memberName?: string }>;
   campaignMode?: boolean;
   showHouseholdCounts?: boolean;
   selectedPlace?: TourLieuDit | null;
@@ -53,10 +43,7 @@ function FocusPlace({ place }: { place: TourLieuDit | null }) {
   return null;
 }
 
-function directionsUrl(
-  destination: TourLieuDit,
-  origin?: OpenStreetMapProps["origin"],
-) {
+function directionsUrl(destination: TourLieuDit, origin?: OpenStreetMapProps["origin"]) {
   const parameters = new URLSearchParams({
     api: "1",
     destination: `${destination.lat},${destination.lon}`,
@@ -85,15 +72,11 @@ export default function OpenStreetMap({
   const located = useMemo(
     () =>
       locations.filter(
-        (location) =>
-          Number.isFinite(location.lat) && Number.isFinite(location.lon),
+        (location) => Number.isFinite(location.lat) && Number.isFinite(location.lon),
       ),
     [locations],
   );
-  const favorites = useMemo(
-    () => new Set(favoritePlaceIds),
-    [favoritePlaceIds],
-  );
+  const favorites = useMemo(() => new Set(favoritePlaceIds), [favoritePlaceIds]);
   const routeOrder = useMemo(
     () => new Map(routePlaceIds.map((id, index) => [id, index + 1])),
     [routePlaceIds],
@@ -103,10 +86,7 @@ export default function OpenStreetMap({
     [assignmentStatuses],
   );
   const bounds = useMemo<LatLngBoundsExpression | null>(() => {
-    const points: LatLngExpression[] = located.map((location) => [
-      location.lat,
-      location.lon,
-    ]);
+    const points: LatLngExpression[] = located.map((location) => [location.lat, location.lon]);
     if (origin) points.push([origin.lat, origin.lon]);
     points.push(...routeGeometry);
     return points.length ? (points as LatLngBoundsExpression) : null;
@@ -149,9 +129,7 @@ export default function OpenStreetMap({
           const assignment = assignments.get(location.id);
           const assignmentStatus = assignment?.status;
           const radius =
-            (zeroHouseholds
-              ? 6
-              : Math.min(15, 6 + Math.sqrt(location.foyers))) +
+            (zeroHouseholds ? 6 : Math.min(15, 6 + Math.sqrt(location.foyers))) +
             (isFavorite || routeStep ? 2 : 0);
           return (
             <CircleMarker
@@ -261,13 +239,9 @@ export default function OpenStreetMap({
                       >
                         <Heart
                           size={15}
-                          className={
-                            isFavorite ? "fill-amber-400 text-amber-800" : ""
-                          }
+                          className={isFavorite ? "fill-amber-400 text-amber-800" : ""}
                         />
-                        {isFavorite
-                          ? "Retirer des favoris"
-                          : "Ajouter aux favoris"}
+                        {isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
                       </button>
                     )
                   )}

@@ -23,9 +23,7 @@ test("expose uniquement les outils CMS en lecture seule attendus", () => {
   assert.equal(isAssistantToolName("get_financial_ledger"), true);
   assert.equal(isAssistantToolName("search_council_minutes"), true);
   assert.equal(isAssistantToolName("delete_signatures"), false);
-  assert.ok(
-    assistantFunctionDeclarations.every((tool) => !tool.functionReference),
-  );
+  assert.ok(assistantFunctionDeclarations.every((tool) => !tool.functionReference));
   const minutesTool = assistantFunctionDeclarations.find(
     (tool) => tool.name === "search_council_minutes",
   );

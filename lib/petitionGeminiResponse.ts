@@ -1,16 +1,21 @@
 import { z } from "zod";
 
 const extractedRowsSchema = z.object({
-  entries: z.array(z.object({
-    fullName: z.string().max(160),
-    town: z.string().max(120),
-    relationship: z.string().max(160),
-    confidence: z.number().int().min(0).max(100)
-  })).max(60)
+  entries: z
+    .array(
+      z.object({
+        fullName: z.string().max(160),
+        town: z.string().max(120),
+        relationship: z.string().max(160),
+        confidence: z.number().int().min(0).max(100),
+      }),
+    )
+    .max(60),
 });
 
 function normalizeTown(value: string): string {
-  const normalized = value.trim()
+  const normalized = value
+    .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
@@ -27,11 +32,13 @@ export function parseGeminiPetitionResponse(responseText: string) {
   const parsed = extractedRowsSchema.safeParse(JSON.parse(responseText));
   if (!parsed.success) throw new Error("Gemini a renvoyé un format de lignes invalide.");
 
-  return parsed.data.entries.map(row => ({
-    fullName: row.fullName.trim(),
-    ville: normalizeTown(row.town),
-    qualite: row.relationship.trim(),
-    confidence: row.confidence,
-    method: "gemini" as const
-  })).filter(row => row.fullName.length >= 2);
+  return parsed.data.entries
+    .map((row) => ({
+      fullName: row.fullName.trim(),
+      ville: normalizeTown(row.town),
+      qualite: row.relationship.trim(),
+      confidence: row.confidence,
+      method: "gemini" as const,
+    }))
+    .filter((row) => row.fullName.length >= 2);
 }

@@ -9,14 +9,7 @@ import {
   onAuthStateChanged,
   signInWithEmailLink,
 } from "firebase/auth";
-import {
-  addDoc,
-  collection,
-  query,
-  serverTimestamp,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { addDoc, collection, query, serverTimestamp, where, getDocs } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserCircle2 } from "lucide-react";
@@ -50,9 +43,7 @@ export default function ConnexionPage() {
         router.replace("/espace-membre");
       })
       .catch(() =>
-        setAuthError(
-          "Le lien de connexion est invalide ou a expiré. Demandez-en un nouveau.",
-        ),
+        setAuthError("Le lien de connexion est invalide ou a expiré. Demandez-en un nouveau."),
       );
   }, [router]);
 
@@ -93,9 +84,7 @@ export default function ConnexionPage() {
             <UserCircle2 size={32} />
           </div>
           <h1 className="text-2xl font-bold text-stone-900 mb-2">Connexion</h1>
-          <p className="text-stone-500">
-            Accédez aux outils réservés aux membres du collectif.
-          </p>
+          <p className="text-stone-500">Accédez aux outils réservés aux membres du collectif.</p>
         </div>
 
         {authMode === "idle" ? (
@@ -110,11 +99,7 @@ export default function ConnexionPage() {
                 onClick={handleGoogleLogin}
                 className="w-full py-3 bg-white border-2 border-stone-200 text-stone-700 font-bold rounded-xl hover:bg-stone-50 transition-colors flex items-center justify-center gap-2"
               >
-                <img
-                  src="https://www.google.com/favicon.ico"
-                  className="w-5 h-5"
-                  alt="Google"
-                />
+                <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
                 Continuer avec Google
               </button>
               <button
@@ -139,20 +124,14 @@ export default function ConnexionPage() {
             <h4 className="font-bold text-stone-900 mb-4 text-center">
               Connexion sécurisée par email
             </h4>
-            {authError && (
-              <p className="text-red-500 text-sm mb-3 text-center">
-                {authError}
-              </p>
-            )}
+            {authError && <p className="text-red-500 text-sm mb-3 text-center">{authError}</p>}
 
             {linkSent ? (
               <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
-                <p className="text-emerald-800 font-medium mb-2">
-                  Lien magique envoyé ! 🪄
-                </p>
+                <p className="text-emerald-800 font-medium mb-2">Lien magique envoyé ! 🪄</p>
                 <p className="text-sm text-emerald-700">
-                  Consultez votre boîte mail <strong>{email}</strong> et cliquez
-                  sur le lien pour vous connecter automatiquement.
+                  Consultez votre boîte mail <strong>{email}</strong> et cliquez sur le lien pour
+                  vous connecter automatiquement.
                 </p>
                 <button
                   type="button"
@@ -165,8 +144,8 @@ export default function ConnexionPage() {
             ) : (
               <>
                 <p className="text-sm text-stone-600 mb-4 text-center">
-                  Entrez l'email utilisé lors de votre adhésion. Nous vous
-                  enverrons un lien de connexion magique (sans mot de passe).
+                  Entrez l'email utilisé lors de votre adhésion. Nous vous enverrons un lien de
+                  connexion magique (sans mot de passe).
                 </p>
                 <input
                   type="email"

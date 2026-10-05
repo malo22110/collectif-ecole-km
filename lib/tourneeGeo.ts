@@ -22,11 +22,7 @@ export function distanceKm(first: GeoPoint, second: GeoPoint): number {
     Math.sin(deltaLat / 2) ** 2 +
     Math.cos(firstLat) * Math.cos(secondLat) * Math.sin(deltaLon / 2) ** 2;
 
-  return (
-    earthRadiusKm *
-    2 *
-    Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
-  );
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
 export function nearestLocatedPlaces<T extends TourLieuDit>(
@@ -53,14 +49,8 @@ export function chunkOrderedRoutePoints<T extends GeoPoint>(
   stops: T[],
   maxCoordinates = 100,
 ): GeoPoint[][] {
-  if (
-    !Number.isInteger(maxCoordinates) ||
-    maxCoordinates < 2 ||
-    maxCoordinates > 100
-  ) {
-    throw new RangeError(
-      "Une requête de routage doit contenir de 2 à 100 coordonnées.",
-    );
+  if (!Number.isInteger(maxCoordinates) || maxCoordinates < 2 || maxCoordinates > 100) {
+    throw new RangeError("Une requête de routage doit contenir de 2 à 100 coordonnées.");
   }
 
   const chunks: GeoPoint[][] = [];
@@ -80,14 +70,8 @@ export function buildTourRouteSegments<T extends GeoPoint>(
   stops: T[],
   stopsPerSegment = 4,
 ): TourRouteSegment<T>[] {
-  if (
-    !Number.isInteger(stopsPerSegment) ||
-    stopsPerSegment < 1 ||
-    stopsPerSegment > 4
-  ) {
-    throw new RangeError(
-      "Une étape d’itinéraire doit contenir entre 1 et 4 lieux.",
-    );
+  if (!Number.isInteger(stopsPerSegment) || stopsPerSegment < 1 || stopsPerSegment > 4) {
+    throw new RangeError("Une étape d’itinéraire doit contenir entre 1 et 4 lieux.");
   }
 
   const segments: TourRouteSegment<T>[] = [];

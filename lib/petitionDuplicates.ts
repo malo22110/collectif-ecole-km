@@ -41,7 +41,10 @@ function editDistanceAtMostOne(first: string, second: string): boolean {
   return differences <= 1;
 }
 
-export function isPotentialPetitionDuplicate(first: PetitionIdentity, second: PetitionIdentity): boolean {
+export function isPotentialPetitionDuplicate(
+  first: PetitionIdentity,
+  second: PetitionIdentity,
+): boolean {
   const firstName = normalize(first.fullName);
   const secondName = normalize(second.fullName);
   if (firstName.length < 4 || secondName.length < 4) return false;

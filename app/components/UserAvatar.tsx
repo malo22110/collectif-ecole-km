@@ -18,11 +18,11 @@ export default function UserAvatar() {
         setUser(currentUser);
         // Check if admin
         try {
-          const q = query(collection(db, 'membres'), where('email', '==', currentUser.email));
+          const q = query(collection(db, "membres"), where("email", "==", currentUser.email));
           const snap = await getDocs(q);
           if (!snap.empty) {
             const data = snap.docs[0].data();
-            setIsAdmin(data.role === 'admin');
+            setIsAdmin(data.role === "admin");
           }
         } catch (e) {}
       } else {
@@ -35,7 +35,11 @@ export default function UserAvatar() {
 
   if (!user) {
     return (
-      <Link href="/connexion" className="p-2 text-stone-600 hover:text-stone-900 transition-colors" title="Se connecter">
+      <Link
+        href="/connexion"
+        className="p-2 text-stone-600 hover:text-stone-900 transition-colors"
+        title="Se connecter"
+      >
         <User size={20} />
       </Link>
     );
@@ -45,7 +49,7 @@ export default function UserAvatar() {
 
   return (
     <div className="relative">
-      <button 
+      <button
         onClick={() => setShowMenu(!showMenu)}
         className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center border border-emerald-200 shadow-sm hover:ring-2 hover:ring-emerald-500 transition-all"
         title={user.email}
@@ -58,18 +62,18 @@ export default function UserAvatar() {
           <div className="px-4 py-2 border-b border-stone-100 mb-1">
             <p className="text-xs text-stone-500 truncate">{user.email}</p>
           </div>
-          
-          <Link 
-            href="/espace-membre" 
+
+          <Link
+            href="/espace-membre"
             className="flex items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 font-medium"
             onClick={() => setShowMenu(false)}
           >
             <Users size={16} /> Espace Membre
           </Link>
-          
+
           {isAdmin && (
-            <Link 
-              href="/admin" 
+            <Link
+              href="/admin"
               className="flex items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50"
               onClick={() => setShowMenu(false)}
             >

@@ -22,11 +22,7 @@ interface MemberPlacePreferencesProps {
   onSetupComplete?: () => void;
 }
 
-async function authorizedFetch(
-  user: User,
-  url: string,
-  init: RequestInit = {},
-) {
+async function authorizedFetch(user: User, url: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${await user.getIdToken()}`);
   const response = await fetch(url, { ...init, headers, cache: "no-store" });
@@ -81,9 +77,7 @@ export default function MemberPlacePreferences({
       } catch (loadError) {
         if (active)
           setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Impossible de charger vos favoris.",
+            loadError instanceof Error ? loadError.message : "Impossible de charger vos favoris.",
           );
       } finally {
         if (active) setLoaded(true);
@@ -104,16 +98,11 @@ export default function MemberPlacePreferences({
   const manualMatches = useMemo(() => {
     const query = manualSearch.trim().toLocaleLowerCase("fr");
     if (query.length < 2) return [];
-    return places
-      .filter((place) => place.nom.toLocaleLowerCase("fr").includes(query))
-      .slice(0, 12);
+    return places.filter((place) => place.nom.toLocaleLowerCase("fr").includes(query)).slice(0, 12);
   }, [manualSearch, places]);
 
   const favoriteNames = useMemo(
-    () =>
-      favoritePlaceIds.map(
-        (id) => places.find((place) => place.id === id)?.nom || id,
-      ),
+    () => favoritePlaceIds.map((id) => places.find((place) => place.id === id)?.nom || id),
     [favoritePlaceIds, places],
   );
 
@@ -170,25 +159,19 @@ export default function MemberPlacePreferences({
         return;
       }
       if (saveAddress && !confirmedAddress) {
-        setError(
-          "Recherchez d'abord cette adresse pour confirmer qu'elle est dans la commune.",
-        );
+        setError("Recherchez d'abord cette adresse pour confirmer qu'elle est dans la commune.");
         return;
       }
       const savedAddress = saveAddress ? confirmedAddress : null;
-      const data = (await authorizedFetch(
-        user,
-        "/api/member-place-preferences",
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            favoritePlaceIds: selectedPlaceIds,
-            setupComplete: true,
-            savedAddress,
-          }),
-        },
-      )) as PreferencesResponse;
+      const data = (await authorizedFetch(user, "/api/member-place-preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          favoritePlaceIds: selectedPlaceIds,
+          setupComplete: true,
+          savedAddress,
+        }),
+      })) as PreferencesResponse;
       setFavoritePlaceIds(data.favoritePlaceIds);
       setSelectedPlaceIds(data.favoritePlaceIds);
       setAddress(data.savedAddress || "");
@@ -199,9 +182,7 @@ export default function MemberPlacePreferences({
       onSetupComplete?.();
     } catch (saveError) {
       setError(
-        saveError instanceof Error
-          ? saveError.message
-          : "Impossible d'enregistrer vos favoris.",
+        saveError instanceof Error ? saveError.message : "Impossible d'enregistrer vos favoris.",
       );
     } finally {
       setSaving(false);
@@ -226,9 +207,7 @@ export default function MemberPlacePreferences({
       onSetupComplete?.();
     } catch (skipError) {
       setError(
-        skipError instanceof Error
-          ? skipError.message
-          : "Impossible d'enregistrer ce choix.",
+        skipError instanceof Error ? skipError.message : "Impossible d'enregistrer ce choix.",
       );
     } finally {
       setSaving(false);
@@ -240,31 +219,21 @@ export default function MemberPlacePreferences({
   if (onboarding)
     return (
       <div className="min-h-full bg-stone-50 p-1 pb-[max(2rem,env(safe-area-inset-bottom))] sm:p-2">
-        <section
-          className="mx-auto max-w-2xl space-y-5"
-          aria-labelledby="member-favorites-title"
-        >
+        <section className="mx-auto max-w-2xl space-y-5" aria-labelledby="member-favorites-title">
           <header className="border-b border-stone-200 pb-4">
             <p className="text-xs font-bold uppercase text-emerald-800">
               Première visite · 1 sur 1
             </p>
-            <h1
-              id="member-favorites-title"
-              className="mt-2 text-2xl font-black text-stone-900"
-            >
+            <h1 id="member-favorites-title" className="mt-2 text-2xl font-black text-stone-900">
               Où habitez-vous ?
             </h1>
             <p className="mt-2 text-sm leading-6 text-stone-600">
-              Votre adresse nous sert à repérer les lieux-dits proches, puis
-              vous choisissez vos favoris avant d’accéder aux campagnes.
+              Votre adresse nous sert à repérer les lieux-dits proches, puis vous choisissez vos
+              favoris avant d’accéder aux campagnes.
             </p>
           </header>
           {notice && (
-            <p
-              role="status"
-              aria-live="polite"
-              className="text-sm font-medium text-emerald-800"
-            >
+            <p role="status" aria-live="polite" className="text-sm font-medium text-emerald-800">
               {notice}
             </p>
           )}
@@ -308,17 +277,11 @@ export default function MemberPlacePreferences({
                 className="btn-secondary min-h-12 w-full justify-center sm:w-auto"
               >
                 {geocoding ? (
-                  <Loader2
-                    size={18}
-                    className="animate-spin"
-                    aria-hidden="true"
-                  />
+                  <Loader2 size={18} className="animate-spin" aria-hidden="true" />
                 ) : (
                   <MapPin size={18} aria-hidden="true" />
                 )}
-                {geocoding
-                  ? "Recherche des lieux proches…"
-                  : "Rechercher les lieux-dits proches"}
+                {geocoding ? "Recherche des lieux proches…" : "Rechercher les lieux-dits proches"}
               </button>
               {matchedAddress && (
                 <p role="status" className="text-sm text-stone-700">
@@ -372,16 +335,12 @@ export default function MemberPlacePreferences({
                     </div>
                   ) : (
                     <p className="mt-2 text-sm text-stone-600">
-                      Pas de suggestion proche; vous pouvez choisir vos lieux
-                      manuellement.
+                      Pas de suggestion proche; vous pouvez choisir vos lieux manuellement.
                     </p>
                   )}
                 </fieldset>
                 <div className="space-y-2">
-                  <label
-                    htmlFor="favorite-place-search"
-                    className="relative block"
-                  >
+                  <label htmlFor="favorite-place-search" className="relative block">
                     <Search
                       size={16}
                       aria-hidden="true"
@@ -409,9 +368,7 @@ export default function MemberPlacePreferences({
                             onChange={() => togglePlace(place.id)}
                             className="size-5 accent-emerald-700"
                           />
-                          <span className="text-sm font-medium text-stone-800">
-                            {place.nom}
-                          </span>
+                          <span className="text-sm font-medium text-stone-800">{place.nom}</span>
                         </label>
                       ))}
                     </div>
@@ -421,9 +378,7 @@ export default function MemberPlacePreferences({
                   <input
                     type="checkbox"
                     checked={saveAddress}
-                    onChange={(event) =>
-                      setSaveAddress(event.currentTarget.checked)
-                    }
+                    onChange={(event) => setSaveAddress(event.currentTarget.checked)}
                     className="mt-0.5 size-4 accent-emerald-700"
                   />
                   <span className="flex items-start gap-1.5">
@@ -432,25 +387,19 @@ export default function MemberPlacePreferences({
                       className="mt-0.5 shrink-0 text-emerald-800"
                       aria-hidden="true"
                     />
-                    Mémoriser cette adresse dans mon espace privé. Sinon, elle
-                    ne servira qu’à cette recherche.
+                    Mémoriser cette adresse dans mon espace privé. Sinon, elle ne servira qu’à cette
+                    recherche.
                   </span>
                 </label>
               </>
             )}
             <button
               type="submit"
-              disabled={
-                saving || !confirmedAddress || selectedPlaceIds.length > 20
-              }
+              disabled={saving || !confirmedAddress || selectedPlaceIds.length > 20}
               className="btn-primary min-h-14 w-full justify-center text-base"
             >
               {saving ? (
-                <Loader2
-                  size={19}
-                  className="animate-spin"
-                  aria-hidden="true"
-                />
+                <Loader2 size={19} className="animate-spin" aria-hidden="true" />
               ) : (
                 <Heart size={19} aria-hidden="true" />
               )}
@@ -459,8 +408,8 @@ export default function MemberPlacePreferences({
                 : `Enregistrer et voir les campagnes${selectedPlaceIds.length ? ` · ${selectedPlaceIds.length} favoris` : ""}`}
             </button>
             <p className="text-xs leading-5 text-stone-500">
-              L’adresse n’est conservée que si vous cochez l’option. Vous
-              pourrez modifier vos favoris ensuite.
+              L’adresse n’est conservée que si vous cochez l’option. Vous pourrez modifier vos
+              favoris ensuite.
             </p>
           </form>
         </section>
@@ -468,18 +417,14 @@ export default function MemberPlacePreferences({
     );
 
   return (
-    <section
-      className="border-b border-stone-200 pb-5"
-      aria-labelledby="member-favorites-title"
-    >
+    <section className="border-b border-stone-200 pb-5" aria-labelledby="member-favorites-title">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h2
             id="member-favorites-title"
             className="flex items-center gap-2 text-base font-bold text-stone-900"
           >
-            <Heart size={17} className="text-rose-700" aria-hidden="true" /> Mes
-            lieux-dits favoris
+            <Heart size={17} className="text-rose-700" aria-hidden="true" /> Mes lieux-dits favoris
           </h2>
           {favoriteNames.length ? (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -493,9 +438,7 @@ export default function MemberPlacePreferences({
               ))}
             </div>
           ) : (
-            <p className="mt-1 text-sm text-stone-600">
-              Aucun favori enregistré.
-            </p>
+            <p className="mt-1 text-sm text-stone-600">Aucun favori enregistré.</p>
           )}
         </div>
         <button
@@ -510,20 +453,12 @@ export default function MemberPlacePreferences({
           className="btn-secondary shrink-0 px-3 py-2 text-sm"
         >
           <Heart size={15} aria-hidden="true" />{" "}
-          {open
-            ? "Fermer"
-            : favoriteNames.length
-              ? "Modifier mes favoris"
-              : "Choisir mes favoris"}
+          {open ? "Fermer" : favoriteNames.length ? "Modifier mes favoris" : "Choisir mes favoris"}
         </button>
       </div>
 
       {notice && (
-        <p
-          role="status"
-          aria-live="polite"
-          className="mt-3 text-sm font-medium text-emerald-800"
-        >
+        <p role="status" aria-live="polite" className="mt-3 text-sm font-medium text-emerald-800">
           {notice}
         </p>
       )}
@@ -537,14 +472,11 @@ export default function MemberPlacePreferences({
       )}
 
       {open && (
-        <form
-          onSubmit={handleSave}
-          className="mt-4 space-y-4 border-t border-stone-200 pt-4"
-        >
+        <form onSubmit={handleSave} className="mt-4 space-y-4 border-t border-stone-200 pt-4">
           <p className="max-w-3xl text-sm text-stone-600">
-            Saisissez votre adresse, même dans une commune voisine, pour
-            proposer les trois lieux-dits géolocalisés les plus proches, ou
-            choisissez directement vos favoris. Cette sélection restera privée.
+            Saisissez votre adresse, même dans une commune voisine, pour proposer les trois
+            lieux-dits géolocalisés les plus proches, ou choisissez directement vos favoris. Cette
+            sélection restera privée.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <label
@@ -575,11 +507,7 @@ export default function MemberPlacePreferences({
               className="btn-secondary min-h-11 shrink-0"
             >
               {geocoding ? (
-                <Loader2
-                  size={17}
-                  className="animate-spin"
-                  aria-hidden="true"
-                />
+                <Loader2 size={17} className="animate-spin" aria-hidden="true" />
               ) : (
                 <MapPin size={17} aria-hidden="true" />
               )}
@@ -604,9 +532,8 @@ export default function MemberPlacePreferences({
                 className="mt-0.5 shrink-0 text-emerald-800"
                 aria-hidden="true"
               />
-              Mémoriser cette adresse dans mon espace privé. Elle ne sera
-              visible que par moi; décochez pour ne conserver que les lieux
-              favoris.
+              Mémoriser cette adresse dans mon espace privé. Elle ne sera visible que par moi;
+              décochez pour ne conserver que les lieux favoris.
             </span>
           </label>
 
@@ -642,10 +569,7 @@ export default function MemberPlacePreferences({
           )}
 
           <div>
-            <label
-              htmlFor="favorite-place-search"
-              className="relative block max-w-xl"
-            >
+            <label htmlFor="favorite-place-search" className="relative block max-w-xl">
               <Search
                 size={16}
                 aria-hidden="true"
@@ -674,23 +598,19 @@ export default function MemberPlacePreferences({
                         onChange={() => togglePlace(place.id)}
                         className="size-4 accent-emerald-700"
                       />
-                      <span className="text-sm font-medium text-stone-800">
-                        {place.nom}
-                      </span>
+                      <span className="text-sm font-medium text-stone-800">{place.nom}</span>
                     </label>
                   ))
                 ) : (
-                  <p className="px-3 py-2 text-sm text-stone-500">
-                    Aucun lieu-dit trouvé.
-                  </p>
+                  <p className="px-3 py-2 text-sm text-stone-500">Aucun lieu-dit trouvé.</p>
                 )}
               </div>
             )}
           </div>
 
           <p className="text-xs text-stone-500">
-            Jusqu'à 20 favoris. Vous pourrez les modifier plus tard depuis la
-            carte ou les campagnes.
+            Jusqu'à 20 favoris. Vous pourrez les modifier plus tard depuis la carte ou les
+            campagnes.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -699,22 +619,13 @@ export default function MemberPlacePreferences({
               className="btn-primary"
             >
               {saving ? (
-                <Loader2
-                  size={17}
-                  className="animate-spin"
-                  aria-hidden="true"
-                />
+                <Loader2 size={17} className="animate-spin" aria-hidden="true" />
               ) : (
                 <Heart size={17} aria-hidden="true" />
               )}
               Enregistrer mes favoris
             </button>
-            <button
-              type="button"
-              onClick={handleSkip}
-              disabled={saving}
-              className="btn-secondary"
-            >
+            <button type="button" onClick={handleSkip} disabled={saving} className="btn-secondary">
               Passer cette étape
             </button>
             <button

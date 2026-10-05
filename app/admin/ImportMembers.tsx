@@ -10,10 +10,10 @@ export default function ImportMembers() {
 
   const handleImport = async () => {
     if (!confirm("Voulez-vous vraiment importer la liste des membres ?")) return;
-    
+
     setImporting(true);
     setLogs(["Démarrage de l'importation..."]);
-    
+
     const csvData = `DAGORNE,Maiwenn,maiwenn_d2@hotmail.com,0672132768,Oui,Oui
 LE GALL,Anne,marmouz77@orange.fr,0628284327,Oui,Oui
 MARTIN,Brigitte,bm_gaia@proton.me,0674402002,Oui,Oui
@@ -78,39 +78,39 @@ STEPHAN,Koulm,kowoulm@hotmail.fr,0686785089,Non,Oui
 MANDARD,Léandre,leandre.mandard@sciencespo.fr,,Non,Oui
 TANGUY,Yvette,,0677219282,Non,Oui`;
 
-    const lines = csvData.split('\n');
+    const lines = csvData.split("\n");
     const membersRef = collection(db, "membres");
-    
+
     let addedCount = 0;
 
     for (const line of lines) {
-      if (!line.trim() || line.startsWith(',')) continue; 
-      
-      let [nom, prenom, email, tel] = line.split(',');
-      const [, , , , adherent, informe] = line.split(',');
-      
-      nom = nom ? nom.replace(/"/g, '').trim() : "";
-      prenom = prenom ? prenom.replace(/"/g, '').trim() : "";
+      if (!line.trim() || line.startsWith(",")) continue;
+
+      let [nom, prenom, email, tel] = line.split(",");
+      const [, , , , adherent, informe] = line.split(",");
+
+      nom = nom ? nom.replace(/"/g, "").trim() : "";
+      prenom = prenom ? prenom.replace(/"/g, "").trim() : "";
       email = email ? email.trim().toLowerCase() : "";
       tel = tel ? tel.trim() : "";
-      
-      const isAdherent = adherent === 'Oui';
-      const isInforme = informe === 'Oui';
-      
-      const status = isAdherent ? 'validated' : 'newsletter';
+
+      const isAdherent = adherent === "Oui";
+      const isInforme = informe === "Oui";
+
+      const status = isAdherent ? "validated" : "newsletter";
 
       if (email) {
         const q = query(membersRef, where("email", "==", email));
         const snap = await getDocs(q);
         if (!snap.empty) {
-          setLogs(prev => [...prev, `[SKIPPED] ${email} existe déjà.`]);
+          setLogs((prev) => [...prev, `[SKIPPED] ${email} existe déjà.`]);
           continue;
         }
       } else {
-        setLogs(prev => [...prev, `[SKIPPED] Membre sans email: ${prenom} ${nom}`]);
+        setLogs((prev) => [...prev, `[SKIPPED] Membre sans email: ${prenom} ${nom}`]);
         continue;
       }
-      
+
       const docData = {
         nom,
         prenom,
@@ -119,20 +119,20 @@ TANGUY,Yvette,,0677219282,Non,Oui`;
         status,
         dateInscription: new Date().toISOString(),
         adherent: isAdherent,
-        informe: isInforme
+        informe: isInforme,
       };
-      
+
       try {
         const emailId = email.trim().toLowerCase();
         await setDoc(doc(db, "membres", emailId), docData);
-        setLogs(prev => [...prev, `[AJOUTÉ] ${prenom} ${nom} (${email})`]);
+        setLogs((prev) => [...prev, `[AJOUTÉ] ${prenom} ${nom} (${email})`]);
         addedCount++;
       } catch (e: any) {
-        setLogs(prev => [...prev, `[ERREUR] ${email}: ${e.message}`]);
+        setLogs((prev) => [...prev, `[ERREUR] ${email}: ${e.message}`]);
       }
     }
-    
-    setLogs(prev => [...prev, `Terminé ! ${addedCount} membres ajoutés.`]);
+
+    setLogs((prev) => [...prev, `Terminé ! ${addedCount} membres ajoutés.`]);
     setImporting(false);
   };
 
@@ -140,10 +140,10 @@ TANGUY,Yvette,,0677219282,Non,Oui`;
     <div className="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
       <h3 className="font-bold text-stone-900 mb-4">Outils de Migration</h3>
       <p className="text-sm text-stone-600 mb-4">
-        Permet d'importer la liste initiale des membres à partir du fichier Excel.
-        (Les doublons basés sur l'email seront ignorés).
+        Permet d'importer la liste initiale des membres à partir du fichier Excel. (Les doublons
+        basés sur l'email seront ignorés).
       </p>
-      <button 
+      <button
         onClick={handleImport}
         disabled={importing}
         className="px-4 py-2 bg-stone-800 text-white rounded-lg font-medium hover:bg-stone-900 disabled:opacity-50"

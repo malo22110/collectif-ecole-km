@@ -15,14 +15,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import {
-  ShieldAlert,
-  Users,
-  Shield,
-  Check,
-  Loader2,
-  UserRoundPlus,
-} from "lucide-react";
+import { ShieldAlert, Users, Shield, Check, Loader2, UserRoundPlus } from "lucide-react";
 
 interface MembrePublic {
   id: string;
@@ -121,10 +114,7 @@ export default function EquipePage() {
           setMyRoleRequests(requests);
           setHasAccess(true);
           // Charger tous les membres validés
-          const q = query(
-            collection(db, "membres"),
-            where("status", "==", "validated"),
-          );
+          const q = query(collection(db, "membres"), where("status", "==", "validated"));
           const membresSnap = await getDocs(q);
           const data = membresSnap.docs.map((d) => ({
             id: d.id,
@@ -147,8 +137,7 @@ export default function EquipePage() {
 
   const requestRole = async (role: string) => {
     const email = auth.currentUser?.email;
-    if (!email || myRoles.includes(role) || myRoleRequests.includes(role))
-      return;
+    if (!email || myRoles.includes(role) || myRoleRequests.includes(role)) return;
     setRequestingRole(role);
     setRequestError("");
     setRequestNotice("");
@@ -180,9 +169,7 @@ export default function EquipePage() {
       <div className="p-8 text-center flex flex-col items-center">
         <ShieldAlert size={48} className="mb-4 text-red-500" />
         <h2 className="text-xl font-bold text-red-700">Accès refusé</h2>
-        <p className="text-stone-500">
-          Seuls les membres validés peuvent voir cette page.
-        </p>
+        <p className="text-stone-500">Seuls les membres validés peuvent voir cette page.</p>
       </div>
     );
 
@@ -200,13 +187,10 @@ export default function EquipePage() {
     <div className="p-4 md:p-8">
       <div className="flex items-center gap-3 mb-2">
         <Shield size={28} className="text-emerald-600" />
-        <h1 className="text-2xl md:text-3xl font-black text-stone-900">
-          L'équipe du collectif
-        </h1>
+        <h1 className="text-2xl md:text-3xl font-black text-stone-900">L'équipe du collectif</h1>
       </div>
       <p className="text-stone-500 text-sm mb-8">
-        Membres du collectif et leurs rôles — {membres.length} membre(s) en
-        tout.
+        Membres du collectif et leurs rôles — {membres.length} membre(s) en tout.
       </p>
 
       {requestError && (
@@ -243,18 +227,13 @@ export default function EquipePage() {
                   {icon}
                 </span>
                 <h2 className="font-bold text-stone-800 text-sm">{label}</h2>
-                <span
-                  className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${color}`}
-                >
+                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${color}`}>
                   {membresRole.length}
                 </span>
               </div>
               <ul className="space-y-2">
                 {membresRole.map((m) => (
-                  <li
-                    key={m.id}
-                    className="flex items-center gap-2 text-stone-700"
-                  >
+                  <li key={m.id} className="flex items-center gap-2 text-stone-700">
                     <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-xs font-bold text-stone-600 shrink-0 uppercase">
                       {m.prenom?.[0]}
                       {m.nom?.[0]}
@@ -290,11 +269,7 @@ export default function EquipePage() {
                       className="btn-secondary min-h-10 w-full justify-center px-3 py-2 text-sm"
                     >
                       {requestingRole === key ? (
-                        <Loader2
-                          size={16}
-                          className="animate-spin"
-                          aria-hidden="true"
-                        />
+                        <Loader2 size={16} className="animate-spin" aria-hidden="true" />
                       ) : (
                         <UserRoundPlus size={16} aria-hidden="true" />
                       )}
@@ -313,9 +288,7 @@ export default function EquipePage() {
         <div className="mt-8 bg-white rounded-2xl border border-stone-200 p-5">
           <div className="flex items-center gap-2 mb-4">
             <Users size={18} className="text-stone-400" />
-            <h2 className="font-bold text-stone-500 text-sm uppercase tracking-wider">
-              Membres
-            </h2>
+            <h2 className="font-bold text-stone-500 text-sm uppercase tracking-wider">Membres</h2>
             <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
               {membresSansRole.length}
             </span>

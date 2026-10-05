@@ -13,8 +13,8 @@ export default function OptionsComparisonBlock({ data, context }: any) {
         Analyse Comparative Détaillée
       </h2>
       <p className="text-stone-600 text-center max-w-2xl mx-auto mb-10">
-        Évaluation financière des 4 options stratégiques basée sur la capacité
-        d'emprunt de 400 000 € et les obligations de subventions.
+        Évaluation financière des 4 options stratégiques basée sur la capacité d'emprunt de 400 000
+        € et les obligations de subventions.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
@@ -27,9 +27,8 @@ export default function OptionsComparisonBlock({ data, context }: any) {
             Option 1 : L'ajustement (550 000 €)
           </h3>
           <p className="text-sm text-stone-600 mb-6 flex-grow">
-            L'avenant de 2 170 € permet d'intégrer les modifications techniques
-            visant à ramener le coût des travaux au budget de 550 000 € HT
-            déposé en Préfecture.
+            L'avenant de 2 170 € permet d'intégrer les modifications techniques visant à ramener le
+            coût des travaux au budget de 550 000 € HT déposé en Préfecture.
           </p>
           {!isSimplified && (
             <div className="space-y-3 mb-6">
@@ -46,9 +45,7 @@ export default function OptionsComparisonBlock({ data, context }: any) {
                 <span className="font-bold text-emerald-600">0 €</span>
               </div>
               <div className="pt-2 border-t border-stone-100 flex justify-between text-sm">
-                <span className="text-stone-600 font-bold">
-                  Sous-total Dépenses
-                </span>
+                <span className="text-stone-600 font-bold">Sous-total Dépenses</span>
                 <span className="font-bold text-stone-900">552 170 €</span>
               </div>
               <div className="flex justify-between text-sm pt-2">
@@ -62,12 +59,8 @@ export default function OptionsComparisonBlock({ data, context }: any) {
             </div>
           )}
           <div className="pt-4 border-t border-emerald-200 flex items-center justify-between bg-emerald-50 -mx-6 md:-mx-8 -mb-6 md:-mb-8 p-6 md:p-8 mt-2">
-            <span className="text-lg font-black text-emerald-900">
-              Reste à charge
-            </span>
-            <span className="text-2xl font-black text-emerald-700">
-              212 170 € HT
-            </span>
+            <span className="text-lg font-black text-emerald-900">Reste à charge</span>
+            <span className="text-2xl font-black text-emerald-700">212 170 € HT</span>
           </div>
         </div>
 
@@ -77,27 +70,20 @@ export default function OptionsComparisonBlock({ data, context }: any) {
             Option 2 : Refonte totale
           </h3>
           <p className="text-sm text-stone-600 mb-6 flex-grow">
-            Résiliation des contrats en cours et relance d'un nouveau projet
-            réduit.
+            Résiliation des contrats en cours et relance d'un nouveau projet réduit.
           </p>
           {!isSimplified && (
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-sm">
-                <span className="text-stone-600">
-                  Pertes (Service fait facturable)
-                </span>
-                <span className="font-bold text-rose-600">
-                  plus de 70 000 €
-                </span>
+                <span className="text-stone-600">Pertes (Service fait facturable)</span>
+                <span className="font-bold text-rose-600">plus de 70 000 €</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-stone-600">Frais de résiliation</span>
                 <span className="font-bold text-rose-600">~ 4 000 €</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-stone-600">
-                  Nouvelles études + Travaux
-                </span>
+                <span className="text-stone-600">Nouvelles études + Travaux</span>
                 <span className="font-bold text-rose-600">~ 80 000 € min.</span>
               </div>
               <div className="flex justify-between text-sm pt-2 border-t border-stone-100">
@@ -107,12 +93,8 @@ export default function OptionsComparisonBlock({ data, context }: any) {
             </div>
           )}
           <div className="pt-4 border-t border-stone-100 flex items-end justify-between mt-auto">
-            <span className="text-sm font-bold text-amber-900">
-              Reste à charge
-            </span>
-            <span className="text-xl font-bold text-amber-600">
-              ~ 154 000 € HT min.
-            </span>
+            <span className="text-sm font-bold text-amber-900">Reste à charge</span>
+            <span className="text-xl font-bold text-amber-600">~ 154 000 € HT min.</span>
           </div>
         </div>
 
@@ -127,12 +109,8 @@ export default function OptionsComparisonBlock({ data, context }: any) {
           {!isSimplified && (
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-sm">
-                <span className="text-stone-600">
-                  Pertes (Service fait facturable)
-                </span>
-                <span className="font-bold text-rose-600">
-                  plus de 70 000 €
-                </span>
+                <span className="text-stone-600">Pertes (Service fait facturable)</span>
+                <span className="font-bold text-rose-600">plus de 70 000 €</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-stone-600">Frais de résiliation</span>
@@ -145,12 +123,8 @@ export default function OptionsComparisonBlock({ data, context }: any) {
             </div>
           )}
           <div className="pt-4 border-t border-stone-100 flex items-end justify-between mt-auto">
-            <span className="text-sm font-bold text-rose-900">
-              Reste à charge immédiat
-            </span>
-            <span className="text-xl font-bold text-rose-600">
-              ~ 74 000 € HT
-            </span>
+            <span className="text-sm font-bold text-rose-900">Reste à charge immédiat</span>
+            <span className="text-xl font-bold text-rose-600">~ 74 000 € HT</span>
           </div>
         </div>
 
@@ -160,8 +134,7 @@ export default function OptionsComparisonBlock({ data, context }: any) {
             Option 4 : Le Saupoudrage
           </h3>
           <p className="text-sm text-stone-600 mb-6 flex-grow">
-            Travaux d'urgence (radon, électricité) sans traitement de
-            l'enveloppe thermique.
+            Travaux d'urgence (radon, électricité) sans traitement de l'enveloppe thermique.
           </p>
           {!isSimplified && (
             <div className="space-y-3 mb-6">
@@ -170,12 +143,8 @@ export default function OptionsComparisonBlock({ data, context }: any) {
                 <span className="font-bold text-rose-600">50 000 €</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-stone-600">
-                  Pertes (Études abandonnées)
-                </span>
-                <span className="font-bold text-rose-600">
-                  plus de 70 000 €
-                </span>
+                <span className="text-stone-600">Pertes (Études abandonnées)</span>
+                <span className="font-bold text-rose-600">plus de 70 000 €</span>
               </div>
               <div className="flex justify-between text-sm pt-2 border-t border-stone-100">
                 <span className="text-stone-600">Subventions</span>
@@ -185,9 +154,7 @@ export default function OptionsComparisonBlock({ data, context }: any) {
           )}
           <div className="pt-4 border-t border-stone-100 flex items-end justify-between mt-auto">
             <span className="text-sm font-bold text-rose-900">Coût net</span>
-            <span className="text-xl font-bold text-rose-600">
-              ~ 120 000 € HT
-            </span>
+            <span className="text-xl font-bold text-rose-600">~ 120 000 € HT</span>
           </div>
         </div>
       </div>

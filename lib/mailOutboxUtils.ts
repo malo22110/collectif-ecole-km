@@ -1,10 +1,5 @@
 export type MailAudience =
-  | "all"
-  | "membres"
-  | "signataires"
-  | "membres_non_signataires"
-  | "journalistes"
-  | "individuel";
+  "all" | "membres" | "signataires" | "membres_non_signataires" | "journalistes" | "individuel";
 
 export interface MailRecipientSource {
   email?: unknown;
@@ -27,10 +22,7 @@ function normalizeRecords(records: MailRecipientSource[]) {
   for (const record of records) {
     const email = normalizeEmail(record.email);
     if (!email || record.emailBounced === true || unique.has(email)) continue;
-    unique.set(
-      email,
-      typeof record.name === "string" ? record.name.trim().slice(0, 200) : "",
-    );
+    unique.set(email, typeof record.name === "string" ? record.name.trim().slice(0, 200) : "");
   }
   return unique;
 }
@@ -62,9 +54,7 @@ export function resolveMailRecipients(
       selected = signers;
       break;
     case "membres_non_signataires":
-      selected = new Map(
-        Array.from(members.entries()).filter(([email]) => !signers.has(email)),
-      );
+      selected = new Map(Array.from(members.entries()).filter(([email]) => !signers.has(email)));
       break;
     case "journalistes":
       selected = normalizeRecords(sources.journalists || []);
@@ -82,9 +72,7 @@ export function resolveMailRecipients(
 }
 
 // [SPEC-MAIL-03] Test delivery is always scoped to the authenticated staff address.
-export function getPersonalTestRecipient(
-  authenticatedEmail: string,
-): MailRecipientRecord[] {
+export function getPersonalTestRecipient(authenticatedEmail: string): MailRecipientRecord[] {
   return resolveMailRecipients("individuel", {
     members: [{ email: authenticatedEmail, name: "Test personnel" }],
   });

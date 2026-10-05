@@ -2,13 +2,7 @@
 
 // [SPEC-DASHBOARD-01] Keep the member dashboard focused on the main hubs.
 import Link from "next/link";
-import {
-  ArrowRight,
-  ClipboardList,
-  UserRoundCog,
-  Newspaper,
-  MapPinned,
-} from "lucide-react";
+import { ArrowRight, ClipboardList, UserRoundCog, Newspaper, MapPinned } from "lucide-react";
 
 export default function EspaceMembreDashboard() {
   return (
@@ -35,8 +29,7 @@ export default function EspaceMembreDashboard() {
               Carte & campagnes
             </h2>
             <p className="mt-1 text-sm text-stone-600">
-              Explorez les lieux-dits, choisissez vos favoris et rejoignez une
-              campagne.
+              Explorez les lieux-dits, choisissez vos favoris et rejoignez une campagne.
             </p>
           </div>
         </div>
@@ -61,8 +54,7 @@ export default function EspaceMembreDashboard() {
               La pétition
             </h2>
             <p className="mt-1 text-sm text-stone-600">
-              Signataires, membres à relancer, numérisation et outils de
-              pétition.
+              Signataires, membres à relancer, numérisation et outils de pétition.
             </p>
           </div>
         </div>
@@ -95,8 +87,7 @@ export default function EspaceMembreDashboard() {
           href="/espace-membre/equipe"
           className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto"
         >
-          Voir les équipes et choisir mes rôles{" "}
-          <ArrowRight size={17} aria-hidden="true" />
+          Voir les équipes et choisir mes rôles <ArrowRight size={17} aria-hidden="true" />
         </Link>
       </section>
 

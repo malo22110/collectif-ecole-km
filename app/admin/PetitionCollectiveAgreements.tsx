@@ -54,16 +54,15 @@ export default function PetitionCollectiveAgreements() {
     setLoading(true);
     setError("");
     try {
-      const result = (await authorizedFetch(
-        "/api/admin/petition-agreements",
-      )) as { members: EligibleMember[]; summary: MemberSummary };
+      const result = (await authorizedFetch("/api/admin/petition-agreements")) as {
+        members: EligibleMember[];
+        summary: MemberSummary;
+      };
       setMembers(result.members);
       setSummary(result.summary);
     } catch (loadError) {
       setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Impossible de charger les membres.",
+        loadError instanceof Error ? loadError.message : "Impossible de charger les membres.",
       );
     } finally {
       setLoading(false);
@@ -87,9 +86,7 @@ export default function PetitionCollectiveAgreements() {
 
   const toggleMember = (email: string) => {
     setSelectedEmails((current) =>
-      current.includes(email)
-        ? current.filter((item) => item !== email)
-        : [...current, email],
+      current.includes(email) ? current.filter((item) => item !== email) : [...current, email],
     );
     setMessage("");
     setError("");
@@ -131,9 +128,7 @@ export default function PetitionCollectiveAgreements() {
       await loadMembers();
     } catch (saveError) {
       setError(
-        saveError instanceof Error
-          ? saveError.message
-          : "Impossible d’enregistrer les accords.",
+        saveError instanceof Error ? saveError.message : "Impossible d’enregistrer les accords.",
       );
     } finally {
       setSaving(false);
@@ -161,9 +156,9 @@ export default function PetitionCollectiveAgreements() {
             Accords de principe des membres
           </h3>
           <p className="mt-1 max-w-3xl text-sm text-stone-600">
-            Enregistre séparément l’accord de principe des membres validés,
-            fondé sur l’accord donné lors de la réunion fondatrice. Cela ne crée
-            pas une signature manuscrite ni une signature en ligne.
+            Enregistre séparément l’accord de principe des membres validés, fondé sur l’accord donné
+            lors de la réunion fondatrice. Cela ne crée pas une signature manuscrite ni une
+            signature en ligne.
           </p>
         </div>
         <button
@@ -207,8 +202,8 @@ export default function PetitionCollectiveAgreements() {
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-y border-stone-200 py-2">
         <span className="text-xs text-stone-600">
-          {selectedEmails.length} sélectionné(s) · {summary.available} membre(s)
-          sans signature détectée
+          {selectedEmails.length} sélectionné(s) · {summary.available} membre(s) sans signature
+          détectée
         </span>
         <button
           type="button"
@@ -229,15 +224,10 @@ export default function PetitionCollectiveAgreements() {
             Chargement des membres…
           </li>
         ) : filteredMembers.length === 0 ? (
-          <li className="py-6 text-center text-sm text-stone-500">
-            Aucun membre trouvé.
-          </li>
+          <li className="py-6 text-center text-sm text-stone-500">Aucun membre trouvé.</li>
         ) : (
           filteredMembers.map((member) => (
-            <li
-              key={member.email}
-              className="flex min-h-12 items-center gap-3 py-2"
-            >
+            <li key={member.email} className="flex min-h-12 items-center gap-3 py-2">
               <input
                 type="checkbox"
                 checked={selectedEmails.includes(member.email)}
@@ -271,15 +261,15 @@ export default function PetitionCollectiveAgreements() {
 
       {summary.possiblePaperMatch > 0 && (
         <p role="note" className="text-xs leading-5 text-amber-800">
-          {summary.possiblePaperMatch} membre(s) avec une correspondance
-          possible dans les signatures papier sont masqués par précaution.
-          Vérifie ces cas dans le registre avant d’ajouter un accord.
+          {summary.possiblePaperMatch} membre(s) avec une correspondance possible dans les
+          signatures papier sont masqués par précaution. Vérifie ces cas dans le registre avant
+          d’ajouter un accord.
         </p>
       )}
       {(summary.alreadySigned > 0 || summary.hasAgreement > 0) && (
         <p className="text-xs text-stone-500">
-          Membres déjà signataires : {summary.alreadySigned} · accords de
-          principe déjà enregistrés : {summary.hasAgreement}.
+          Membres déjà signataires : {summary.alreadySigned} · accords de principe déjà enregistrés
+          : {summary.hasAgreement}.
         </p>
       )}
 
@@ -292,9 +282,8 @@ export default function PetitionCollectiveAgreements() {
           className="mt-1 size-4 shrink-0 accent-emerald-700"
         />
         <span>
-          Je confirme que chaque membre sélectionné a bien donné son accord de
-          principe à la pétition dans le cadre de son adhésion au collectif et
-          de la réunion fondatrice.
+          Je confirme que chaque membre sélectionné a bien donné son accord de principe à la
+          pétition dans le cadre de son adhésion au collectif et de la réunion fondatrice.
         </span>
       </label>
 
@@ -304,11 +293,7 @@ export default function PetitionCollectiveAgreements() {
         disabled={saving || loading || !selectedEmails.length || !confirmed}
         className="btn-primary min-h-11 px-4 py-2 text-sm"
       >
-        {saving ? (
-          <Loader2 size={16} className="animate-spin" />
-        ) : (
-          <Check size={16} />
-        )}
+        {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
         {saving
           ? "Enregistrement…"
           : `Enregistrer ${selectedEmails.length || "les"} accord(s) de principe`}

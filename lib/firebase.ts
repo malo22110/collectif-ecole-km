@@ -15,22 +15,22 @@ const firebaseConfig = {
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const db = getFirestore(app, 'ecole-db');
+export const db = getFirestore(app, "ecole-db");
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 
 // Initialisation de Firebase App Check (obligatoire pour AI Logic)
 if (typeof window !== "undefined") {
   // En environnement local, on active le mode Debug pour générer un jeton
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = "local-dev-kergrist-12345";
   }
-  
+
   try {
     if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
       initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY),
-        isTokenAutoRefreshEnabled: true
+        isTokenAutoRefreshEnabled: true,
       });
     }
   } catch (err) {

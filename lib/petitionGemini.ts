@@ -13,13 +13,13 @@ const responseJsonSchema = {
           fullName: { type: "string" },
           town: { type: "string" },
           relationship: { type: "string" },
-          confidence: { type: "integer" }
+          confidence: { type: "integer" },
         },
-        required: ["fullName", "town", "relationship", "confidence"]
-      }
-    }
+        required: ["fullName", "town", "relationship", "confidence"],
+      },
+    },
   },
-  required: ["entries"]
+  required: ["entries"],
 };
 
 const prompt = `Lis uniquement les lignes manuscrites du tableau de signatures visible dans cette photo de pétition française.
@@ -44,18 +44,38 @@ async function prepareTableImage(file: File): Promise<{ data: string; mimeType: 
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Impossible de préparer la zone du tableau.");
     context.imageSmoothingQuality = "high";
-    context.drawImage(bitmap, cropLeft, cropTop, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+    context.drawImage(
+      bitmap,
+      cropLeft,
+      cropTop,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
 
     const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(value => value ? resolve(value) : reject(new Error("Impossible de compresser la photo.")), "image/jpeg", 0.82);
+      canvas.toBlob(
+        (value) =>
+          value ? resolve(value) : reject(new Error("Impossible de compresser la photo.")),
+        "image/jpeg",
+        0.82,
+      );
     });
-    if (blob.size > 5 * 1024 * 1024) throw new Error("La zone du tableau dépasse la taille autorisée.");
+    if (blob.size > 5 * 1024 * 1024)
+      throw new Error("La zone du tableau dépasse la taille autorisée.");
 
     const bytes = new Uint8Array(await blob.arrayBuffer());
     let binary = "";
     const chunkSize = 0x8000;
     for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-      const chunk = Array.prototype.slice.call(bytes, offset, Math.min(offset + chunkSize, bytes.length)) as number[];
+      const chunk = Array.prototype.slice.call(
+        bytes,
+        offset,
+        Math.min(offset + chunkSize, bytes.length),
+      ) as number[];
       binary += String.fromCharCode.apply(null, chunk);
     }
 
@@ -74,13 +94,13 @@ export async function scanPetitionWithGemini(file: File) {
       temperature: 0,
       maxOutputTokens: 4096,
       responseMimeType: "application/json",
-      responseJsonSchema
-    }
+      responseJsonSchema,
+    },
   });
 
   const result = await model.generateContent([
     { text: prompt },
-    { inlineData: { data: image.data, mimeType: image.mimeType } }
+    { inlineData: { data: image.data, mimeType: image.mimeType } },
   ]);
   return parseGeminiPetitionResponse(result.response.text());
 }

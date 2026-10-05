@@ -1,19 +1,20 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import {
-  doc,
-  getDoc,
-  addDoc,
-  collection,
-  serverTimestamp,
-} from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { publishCmsPageRevision } from "@/lib/cmsRevisionClient";
+import {
+  DEFAULT_HOME_ACTION_PLAN,
+  normalizeHomeActionPlan,
+  type HomeActionPlanEntry,
+} from "@/lib/homeActionPlan";
 import {
   Save,
   ArrowUp,
   ArrowDown,
+  Plus,
+  Trash2,
   GripVertical,
   CheckCircle2,
   Eye,
@@ -39,8 +40,7 @@ const BLOCK_DEFAULTS: Record<string, any> = {
     sub1: "Département des Côtes-d'Armor (Sécurisé) : 99 405 €",
     sub2: "Région Bretagne (Sécurisé sous condition) : 60 450 € (Conditionné à la démarche BDB abordée plus haut).",
     sub3: "État - DETR / DSIL (Dossier déposé) : 180 145 € (Dossier n° 21386559 basé sur le projet ciblé à 550 000 € HT).",
-    evolutionTitle:
-      "L'évolution de l'estimation de la maîtrise d'œuvre (APD) : 735 489,05 € HT",
+    evolutionTitle: "L'évolution de l'estimation de la maîtrise d'œuvre (APD) : 735 489,05 € HT",
     evolutionText:
       "Alors que la commande initiale visait un projet à 550 000 € HT, les chiffrages successifs de l'Avant-Projet Définitif (APD) ont atteint 735 489 € HT (615 278 € pour la Phase 1 et 120 210 € pour la Phase 2), nécessitant le recadrage budgétaire actuel.",
     simplifiedRisk:
@@ -54,15 +54,13 @@ const BLOCK_DEFAULTS: Record<string, any> = {
       "L'avenant de 2 170 € permet d'intégrer les modifications techniques visant à ramener le coût des travaux au budget de 550 000 € HT déposé en Préfecture.",
     opt1Total: "212 170 € HT",
     opt2Title: "Option 2 : Refonte totale",
-    opt2Desc:
-      "Résiliation des contrats en cours et relance d'un nouveau projet réduit.",
+    opt2Desc: "Résiliation des contrats en cours et relance d'un nouveau projet réduit.",
     opt2Total: "~ 154 000 € HT min.",
     opt3Title: "Option 3 : Abandon de l'opération",
     opt3Desc: "Gel total des travaux et report à une date indéterminée.",
     opt3Total: "~ 74 000 € HT",
     opt4Title: "Option 4 : Le Saupoudrage",
-    opt4Desc:
-      "Travaux d'urgence (radon, électricité) sans traitement de l'enveloppe thermique.",
+    opt4Desc: "Travaux d'urgence (radon, électricité) sans traitement de l'enveloppe thermique.",
     opt4Total: "~ 120 000 € HT",
   },
   stress_test: {
@@ -151,6 +149,7 @@ export default function VisualCmsEditor({
         const raw = snap.data();
         const merged = {
           ...raw,
+          homeActionPlan: normalizeHomeActionPlan(raw.homeActionPlan),
           blocks: mergeBlocksWithDefaults(raw.blocks || []),
         };
         setPageData(merged);
@@ -221,18 +220,35 @@ export default function VisualCmsEditor({
     if (direction === "down" && index === pageData.blocks.length - 1) return;
     const newBlocks = [...pageData.blocks];
     const target = direction === "up" ? index - 1 : index + 1;
-    [newBlocks[index], newBlocks[target]] = [
-      newBlocks[target],
-      newBlocks[index],
-    ];
+    [newBlocks[index], newBlocks[target]] = [newBlocks[target], newBlocks[index]];
     const next = { ...pageData, blocks: newBlocks };
     setPageData(next);
     setIsDirty(JSON.stringify(next) !== originalRef.current);
     onPageDataChange?.(next);
   };
 
-  if (loading)
-    return <div className="p-6 text-stone-500">Chargement de l'éditeur...</div>;
+  const updateHomeActionPlan = (items: HomeActionPlanEntry[]) => {
+    const next = { ...pageData, homeActionPlan: items };
+    setPageData(next);
+    setIsDirty(JSON.stringify(next) !== originalRef.current);
+    onPageDataChange?.(next);
+  };
+
+  const updateHomeActionPlanEntry = (entryIndex: number, updates: Partial<HomeActionPlanEntry>) => {
+    const items = [...(pageData.homeActionPlan || DEFAULT_HOME_ACTION_PLAN)];
+    items[entryIndex] = { ...items[entryIndex], ...updates };
+    updateHomeActionPlan(items);
+  };
+
+  const moveHomeActionPlanEntry = (entryIndex: number, direction: -1 | 1) => {
+    const items = [...(pageData.homeActionPlan || DEFAULT_HOME_ACTION_PLAN)];
+    const targetIndex = entryIndex + direction;
+    if (targetIndex < 0 || targetIndex >= items.length) return;
+    [items[entryIndex], items[targetIndex]] = [items[targetIndex], items[entryIndex]];
+    updateHomeActionPlan(items);
+  };
+
+  if (loading) return <div className="p-6 text-stone-500">Chargement de l'éditeur...</div>;
   if (!pageData) return <div className="p-6 text-rose-500">{error}</div>;
 
   return (
@@ -240,9 +256,7 @@ export default function VisualCmsEditor({
       {/* Sticky save bar */}
       <div className="sticky top-0 z-30 bg-white border-b border-stone-200 px-6 py-3 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-3">
-          <h3 className="font-bold text-stone-900">
-            Éditeur Visuel : Page Historique
-          </h3>
+          <h3 className="font-bold text-stone-900">Éditeur Visuel : Page Historique</h3>
           {isDirty && (
             <span className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full animate-pulse">
               Modifications non sauvegardées
@@ -282,19 +296,163 @@ export default function VisualCmsEditor({
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isDirty ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm" : "bg-stone-100 text-stone-400 cursor-not-allowed"}`}
             aria-label="Soumettre les modifications pour révision par un administrateur"
           >
-            <Send size={16} />{" "}
-            {saving ? "Envoi en cours..." : "Soumettre pour révision"}
+            <Send size={16} /> {saving ? "Envoi en cours..." : "Soumettre pour révision"}
           </button>
         )}
       </div>
 
+      <section aria-labelledby="home-action-plan-heading" className="border-b border-stone-200 p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 id="home-action-plan-heading" className="font-bold text-stone-900">
+              Plan d’action de l’accueil
+            </h3>
+            <p className="mt-1 text-sm text-stone-600">
+              Ces étapes sont affichées sur la page d’accueil.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              updateHomeActionPlan([
+                ...(pageData.homeActionPlan || DEFAULT_HOME_ACTION_PLAN),
+                {
+                  date: "Nouvelle étape",
+                  title: "Titre de l’étape",
+                  description: "Description de l’étape.",
+                  status: "upcoming",
+                },
+              ])
+            }
+            className="btn-secondary min-h-10 px-3 py-2 text-sm"
+          >
+            <Plus size={16} aria-hidden="true" /> Ajouter une étape
+          </button>
+        </div>
+
+        <ol className="divide-y divide-stone-200">
+          {(pageData.homeActionPlan || DEFAULT_HOME_ACTION_PLAN).map(
+            (item: HomeActionPlanEntry, itemIndex: number, items: HomeActionPlanEntry[]) => (
+              <li key={`${item.date}-${itemIndex}`} className="grid min-w-0 gap-3 py-4">
+                <div className="flex min-w-0 items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-stone-800">
+                    Étape {itemIndex + 1}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => moveHomeActionPlanEntry(itemIndex, -1)}
+                      disabled={itemIndex === 0}
+                      aria-label={`Monter l’étape ${itemIndex + 1}`}
+                      className="grid size-10 place-items-center rounded-md text-stone-700 hover:bg-stone-100 disabled:opacity-40"
+                    >
+                      <ArrowUp size={16} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveHomeActionPlanEntry(itemIndex, 1)}
+                      disabled={itemIndex === items.length - 1}
+                      aria-label={`Descendre l’étape ${itemIndex + 1}`}
+                      className="grid size-10 place-items-center rounded-md text-stone-700 hover:bg-stone-100 disabled:opacity-40"
+                    >
+                      <ArrowDown size={16} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateHomeActionPlan(items.filter((_, index) => index !== itemIndex))
+                      }
+                      aria-label={`Supprimer l’étape ${itemIndex + 1}`}
+                      className="grid size-10 place-items-center rounded-md text-rose-700 hover:bg-rose-50"
+                    >
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid min-w-0 gap-3 md:grid-cols-2">
+                  <label className="input-label">
+                    Date ou période
+                    <input
+                      type="text"
+                      maxLength={120}
+                      value={item.date}
+                      onChange={(event) =>
+                        updateHomeActionPlanEntry(itemIndex, { date: event.currentTarget.value })
+                      }
+                      className="input-base mt-1 min-h-11"
+                    />
+                  </label>
+                  <label className="input-label">
+                    Titre
+                    <input
+                      type="text"
+                      maxLength={180}
+                      value={item.title}
+                      onChange={(event) =>
+                        updateHomeActionPlanEntry(itemIndex, { title: event.currentTarget.value })
+                      }
+                      className="input-base mt-1 min-h-11"
+                    />
+                  </label>
+                </div>
+
+                <label className="input-label">
+                  Description
+                  <textarea
+                    maxLength={2000}
+                    rows={3}
+                    value={item.description}
+                    onChange={(event) =>
+                      updateHomeActionPlanEntry(itemIndex, {
+                        description: event.currentTarget.value,
+                      })
+                    }
+                    className="input-base mt-1 resize-y"
+                  />
+                </label>
+
+                <div className="grid min-w-0 gap-3 md:grid-cols-2">
+                  <label className="input-label">
+                    État
+                    <select
+                      value={item.status}
+                      onChange={(event) =>
+                        updateHomeActionPlanEntry(itemIndex, {
+                          status: event.currentTarget.value as HomeActionPlanEntry["status"],
+                        })
+                      }
+                      className="input-base mt-1 min-h-11"
+                    >
+                      <option value="completed">Réalisée</option>
+                      <option value="current">En cours</option>
+                      <option value="upcoming">À venir</option>
+                    </select>
+                  </label>
+                  <label className="input-label">
+                    Lien facultatif
+                    <input
+                      type="url"
+                      maxLength={500}
+                      value={item.linkUrl || ""}
+                      onChange={(event) =>
+                        updateHomeActionPlanEntry(itemIndex, { linkUrl: event.currentTarget.value })
+                      }
+                      placeholder="https://… ou /petition"
+                      className="input-base mt-1 min-h-11"
+                    />
+                  </label>
+                </div>
+              </li>
+            ),
+          )}
+        </ol>
+      </section>
+
       {/* Block list: each block renders editor + preview in the same row */}
       <div className="divide-y divide-stone-200">
         {pageData.blocks.map((block: any, index: number) => (
-          <div
-            key={index}
-            className={`flex min-h-0 ${showPreview ? "flex-row" : "flex-col"}`}
-          >
+          <div key={index} className={`flex min-h-0 ${showPreview ? "flex-row" : "flex-col"}`}>
             {/* ── Left: editor form ── */}
             <div
               className={`${showPreview ? "w-1/2 border-r border-stone-200" : "w-full"} flex flex-col`}
@@ -567,9 +725,8 @@ export default function VisualCmsEditor({
                 {block.type === "options_comparison" && (
                   <div className="space-y-5">
                     <p className="text-xs text-stone-400 italic">
-                      Vous pouvez modifier le titre et les descriptions de
-                      chacune des 4 options. Laissez un champ vide pour
-                      conserver les valeurs par défaut.
+                      Vous pouvez modifier le titre et les descriptions de chacune des 4 options.
+                      Laissez un champ vide pour conserver les valeurs par défaut.
                     </p>
                     {[
                       {
@@ -690,10 +847,9 @@ export default function VisualCmsEditor({
                       />
                     </Section>
                     <p className="text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                      Le tableau détaillé (vue Détails Complets) est
-                      volontairement non modifiable ici car ses colonnes sont
-                      interdépendantes. Utilisez le Mode Expert (JSON) si vous
-                      devez modifier les cellules du tableau.
+                      Le tableau détaillé (vue Détails Complets) est volontairement non modifiable
+                      ici car ses colonnes sont interdépendantes. Utilisez le Mode Expert (JSON) si
+                      vous devez modifier les cellules du tableau.
                     </p>
                   </div>
                 )}
@@ -897,8 +1053,8 @@ export default function VisualCmsEditor({
                 {block.type === "timeline" && (
                   <div className="space-y-4">
                     <p className="text-sm text-stone-500 mb-4">
-                      Modifiez les textes ci-dessous. L'ajout d'une nouvelle
-                      étape nécessite le mode expert.
+                      Modifiez les textes ci-dessous. L'ajout d'une nouvelle étape nécessite le mode
+                      expert.
                     </p>
                     {block.data.items?.map((item: any, i: number) => (
                       <div
@@ -923,9 +1079,7 @@ export default function VisualCmsEditor({
                             />
                           </div>
                           <div>
-                            <label className="input-label text-xs">
-                              Titre de l'étape
-                            </label>
+                            <label className="input-label text-xs">Titre de l'étape</label>
                             <input
                               type="text"
                               value={item.title || ""}
@@ -967,8 +1121,7 @@ export default function VisualCmsEditor({
                               value={item.simplifiedDescription || ""}
                               onChange={(e) => {
                                 const newItems = [...block.data.items];
-                                newItems[i].simplifiedDescription =
-                                  e.target.value;
+                                newItems[i].simplifiedDescription = e.target.value;
                                 updateBlock(index, {
                                   ...block,
                                   data: { ...block.data, items: newItems },
@@ -1014,13 +1167,7 @@ export default function VisualCmsEditor({
 }
 
 // Petit helper pour les labels de section
-function Section({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
       <label className="input-label text-xs">{label}</label>

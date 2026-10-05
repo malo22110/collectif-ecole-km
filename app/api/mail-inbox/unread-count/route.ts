@@ -22,9 +22,6 @@ export async function GET(request: Request) {
       { headers: { "Cache-Control": "private, no-store, max-age=0" } },
     );
   } catch (error) {
-    return mailInboxErrorResponse(
-      error,
-      "Impossible de compter les messages non lus.",
-    );
+    return mailInboxErrorResponse(error, "Impossible de compter les messages non lus.");
   }
 }

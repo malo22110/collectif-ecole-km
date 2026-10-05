@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { chunkOrderedRoutePoints, type GeoPoint } from "@/lib/tourneeGeo";
-import {
-  campaignIdSchema,
-  hasEligibleHouseholds,
-} from "@/lib/tractationValidation";
+import { campaignIdSchema, hasEligibleHouseholds } from "@/lib/tractationValidation";
 import {
   authorizeTractationMember,
   errorResponse,
@@ -56,16 +53,10 @@ const MAX_STOPS = 200;
 const ROUTING_MAX_COORDINATES = 100;
 const MAX_ROUTING_RESPONSE_BYTES = 2 * 1024 * 1024;
 
-async function readLimitedJson(
-  response: Response,
-  maxBytes: number,
-): Promise<unknown> {
+async function readLimitedJson(response: Response, maxBytes: number): Promise<unknown> {
   const contentLength = Number(response.headers.get("content-length") || 0);
   if (contentLength > maxBytes || !response.body)
-    throw new DirectionsError(
-      502,
-      "La réponse du service routier dépasse la taille autorisée.",
-    );
+    throw new DirectionsError(502, "La réponse du service routier dépasse la taille autorisée.");
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let text = "";
@@ -76,10 +67,7 @@ async function readLimitedJson(
     size += value.byteLength;
     if (size > maxBytes) {
       await reader.cancel();
-      throw new DirectionsError(
-        502,
-        "La réponse du service routier dépasse la taille autorisée.",
-      );
+      throw new DirectionsError(502, "La réponse du service routier dépasse la taille autorisée.");
     }
     text += decoder.decode(value, { stream: true });
   }
@@ -87,51 +75,27 @@ async function readLimitedJson(
   try {
     return JSON.parse(text) as unknown;
   } catch {
-    throw new DirectionsError(
-      502,
-      "Le service routier a renvoyé une réponse invalide.",
-    );
+    throw new DirectionsError(502, "Le service routier a renvoyé une réponse invalide.");
   }
 }
 
 // [SPEC-TRACTATION-10] Route only the authenticated participant's persisted ordered campaign stops.
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ campaignId: string }> },
-) {
+export async function POST(request: Request, context: { params: Promise<{ campaignId: string }> }) {
   const authorization = await authorizeTractationMember(request);
   if (!authorization.member) return authorization.response;
   const { campaignId } = await context.params;
   if (!campaignIdSchema.safeParse(campaignId).success)
-    return Response.json(
-      { error: "Identifiant de campagne invalide." },
-      { status: 400 },
-    );
-  if (
-    !request.headers
-      .get("Content-Type")
-      ?.toLowerCase()
-      .includes("application/json")
-  )
-    return Response.json(
-      { error: "Format de requête invalide." },
-      { status: 415 },
-    );
+    return Response.json({ error: "Identifiant de campagne invalide." }, { status: 400 });
+  if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json"))
+    return Response.json({ error: "Format de requête invalide." }, { status: 415 });
 
   try {
     const input = originSchema.safeParse(await readJsonBody(request, 2048));
     if (!input.success)
-      return Response.json(
-        { error: "Position de départ invalide." },
-        { status: 400 },
-      );
+      return Response.json({ error: "Position de départ invalide." }, { status: 400 });
 
-    const campaignRef = tractationDb
-      .collection("tractationCampaigns")
-      .doc(campaignId);
-    const participantRef = campaignRef
-      .collection("participants")
-      .doc(authorization.member.uid);
+    const campaignRef = tractationDb.collection("tractationCampaigns").doc(campaignId);
+    const participantRef = campaignRef.collection("participants").doc(authorization.member.uid);
     const [campaignSnapshot, participantSnapshot] = await Promise.all([
       campaignRef.get(),
       participantRef.get(),
@@ -139,10 +103,7 @@ export async function POST(
     if (!campaignSnapshot.exists || campaignSnapshot.get("status") !== "active")
       throw new DirectionsError(404, "Campagne introuvable ou terminée.");
     if (!participantSnapshot.exists)
-      throw new DirectionsError(
-        403,
-        "Rejoignez cette campagne pour calculer votre tournée.",
-      );
+      throw new DirectionsError(403, "Rejoignez cette campagne pour calculer votre tournée.");
 
     const routePlaceIds = participantSnapshot.get("routePlaceIds");
     if (
@@ -203,16 +164,10 @@ export async function POST(
       });
     }
 
-    const chunks = chunkOrderedRoutePoints(
-      input.data.origin,
-      stops,
-      ROUTING_MAX_COORDINATES,
-    );
+    const chunks = chunkOrderedRoutePoints(input.data.origin, stops, ROUTING_MAX_COORDINATES);
     let baseUrl: URL;
     try {
-      baseUrl = new URL(
-        process.env.OSRM_BASE_URL || "https://router.project-osrm.org",
-      );
+      baseUrl = new URL(process.env.OSRM_BASE_URL || "https://router.project-osrm.org");
       if (baseUrl.protocol !== "https:" || baseUrl.username || baseUrl.password)
         throw new Error("Invalid routing URL");
       baseUrl.pathname = baseUrl.pathname.replace(/\/+$/, "");
@@ -227,9 +182,7 @@ export async function POST(
     const geometry: Array<[number, number]> = [];
 
     for (const chunk of chunks) {
-      const coordinates = chunk
-        .map((point) => `${point.lon},${point.lat}`)
-        .join(";");
+      const coordinates = chunk.map((point) => `${point.lon},${point.lat}`).join(";");
       const url = `${baseUrl.toString().replace(/\/$/, "")}/route/v1/driving/${coordinates}?overview=full&geometries=geojson&steps=false`;
       let upstreamResponse: Response;
       try {
@@ -259,18 +212,13 @@ export async function POST(
         );
       const route = result.data.routes[0];
       if (!route)
-        throw new DirectionsError(
-          502,
-          "Le service routier n’a pas retourné d’itinéraire.",
-        );
+        throw new DirectionsError(502, "Le service routier n’a pas retourné d’itinéraire.");
       distanceMeters += route.distance;
       durationSeconds += route.duration;
       const chunkGeometry = route.geometry.coordinates.map(
         ([lon, lat]) => [lat, lon] as [number, number],
       );
-      geometry.push(
-        ...(geometry.length ? chunkGeometry.slice(1) : chunkGeometry),
-      );
+      geometry.push(...(geometry.length ? chunkGeometry.slice(1) : chunkGeometry));
     }
 
     return Response.json(

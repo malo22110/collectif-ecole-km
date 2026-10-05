@@ -7,7 +7,7 @@ import StressTestBlock from "./StressTestBlock";
 import ConclusionBlock from "./ConclusionBlock";
 import TimelineBlock from "./TimelineBlock";
 
-export default function BlockRenderer({ block, context }: { block: any, context?: any }) {
+export default function BlockRenderer({ block, context }: { block: any; context?: any }) {
   switch (block.type) {
     case "alert":
       return <AlertBlock data={block.data} />;

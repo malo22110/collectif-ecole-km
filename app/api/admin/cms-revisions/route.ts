@@ -41,15 +41,10 @@ class RevisionOperationError extends Error {
 }
 
 async function authorizeAdmin(request: Request) {
-  const token = request.headers
-    .get("Authorization")
-    ?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const token = request.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token)
     return {
-      response: NextResponse.json(
-        { error: "Authentification requise." },
-        { status: 401 },
-      ),
+      response: NextResponse.json({ error: "Authentification requise." }, { status: 401 }),
     };
 
   let decodedToken;
@@ -57,24 +52,15 @@ async function authorizeAdmin(request: Request) {
     decodedToken = await adminAuth.verifyIdToken(token, true);
   } catch {
     return {
-      response: NextResponse.json(
-        { error: "Session invalide." },
-        { status: 401 },
-      ),
+      response: NextResponse.json({ error: "Session invalide." }, { status: 401 }),
     };
   }
   if (!decodedToken.email)
     return {
-      response: NextResponse.json(
-        { error: "Adresse e-mail absente du compte." },
-        { status: 401 },
-      ),
+      response: NextResponse.json({ error: "Adresse e-mail absente du compte." }, { status: 401 }),
     };
 
-  const member = await adminDb
-    .collection("membres")
-    .doc(decodedToken.email)
-    .get();
+  const member = await adminDb.collection("membres").doc(decodedToken.email).get();
   const memberData = member.data();
   const roles = Array.isArray(memberData?.roles)
     ? memberData.roles
@@ -86,10 +72,7 @@ async function authorizeAdmin(request: Request) {
     (!member.exists || !roles.includes("admin"))
   ) {
     return {
-      response: NextResponse.json(
-        { error: "Accès réservé aux administrateurs." },
-        { status: 403 },
-      ),
+      response: NextResponse.json({ error: "Accès réservé aux administrateurs." }, { status: 403 }),
     };
   }
   return { admin: { email: decodedToken.email } };
@@ -98,17 +81,9 @@ async function authorizeAdmin(request: Request) {
 async function readJsonBody(
   request: Request,
 ): Promise<{ body: unknown } | { response: NextResponse }> {
-  if (
-    !request.headers
-      .get("Content-Type")
-      ?.toLowerCase()
-      .includes("application/json")
-  ) {
+  if (!request.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
     return {
-      response: NextResponse.json(
-        { error: "Format de requête invalide." },
-        { status: 415 },
-      ),
+      response: NextResponse.json({ error: "Format de requête invalide." }, { status: 415 }),
     };
   }
 
@@ -125,10 +100,7 @@ async function readJsonBody(
   const reader = request.body?.getReader();
   if (!reader)
     return {
-      response: NextResponse.json(
-        { error: "Corps de requête manquant." },
-        { status: 400 },
-      ),
+      response: NextResponse.json({ error: "Corps de requête manquant." }, { status: 400 }),
     };
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
@@ -178,17 +150,11 @@ export async function GET(request: Request) {
     let query = revisionsRef.orderBy("createdAt", "desc").limit(PAGE_SIZE + 1);
     if (cursor) {
       if (!/^[A-Za-z0-9_-]{1,128}$/.test(cursor)) {
-        return NextResponse.json(
-          { error: "Curseur invalide." },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: "Curseur invalide." }, { status: 400 });
       }
       const cursorSnapshot = await revisionsRef.doc(cursor).get();
       if (!cursorSnapshot.exists)
-        return NextResponse.json(
-          { error: "Curseur introuvable." },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: "Curseur introuvable." }, { status: 400 });
       query = query.startAfter(cursorSnapshot);
     }
 
@@ -214,10 +180,7 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     console.error("Erreur lors du chargement des révisions CMS:", error);
-    return NextResponse.json(
-      { error: "Impossible de charger les révisions." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Impossible de charger les révisions." }, { status: 500 });
   }
 }
 
@@ -229,10 +192,7 @@ export async function POST(request: Request) {
   if ("response" in parsedBody) return parsedBody.response;
   const parsed = publishSchema.safeParse(parsedBody.body);
   if (!parsed.success)
-    return NextResponse.json(
-      { error: "Document ou origine invalide." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Document ou origine invalide." }, { status: 400 });
 
   try {
     const pageRef = adminDb.collection("pages").doc(PAGE_ID);
@@ -245,11 +205,7 @@ export async function POST(request: Request) {
       const currentData = currentSnapshot.data() as CmsPageData;
       const nextData = buildVersionedCmsPageData(currentData, parsed.data.data);
       transaction.create(revisionRef, {
-        ...buildCmsRevisionSnapshot(
-          currentData,
-          authorization.admin.email,
-          parsed.data.origin,
-        ),
+        ...buildCmsRevisionSnapshot(currentData, authorization.admin.email, parsed.data.origin),
         createdAt: FieldValue.serverTimestamp(),
       });
       transaction.set(pageRef, nextData);
@@ -258,16 +214,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ version });
   } catch (error) {
     if (error instanceof RevisionOperationError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status },
-      );
+      return NextResponse.json({ error: error.message }, { status: error.status });
     }
     console.error("Erreur lors de la sauvegarde du document fiscal:", error);
-    return NextResponse.json(
-      { error: "Impossible de sauvegarder le document." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Impossible de sauvegarder le document." }, { status: 500 });
   }
 }
 
@@ -278,8 +228,7 @@ export async function PUT(request: Request) {
   const parsedBody = await readJsonBody(request);
   if ("response" in parsedBody) return parsedBody.response;
   const parsed = restoreSchema.safeParse(parsedBody.body);
-  if (!parsed.success)
-    return NextResponse.json({ error: "Révision invalide." }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Révision invalide." }, { status: 400 });
 
   try {
     const pageRef = adminDb.collection("pages").doc(PAGE_ID);
@@ -293,8 +242,7 @@ export async function PUT(request: Request) {
       ]);
       if (!currentSnapshot.exists)
         throw new RevisionOperationError("Document fiscal introuvable.", 404);
-      if (!selectedRevision.exists)
-        throw new RevisionOperationError("Révision introuvable.", 404);
+      if (!selectedRevision.exists) throw new RevisionOperationError("Révision introuvable.", 404);
 
       const currentData = currentSnapshot.data() as CmsPageData;
       const selectedData = selectedRevision.get("data");
@@ -303,11 +251,7 @@ export async function PUT(request: Request) {
 
       const nextData = buildVersionedCmsPageData(currentData, selectedData);
       transaction.create(backupRef, {
-        ...buildCmsRevisionSnapshot(
-          currentData,
-          authorization.admin.email,
-          "restore",
-        ),
+        ...buildCmsRevisionSnapshot(currentData, authorization.admin.email, "restore"),
         createdAt: FieldValue.serverTimestamp(),
       });
       transaction.set(pageRef, nextData);
@@ -316,15 +260,9 @@ export async function PUT(request: Request) {
     return NextResponse.json({ version });
   } catch (error) {
     if (error instanceof RevisionOperationError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status },
-      );
+      return NextResponse.json({ error: error.message }, { status: error.status });
     }
     console.error("Erreur lors de la restauration du document fiscal:", error);
-    return NextResponse.json(
-      { error: "Impossible de restaurer cette révision." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Impossible de restaurer cette révision." }, { status: 500 });
   }
 }

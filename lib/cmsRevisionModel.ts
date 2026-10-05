@@ -9,11 +9,7 @@ export function buildCmsRevisionSnapshot(
   return {
     data: currentData,
     version:
-      typeof version === "number" &&
-      Number.isSafeInteger(version) &&
-      version >= 0
-        ? version
-        : 0,
+      typeof version === "number" && Number.isSafeInteger(version) && version >= 0 ? version : 0,
     changedBy,
     origin,
   };

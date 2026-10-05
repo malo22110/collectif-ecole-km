@@ -1,7 +1,4 @@
-export function cleanDeletedSignatureReference(
-  value: unknown,
-  deletedSignatureId: string,
-) {
+export function cleanDeletedSignatureReference(value: unknown, deletedSignatureId: string) {
   const candidates = Array.isArray(value)
     ? value.filter(
         (candidate): candidate is string =>

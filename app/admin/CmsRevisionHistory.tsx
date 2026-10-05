@@ -16,11 +16,7 @@ function formatRevisionDate(value: string | null): string {
   }).format(new Date(value));
 }
 
-export default function CmsRevisionHistory({
-  onRestored,
-}: {
-  onRestored: () => void;
-}) {
+export default function CmsRevisionHistory({ onRestored }: { onRestored: () => void }) {
   const [revisions, setRevisions] = useState<CmsRevisionSummary[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,15 +30,11 @@ export default function CmsRevisionHistory({
     else setLoading(true);
     try {
       const result = await loadCmsPageRevisions(cursor);
-      setRevisions((current) =>
-        cursor ? [...current, ...result.revisions] : result.revisions,
-      );
+      setRevisions((current) => (cursor ? [...current, ...result.revisions] : result.revisions));
       setNextCursor(result.nextCursor);
     } catch (loadError) {
       setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Impossible de charger l’historique.",
+        loadError instanceof Error ? loadError.message : "Impossible de charger l’historique.",
       );
     } finally {
       setLoading(false);
@@ -81,17 +73,13 @@ export default function CmsRevisionHistory({
   if (loading) {
     return (
       <p className="flex items-center gap-2 py-5 text-sm text-stone-600">
-        <LoaderCircle size={16} className="animate-spin" /> Chargement de
-        l’historique…
+        <LoaderCircle size={16} className="animate-spin" /> Chargement de l’historique…
       </p>
     );
   }
 
   return (
-    <section
-      aria-labelledby="cms-revision-heading"
-      className="border-t border-stone-200"
-    >
+    <section aria-labelledby="cms-revision-heading" className="border-t border-stone-200">
       <div className="flex items-center gap-3 border-b border-stone-200 py-4">
         <History size={18} className="text-emerald-700" aria-hidden="true" />
         <div>
@@ -99,8 +87,7 @@ export default function CmsRevisionHistory({
             Versions enregistrées
           </h3>
           <p className="text-sm text-stone-600">
-            Chaque sauvegarde conserve la version précédente et peut être
-            restaurée.
+            Chaque sauvegarde conserve la version précédente et peut être restaurée.
           </p>
         </div>
       </div>
@@ -129,9 +116,7 @@ export default function CmsRevisionHistory({
               className="flex flex-wrap items-center justify-between gap-3 py-4"
             >
               <div className="min-w-0">
-                <p className="font-semibold text-stone-900">
-                  Version {revision.version}
-                </p>
+                <p className="font-semibold text-stone-900">Version {revision.version}</p>
                 <p className="text-sm text-stone-600">
                   {formatRevisionDate(revision.createdAt)}
                   {revision.changedBy ? ` · ${revision.changedBy}` : ""}

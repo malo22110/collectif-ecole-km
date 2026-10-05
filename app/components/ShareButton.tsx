@@ -3,16 +3,16 @@
 import React, { useState } from "react";
 import { Share2, Check } from "lucide-react";
 
-export default function ShareButton({ 
-  url, 
-  title, 
-  text, 
-  className = "inline-flex items-center justify-center gap-2 font-bold px-6 py-4 rounded-2xl transition-all text-base border", 
-  variant = "primary" 
-}: { 
-  url: string; 
-  title: string; 
-  text: string; 
+export default function ShareButton({
+  url,
+  title,
+  text,
+  className = "inline-flex items-center justify-center gap-2 font-bold px-6 py-4 rounded-2xl transition-all text-base border",
+  variant = "primary",
+}: {
+  url: string;
+  title: string;
+  text: string;
   className?: string;
   variant?: "primary" | "secondary" | "outline";
 }) {
@@ -49,12 +49,16 @@ export default function ShareButton({
   };
 
   return (
-    <button 
+    <button
       onClick={handleShare}
       className={`${className} ${getVariantClasses()} hover:scale-105 active:scale-95`}
       title="Partager"
     >
-      {copied ? <Check size={20} /> : <Share2 size={20} className={variant === 'secondary' ? 'text-emerald-700' : ''} />}
+      {copied ? (
+        <Check size={20} />
+      ) : (
+        <Share2 size={20} className={variant === "secondary" ? "text-emerald-700" : ""} />
+      )}
       {copied ? "Lien copié !" : "Partager"}
     </button>
   );

@@ -65,9 +65,7 @@ export default function MailInbox() {
   const [messages, setMessages] = useState<InboxSummary[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedMessage, setSelectedMessage] = useState<InboxMessage | null>(
-    null,
-  );
+  const [selectedMessage, setSelectedMessage] = useState<InboxMessage | null>(null);
   const [threadMessages, setThreadMessages] = useState<InboxMessage[]>([]);
   const [replies, setReplies] = useState<InboxReply[]>([]);
   const [replyText, setReplyText] = useState("");
@@ -81,9 +79,7 @@ export default function MailInbox() {
     setError("");
     setLoading(true);
     try {
-      const query = cursor
-        ? `?cursor=${encodeURIComponent(cursor)}&limit=25`
-        : "?limit=25";
+      const query = cursor ? `?cursor=${encodeURIComponent(cursor)}&limit=25` : "?limit=25";
       const result = (await authorizedFetch(`/api/mail-inbox${query}`)) as {
         items: InboxSummary[];
         nextCursor: string | null;
@@ -104,10 +100,7 @@ export default function MailInbox() {
         const unique = new Map<string, InboxSummary>();
         combined.forEach((item) => {
           const existing = unique.get(item.threadId);
-          if (
-            !existing ||
-            (item.receivedAt || "") > (existing.receivedAt || "")
-          )
+          if (!existing || (item.receivedAt || "") > (existing.receivedAt || ""))
             unique.set(item.threadId, item);
           else
             unique.set(item.threadId, {
@@ -146,34 +139,25 @@ export default function MailInbox() {
       setThreadMessages(result.messages || [result.message]);
       setReplies(result.replies);
       if (!result.message.isRead) {
-        await authorizedFetch(
-          `/api/mail-inbox/${encodeURIComponent(messageId)}`,
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ isRead: true }),
-          },
-        );
+        await authorizedFetch(`/api/mail-inbox/${encodeURIComponent(messageId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isRead: true }),
+        });
         window.dispatchEvent(new Event("mail-inbox-updated"));
         setSelectedMessage((current) =>
           current?.id === messageId ? { ...current, isRead: true } : current,
         );
-        setThreadMessages((current) =>
-          current.map((message) => ({ ...message, isRead: true })),
-        );
+        setThreadMessages((current) => current.map((message) => ({ ...message, isRead: true })));
         setMessages((current) =>
           current.map((message) =>
-            message.threadId === result.message.threadId
-              ? { ...message, isRead: true }
-              : message,
+            message.threadId === result.message.threadId ? { ...message, isRead: true } : message,
           ),
         );
       }
     } catch (loadError) {
       setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Impossible de charger ce message.",
+        loadError instanceof Error ? loadError.message : "Impossible de charger ce message.",
       );
     } finally {
       setLoadingDetail(false);
@@ -189,26 +173,17 @@ export default function MailInbox() {
     const isRead = !selectedMessage.isRead;
     setError("");
     try {
-      await authorizedFetch(
-        `/api/mail-inbox/${encodeURIComponent(selectedMessage.id)}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isRead }),
-        },
-      );
+      await authorizedFetch(`/api/mail-inbox/${encodeURIComponent(selectedMessage.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isRead }),
+      });
       window.dispatchEvent(new Event("mail-inbox-updated"));
-      setSelectedMessage((current) =>
-        current ? { ...current, isRead } : current,
-      );
-      setThreadMessages((current) =>
-        current.map((message) => ({ ...message, isRead })),
-      );
+      setSelectedMessage((current) => (current ? { ...current, isRead } : current));
+      setThreadMessages((current) => current.map((message) => ({ ...message, isRead })));
       setMessages((current) =>
         current.map((message) =>
-          message.threadId === selectedMessage.threadId
-            ? { ...message, isRead }
-            : message,
+          message.threadId === selectedMessage.threadId ? { ...message, isRead } : message,
         ),
       );
     } catch (updateError) {
@@ -234,8 +209,7 @@ export default function MailInbox() {
           cache: "no-store",
         },
       );
-      if (!response.ok)
-        throw new Error("Impossible de télécharger cette pièce jointe.");
+      if (!response.ok) throw new Error("Impossible de télécharger cette pièce jointe.");
       const objectUrl = URL.createObjectURL(await response.blob());
       const link = document.createElement("a");
       link.href = objectUrl;
@@ -257,14 +231,11 @@ export default function MailInbox() {
     setSendingReply(true);
     setError("");
     try {
-      await authorizedFetch(
-        `/api/mail-inbox/${encodeURIComponent(selectedMessage.id)}/reply`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: replyText }),
-        },
-      );
+      await authorizedFetch(`/api/mail-inbox/${encodeURIComponent(selectedMessage.id)}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: replyText }),
+      });
       setReplyText("");
       const result = (await authorizedFetch(
         `/api/mail-inbox/${encodeURIComponent(selectedMessage.id)}`,
@@ -278,9 +249,7 @@ export default function MailInbox() {
       setReplies(result.replies);
     } catch (replyError) {
       setError(
-        replyError instanceof Error
-          ? replyError.message
-          : "Impossible d’envoyer la réponse.",
+        replyError instanceof Error ? replyError.message : "Impossible d’envoyer la réponse.",
       );
     } finally {
       setSendingReply(false);
@@ -322,10 +291,7 @@ export default function MailInbox() {
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(17rem,0.85fr)_minmax(0,1.4fr)]">
         <div className="min-w-0 border-y border-stone-200">
           {loading && messages.length === 0 ? (
-            <p
-              role="status"
-              className="py-8 text-center text-sm text-stone-500"
-            >
+            <p role="status" className="py-8 text-center text-sm text-stone-500">
               <Loader2 className="mr-2 inline animate-spin" size={16} />
               Chargement des messages…
             </p>
@@ -340,9 +306,7 @@ export default function MailInbox() {
                   <button
                     type="button"
                     onClick={() => void loadMessage(message.id)}
-                    aria-current={
-                      selectedId === message.id ? "true" : undefined
-                    }
+                    aria-current={selectedId === message.id ? "true" : undefined}
                     className={`w-full min-w-0 p-3 text-left hover:bg-stone-50 ${selectedId === message.id ? "bg-emerald-50" : ""}`}
                   >
                     <span className="flex items-center gap-2">
@@ -355,9 +319,7 @@ export default function MailInbox() {
                       <span
                         className={`min-w-0 flex-1 truncate text-sm ${message.isRead ? "font-medium text-stone-700" : "font-bold text-stone-900"}`}
                       >
-                        {message.from.name ||
-                          message.from.email ||
-                          "Expéditeur inconnu"}
+                        {message.from.name || message.from.email || "Expéditeur inconnu"}
                       </span>
                       <time className="shrink-0 text-[11px] text-stone-500">
                         {formatDate(message.receivedAt)}
@@ -398,10 +360,7 @@ export default function MailInbox() {
 
         <div className="min-w-0 border-y border-stone-200">
           {loadingDetail ? (
-            <p
-              role="status"
-              className="py-10 text-center text-sm text-stone-500"
-            >
+            <p role="status" className="py-10 text-center text-sm text-stone-500">
               <Loader2 className="mr-2 inline animate-spin" size={16} />
               Chargement du message…
             </p>
@@ -420,17 +379,13 @@ export default function MailInbox() {
                   onClick={() => void toggleRead()}
                   className="min-h-9 shrink-0 px-2 text-xs font-semibold text-emerald-800 underline underline-offset-2"
                 >
-                  Marquer le fil{" "}
-                  {selectedMessage.isRead ? "non lu" : "comme lu"}
+                  Marquer le fil {selectedMessage.isRead ? "non lu" : "comme lu"}
                 </button>
               </header>
 
               <div className="max-h-[58vh] space-y-4 overflow-y-auto pr-1">
                 {threadMessages.map((message) => (
-                  <section
-                    key={message.id}
-                    className="space-y-3 border-b border-stone-200 pb-4"
-                  >
+                  <section key={message.id} className="space-y-3 border-b border-stone-200 pb-4">
                     <header className="space-y-1">
                       <p className="break-all text-sm text-stone-700">
                         <strong>{message.from.name || ""}</strong>
@@ -445,10 +400,7 @@ export default function MailInbox() {
                       {message.text || "(message sans texte)"}
                     </div>
                     {message.attachments.length > 0 && (
-                      <section
-                        aria-label="Pièces jointes"
-                        className="space-y-1"
-                      >
+                      <section aria-label="Pièces jointes" className="space-y-1">
                         <ul className="divide-y divide-stone-200 border-y border-stone-200">
                           {message.attachments.map((attachment) => (
                             <li
@@ -463,12 +415,7 @@ export default function MailInbox() {
                               </span>
                               <button
                                 type="button"
-                                onClick={() =>
-                                  void downloadAttachment(
-                                    message.id,
-                                    attachment,
-                                  )
-                                }
+                                onClick={() => void downloadAttachment(message.id, attachment)}
                                 aria-label={`Télécharger ${attachment.fileName}`}
                                 className="grid size-10 place-items-center rounded text-emerald-800 hover:bg-emerald-50"
                               >
@@ -481,23 +428,20 @@ export default function MailInbox() {
                     )}
                     {message.omittedAttachmentCount > 0 && (
                       <p role="status" className="text-xs text-amber-800">
-                        {message.omittedAttachmentCount} pièce(s) jointe(s) trop
-                        volumineuse(s) non stockée(s).
+                        {message.omittedAttachmentCount} pièce(s) jointe(s) trop volumineuse(s) non
+                        stockée(s).
                       </p>
                     )}
                     {message.syncStatus === "message-too-large" && (
                       <p role="status" className="text-xs text-amber-800">
-                        Le message complet dépasse la limite de stockage; seul
-                        son en-tête est visible.
+                        Le message complet dépasse la limite de stockage; seul son en-tête est
+                        visible.
                       </p>
                     )}
                     {replies
                       .filter((reply) => reply.messageId === message.id)
                       .map((reply) => (
-                        <div
-                          key={reply.id}
-                          className="border-l-2 border-emerald-400 pl-3 py-1"
-                        >
+                        <div key={reply.id} className="border-l-2 border-emerald-400 pl-3 py-1">
                           <p className="whitespace-pre-wrap break-words text-sm text-stone-700">
                             {reply.text}
                           </p>
@@ -515,14 +459,8 @@ export default function MailInbox() {
                 ))}
               </div>
 
-              <form
-                onSubmit={sendReply}
-                className="space-y-2 border-t border-stone-200 pt-3"
-              >
-                <label
-                  htmlFor="mail-inbox-reply"
-                  className="text-sm font-semibold text-stone-800"
-                >
+              <form onSubmit={sendReply} className="space-y-2 border-t border-stone-200 pt-3">
+                <label htmlFor="mail-inbox-reply" className="text-sm font-semibold text-stone-800">
                   Répondre à {selectedMessage.from.email}
                 </label>
                 <textarea
@@ -536,9 +474,7 @@ export default function MailInbox() {
                   placeholder="Écris ta réponse…"
                 />
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs text-stone-500">
-                    Envoyée depuis l’adresse du collectif.
-                  </p>
+                  <p className="text-xs text-stone-500">Envoyée depuis l’adresse du collectif.</p>
                   <button
                     type="submit"
                     disabled={sendingReply || !replyText.trim()}
