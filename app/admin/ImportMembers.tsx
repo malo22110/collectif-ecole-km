@@ -86,7 +86,8 @@ TANGUY,Yvette,,0677219282,Non,Oui`;
     for (const line of lines) {
       if (!line.trim() || line.startsWith(',')) continue; 
       
-      let [nom, prenom, email, tel, adherent, informe] = line.split(',');
+      let [nom, prenom, email, tel] = line.split(',');
+      const [, , , , adherent, informe] = line.split(',');
       
       nom = nom ? nom.replace(/"/g, '').trim() : "";
       prenom = prenom ? prenom.replace(/"/g, '').trim() : "";

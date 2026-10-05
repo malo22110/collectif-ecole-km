@@ -480,7 +480,7 @@ export default function TractationPanel({
     });
   };
 
-  const useCampaignGps = (campaignId: string) => {
+  const locateCampaign = (campaignId: string) => {
     setError("");
     setRouteOrigins((current) => ({ ...current, [campaignId]: null }));
     if (!navigator.geolocation) {
@@ -1429,7 +1429,7 @@ export default function TractationPanel({
                   </label>
                   <button
                     type="button"
-                    onClick={() => useCampaignGps(missionCampaign.id)}
+                    onClick={() => locateCampaign(missionCampaign.id)}
                     disabled={locatingCampaign === missionCampaign.id}
                     aria-label="Me localiser"
                     className="grid size-12 shrink-0 place-items-center rounded-lg border border-stone-300 bg-white text-emerald-900 disabled:opacity-50"
@@ -1704,7 +1704,7 @@ export default function TractationPanel({
                         {!currentSegment && (
                           <button
                             type="button"
-                            onClick={() => useCampaignGps(missionCampaign.id)}
+                            onClick={() => locateCampaign(missionCampaign.id)}
                             disabled={locatingCampaign === missionCampaign.id}
                             className="btn-secondary min-h-12 w-full justify-center"
                           >
