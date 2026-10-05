@@ -148,28 +148,56 @@ test("le titulaire ou un responsable peut corriger une affectation", () => {
   assert.equal(canCorrectPlaceAssignment("member-1", "member-1", false), true);
   assert.equal(canCorrectPlaceAssignment("member-1", "member-2", true), true);
   assert.equal(canCorrectPlaceAssignment("member-1", "member-2", false), false);
-  assert.equal(canReopenPlaceAssignment("completed", "member-1", "member-1"), true);
-  assert.equal(canReopenPlaceAssignment("claimed", "member-1", "member-1"), false);
-  assert.equal(canReopenPlaceAssignment("completed", "member-1", "member-2"), false);
-  assert.equal(canReopenPlaceAssignment("completed", "member-1", "manager", true), true);
+  assert.equal(
+    canReopenPlaceAssignment("completed", "member-1", "member-1"),
+    true,
+  );
+  assert.equal(
+    canReopenPlaceAssignment("claimed", "member-1", "member-1"),
+    false,
+  );
+  assert.equal(
+    canReopenPlaceAssignment("completed", "member-1", "member-2"),
+    false,
+  );
+  assert.equal(
+    canReopenPlaceAssignment("completed", "member-1", "manager", true),
+    true,
+  );
 });
 
 // [SPEC-TRACTATION-04] Campaign members see the claimant display name, never account identifiers.
 test("expose le nom du membre qui a pris un lieu sans exposer UID ni e-mail", () => {
-  const assignment = toPublicPlaceAssignment({
-    status: "claimed",
-    claimedByUid: "private-auth-uid",
-    claimedByName: "Malo Le Cam",
-    email: "private@example.org",
-  }, "another-member");
+  const assignment = toPublicPlaceAssignment(
+    {
+      status: "claimed",
+      claimedByUid: "private-auth-uid",
+      claimedByName: "Malo Le Cam",
+      email: "private@example.org",
+    },
+    "another-member",
+  );
 
   assert.deepEqual(assignment, {
     status: "claimed",
     isMine: false,
     memberName: "Malo Le Cam",
   });
-  assert.equal(toPublicPlaceAssignment({ status: "released", claimedByUid: "uid" }, "viewer"), null);
-  assert.equal(toPublicPlaceAssignment({ status: "completed", claimedByUid: "uid" }, "viewer", "Ancienne Membre")?.memberName, "Ancienne Membre");
+  assert.equal(
+    toPublicPlaceAssignment(
+      { status: "released", claimedByUid: "uid" },
+      "viewer",
+    ),
+    null,
+  );
+  assert.equal(
+    toPublicPlaceAssignment(
+      { status: "completed", claimedByUid: "uid" },
+      "viewer",
+      "Ancienne Membre",
+    )?.memberName,
+    "Ancienne Membre",
+  );
 });
 
 // [SPEC-TRACTATION-05] Campaign route reservations are ordered, unique, bounded, and nonempty.

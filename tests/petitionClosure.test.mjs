@@ -16,7 +16,10 @@ test("la page publique archive la pétition sans formulaire ni création Firesto
   assert.doesNotMatch(page, /<form|setDoc\(|addDoc\(/);
   assert.match(normalizedPage, /La pétition est close/);
   assert.match(normalizedPage, /Pétition Citoyenne pour la Sauvegarde de l/);
-  assert.match(normalizedPage, /Valorisons les études engagées vers un projet maîtrisé/);
+  assert.match(
+    normalizedPage,
+    /Valorisons les études engagées vers un projet maîtrisé/,
+  );
   assert.match(
     normalizedPage,
     /réévaluation à la baisse du dossier de rénovation déjà engagé/,

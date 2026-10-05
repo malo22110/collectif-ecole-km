@@ -67,8 +67,10 @@ export function canReopenPlaceAssignment(
   requesterUid: string,
   isCampaignManager = false,
 ) {
-  return status === "completed" &&
-    canCorrectPlaceAssignment(claimedByUid, requesterUid, isCampaignManager);
+  return (
+    status === "completed" &&
+    canCorrectPlaceAssignment(claimedByUid, requesterUid, isCampaignManager)
+  );
 }
 
 // [SPEC-TRACTATION-05] A member claims one ordered campaign route as a unique bounded set of places.

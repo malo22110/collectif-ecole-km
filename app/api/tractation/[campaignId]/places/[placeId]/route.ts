@@ -75,7 +75,11 @@ export async function PUT(
       .collection("placeAssignments")
       .doc(placeId);
     const sourcePlaceRef = tractationDb.collection("lieuxDits").doc(placeId);
-    let result: { status: "claimed" | "completed" | null; isMine: boolean; memberName?: string } = {
+    let result: {
+      status: "claimed" | "completed" | null;
+      isMine: boolean;
+      memberName?: string;
+    } = {
       status: null,
       isMine: false,
     };
@@ -147,7 +151,11 @@ export async function PUT(
             claimedAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           });
-          result = { status: "claimed", isMine: true, memberName: authorization.member.displayName };
+          result = {
+            status: "claimed",
+            isMine: true,
+            memberName: authorization.member.displayName,
+          };
         } else {
           transaction.update(assignmentRef, {
             claimedByName: authorization.member.displayName,
@@ -163,11 +171,14 @@ export async function PUT(
       }
 
       const isMine = current?.claimedByUid === authorization.member.uid;
-      if (!assignment.exists || !canCorrectPlaceAssignment(
-        current?.claimedByUid,
-        authorization.member.uid,
-        authorization.member.canCreate,
-      )) {
+      if (
+        !assignment.exists ||
+        !canCorrectPlaceAssignment(
+          current?.claimedByUid,
+          authorization.member.uid,
+          authorization.member.canCreate,
+        )
+      ) {
         throw new PlaceAssignmentError(
           403,
           "Seul le titulaire ou un responsable de campagne peut corriger cette réservation.",
@@ -176,21 +187,32 @@ export async function PUT(
 
       let assignmentOwnerParticipant = participant;
       let assignmentOwnerParticipantRef = participantRef;
-      if (action === "release" && typeof current?.claimedByUid === "string" && !isMine) {
+      if (
+        action === "release" &&
+        typeof current?.claimedByUid === "string" &&
+        !isMine
+      ) {
         assignmentOwnerParticipantRef = campaignRef
           .collection("participants")
           .doc(current.claimedByUid);
-        assignmentOwnerParticipant = await transaction.get(assignmentOwnerParticipantRef);
+        assignmentOwnerParticipant = await transaction.get(
+          assignmentOwnerParticipantRef,
+        );
       }
 
       if (action === "reopen") {
-        if (!canReopenPlaceAssignment(
-          current?.status,
-          current?.claimedByUid,
-          authorization.member.uid,
-          authorization.member.canCreate,
-        )) {
-          throw new PlaceAssignmentError(409, "Seul le titulaire ou un responsable peut rouvrir un lieu terminé.");
+        if (
+          !canReopenPlaceAssignment(
+            current?.status,
+            current?.claimedByUid,
+            authorization.member.uid,
+            authorization.member.canCreate,
+          )
+        ) {
+          throw new PlaceAssignmentError(
+            409,
+            "Seul le titulaire ou un responsable peut rouvrir un lieu terminé.",
+          );
         }
         transaction.update(assignmentRef, {
           status: "claimed",
@@ -200,7 +222,9 @@ export async function PUT(
         result = {
           status: "claimed",
           isMine,
-          ...(typeof current?.claimedByName === "string" ? { memberName: current.claimedByName } : {}),
+          ...(typeof current?.claimedByName === "string"
+            ? { memberName: current.claimedByName }
+            : {}),
         };
         return;
       }

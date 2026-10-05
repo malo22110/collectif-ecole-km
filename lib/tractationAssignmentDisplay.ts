@@ -19,12 +19,12 @@ export function toPublicPlaceAssignment(
     return null;
   }
 
-  const storedName = typeof assignment.claimedByName === "string"
-    ? assignment.claimedByName.trim()
-    : "";
-  const fallbackName = typeof fallbackDisplayName === "string"
-    ? fallbackDisplayName.trim()
-    : "";
+  const storedName =
+    typeof assignment.claimedByName === "string"
+      ? assignment.claimedByName.trim()
+      : "";
+  const fallbackName =
+    typeof fallbackDisplayName === "string" ? fallbackDisplayName.trim() : "";
 
   return {
     status: assignment.status,

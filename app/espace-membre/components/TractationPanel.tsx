@@ -34,7 +34,11 @@ type Place = {
   lon: number | null;
   hasCoordinates: boolean;
 };
-type PlaceAssignment = { status: "claimed" | "completed"; isMine: boolean; memberName?: string };
+type PlaceAssignment = {
+  status: "claimed" | "completed";
+  isMine: boolean;
+  memberName?: string;
+};
 type Campaign = {
   id: string;
   title: string;
@@ -59,7 +63,10 @@ export type CampaignMapState = {
   title: string;
   joined: boolean;
   placeIds: string[];
-  assignmentStatuses: Record<string, { status: "claimed" | "completed"; memberName?: string }>;
+  assignmentStatuses: Record<
+    string,
+    { status: "claimed" | "completed"; memberName?: string }
+  >;
   routePlaceIds: string[];
   origin: GeoPoint | null;
 };
@@ -601,7 +608,11 @@ export default function TractationPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action }),
         },
-      )) as { status: PlaceAssignment["status"] | null; isMine: boolean; memberName?: string };
+      )) as {
+        status: PlaceAssignment["status"] | null;
+        isMine: boolean;
+        memberName?: string;
+      };
       setCampaigns((previous) =>
         previous.map((item) =>
           item.id !== campaign.id
@@ -614,7 +625,9 @@ export default function TractationPanel({
                       [place.id]: {
                         status: result.status,
                         isMine: result.isMine,
-                        memberName: result.memberName || item.assignedPlaces[place.id]?.memberName,
+                        memberName:
+                          result.memberName ||
+                          item.assignedPlaces[place.id]?.memberName,
                       },
                     }
                   : Object.fromEntries(
@@ -927,25 +940,34 @@ export default function TractationPanel({
                                   campaign.assignedPlaces?.[place.id];
                                 const checked = editPlaceIds.includes(place.id);
                                 const locked = Boolean(assignment && checked);
-                                  const isBusy = busy === `${campaign.id}:${place.id}`;
+                                const isBusy =
+                                  busy === `${campaign.id}:${place.id}`;
                                 return (
                                   <li key={place.id}>
-                                      <div className="grid min-w-0 gap-1 rounded-md px-2 py-1 hover:bg-stone-50">
-                                        <label className={`flex min-h-11 min-w-0 items-center gap-3 ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}>
-                                          <input
-                                            type="checkbox"
-                                            checked={checked}
-                                            disabled={
-                                              locked ||
-                                              (!checked && editPlaceIds.length >= 200)
-                                            }
-                                            onChange={() => toggleCampaignPlace(campaign, place.id)}
-                                            className="size-5 shrink-0 accent-emerald-700"
-                                          />
-                                          <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">
-                                            {place.nom}
-                                          </span>
-                                        </label>
+                                    <div className="grid min-w-0 gap-1 rounded-md px-2 py-1 hover:bg-stone-50">
+                                      <label
+                                        className={`flex min-h-11 min-w-0 items-center gap-3 ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={checked}
+                                          disabled={
+                                            locked ||
+                                            (!checked &&
+                                              editPlaceIds.length >= 200)
+                                          }
+                                          onChange={() =>
+                                            toggleCampaignPlace(
+                                              campaign,
+                                              place.id,
+                                            )
+                                          }
+                                          className="size-5 shrink-0 accent-emerald-700"
+                                        />
+                                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">
+                                          {place.nom}
+                                        </span>
+                                      </label>
                                       {assignment && (
                                         <div className="flex min-w-0 items-center justify-between gap-2 pl-8">
                                           <span className="min-w-0 flex-1 break-words text-xs font-semibold text-stone-600">
@@ -955,44 +977,69 @@ export default function TractationPanel({
                                           </span>
                                           {canCreate && (
                                             <details className="relative shrink-0">
-                                          <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-md border border-stone-300 px-3 text-xs font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700">
-                                            Gérer
-                                          </summary>
-                                          <div className="absolute right-0 z-40 mt-1 grid w-48 max-w-[calc(100vw-2rem)] gap-1 rounded-md border border-stone-200 bg-white p-1 shadow-lg">
-                                            {assignment.status === "claimed" ? (
-                                              <button
-                                                type="button"
-                                                disabled={isBusy}
-                                                onClick={() => void updateAssignment(campaign, place, "complete")}
-                                                className="min-h-11 rounded px-3 text-left text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
-                                              >
-                                                Marquer fait
-                                              </button>
-                                            ) : (
-                                              <button
-                                                type="button"
-                                                disabled={isBusy}
-                                                onClick={() => void updateAssignment(campaign, place, "reopen")}
-                                                className="min-h-11 rounded px-3 text-left text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
-                                              >
-                                                Marquer non fait
-                                              </button>
-                                            )}
-                                            <button
-                                              type="button"
-                                              disabled={isBusy}
-                                              onClick={() => void updateAssignment(campaign, place, "release")}
-                                              className="min-h-11 rounded px-3 text-left text-sm font-semibold text-stone-700 hover:bg-stone-100 disabled:opacity-50"
-                                            >
-                                              Désattribuer le lieu
-                                            </button>
-                                          </div>
-                                        </details>
+                                              <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-md border border-stone-300 px-3 text-xs font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700">
+                                                Gérer
+                                              </summary>
+                                              <div className="absolute right-0 z-40 mt-1 grid w-48 max-w-[calc(100vw-2rem)] gap-1 rounded-md border border-stone-200 bg-white p-1 shadow-lg">
+                                                {assignment.status ===
+                                                "claimed" ? (
+                                                  <button
+                                                    type="button"
+                                                    disabled={isBusy}
+                                                    onClick={() =>
+                                                      void updateAssignment(
+                                                        campaign,
+                                                        place,
+                                                        "complete",
+                                                      )
+                                                    }
+                                                    className="min-h-11 rounded px-3 text-left text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
+                                                  >
+                                                    Marquer fait
+                                                  </button>
+                                                ) : (
+                                                  <button
+                                                    type="button"
+                                                    disabled={isBusy}
+                                                    onClick={() =>
+                                                      void updateAssignment(
+                                                        campaign,
+                                                        place,
+                                                        "reopen",
+                                                      )
+                                                    }
+                                                    className="min-h-11 rounded px-3 text-left text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                                                  >
+                                                    Marquer non fait
+                                                  </button>
+                                                )}
+                                                <button
+                                                  type="button"
+                                                  disabled={isBusy}
+                                                  onClick={() =>
+                                                    void updateAssignment(
+                                                      campaign,
+                                                      place,
+                                                      "release",
+                                                    )
+                                                  }
+                                                  className="min-h-11 rounded px-3 text-left text-sm font-semibold text-stone-700 hover:bg-stone-100 disabled:opacity-50"
+                                                >
+                                                  Désattribuer le lieu
+                                                </button>
+                                              </div>
+                                            </details>
                                           )}
-                                          {isBusy && <Loader2 size={15} className="shrink-0 animate-spin text-stone-500" aria-label="Mise à jour en cours" />}
+                                          {isBusy && (
+                                            <Loader2
+                                              size={15}
+                                              className="shrink-0 animate-spin text-stone-500"
+                                              aria-label="Mise à jour en cours"
+                                            />
+                                          )}
                                         </div>
                                       )}
-                                      </div>
+                                    </div>
                                   </li>
                                 );
                               })}
@@ -1129,7 +1176,8 @@ export default function TractationPanel({
                                 </span>
                               )}
                               {assignment &&
-                                (canCreate || (campaign.joined && assignment.isMine)) &&
+                                (canCreate ||
+                                  (campaign.joined && assignment.isMine)) &&
                                 assignment.status === "claimed" && (
                                   <button
                                     type="button"
@@ -1154,7 +1202,8 @@ export default function TractationPanel({
                                   </button>
                                 )}
                               {assignment &&
-                                (canCreate || (campaign.joined && assignment.isMine)) &&
+                                (canCreate ||
+                                  (campaign.joined && assignment.isMine)) &&
                                 assignment.status === "claimed" && (
                                   <button
                                     type="button"
@@ -1169,11 +1218,14 @@ export default function TractationPanel({
                                     aria-label={`${assignment.isMine ? "Libérer" : "Désattribuer"} ${place.nom}`}
                                     className="min-h-10 shrink-0 px-2 text-xs font-semibold text-stone-600 hover:bg-stone-100"
                                   >
-                                    {assignment.isMine ? "Libérer" : "Désattribuer"}
+                                    {assignment.isMine
+                                      ? "Libérer"
+                                      : "Désattribuer"}
                                   </button>
                                 )}
                               {assignment &&
-                                (canCreate || (campaign.joined && assignment.isMine)) &&
+                                (canCreate ||
+                                  (campaign.joined && assignment.isMine)) &&
                                 assignment.status === "completed" && (
                                   <button
                                     type="button"
@@ -1188,7 +1240,14 @@ export default function TractationPanel({
                                     aria-label={`Marquer ${place.nom} comme non fait`}
                                     className="min-h-10 shrink-0 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-50"
                                   >
-                                    {isBusy ? <Loader2 size={14} className="animate-spin" /> : "Marquer non fait"}
+                                    {isBusy ? (
+                                      <Loader2
+                                        size={14}
+                                        className="animate-spin"
+                                      />
+                                    ) : (
+                                      "Marquer non fait"
+                                    )}
                                   </button>
                                 )}
                               {campaign.joined &&
@@ -1528,107 +1587,139 @@ export default function TractationPanel({
                     return (
                       <li key={place.id}>
                         <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!available && !inDraft) return;
-                            toggleRouteDraftPlace(missionCampaign, place.id);
-                            if (
-                              typeof navigator !== "undefined" &&
-                              "vibrate" in navigator
-                            )
-                              navigator.vibrate(12);
-                          }}
-                          disabled={!available && !inDraft}
-                          aria-pressed={inDraft}
-                          aria-label={`${inDraft ? "Retirer de" : "Ajouter à"} ma tournée : ${place.nom}`}
-                          className="flex min-h-14 min-w-0 flex-1 items-center gap-3 px-2 text-left disabled:opacity-60"
-                        >
-                          <span
-                            className={`grid size-8 shrink-0 place-items-center rounded-full ${assignment?.status === "completed" ? "bg-emerald-100 text-emerald-900" : assignment ? "bg-stone-100 text-stone-500" : inDraft ? "bg-blue-100 text-blue-900" : "bg-blue-700 text-white"}`}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!available && !inDraft) return;
+                              toggleRouteDraftPlace(missionCampaign, place.id);
+                              if (
+                                typeof navigator !== "undefined" &&
+                                "vibrate" in navigator
+                              )
+                                navigator.vibrate(12);
+                            }}
+                            disabled={!available && !inDraft}
+                            aria-pressed={inDraft}
+                            aria-label={`${inDraft ? "Retirer de" : "Ajouter à"} ma tournée : ${place.nom}`}
+                            className="flex min-h-14 min-w-0 flex-1 items-center gap-3 px-2 text-left disabled:opacity-60"
                           >
-                            {assignment?.status === "completed" ? (
-                              <Check size={16} aria-label="Terminé" />
-                            ) : inDraft ? (
-                              <Check size={16} aria-label="Dans la tournée" />
-                            ) : (
-                              <MapPinned size={16} aria-hidden="true" />
-                            )}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-semibold text-stone-900">
-                              {place.nom}
-                            </span>
-                            <span className="text-xs text-stone-500">
-                              {place.foyers} foyers ·{" "}
-                              {assignment?.status === "completed"
-                                ? `Fait par ${assignment.memberName || "un membre"}`
-                                : assignment
-                                  ? assignment.isMine
-                                    ? "Dans votre tournée"
-                                    : `Pris par ${assignment.memberName || "un membre"}`
-                                  : !place.hasCoordinates
-                                    ? "Sans coordonnées"
-                                    : inDraft
-                                      ? "Sélectionné"
-                                      : "Disponible"}
-                            </span>
-                          </span>
-                          {available && !inDraft && (
-                            <Plus
-                              size={19}
-                              className="shrink-0 text-blue-800"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </button>
-                        {assignment && canCreate && (
-                          <details className="relative shrink-0">
-                            <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-md px-3 text-xs font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700">
-                              Gérer
-                            </summary>
-                            <div className="absolute right-0 z-40 mt-1 grid min-w-40 gap-1 rounded-md border border-stone-200 bg-white p-1 shadow-lg">
-                              {assignment.status === "claimed" ? (
-                                <button
-                                  type="button"
-                                  disabled={isBusy}
-                                  onClick={() => void updateAssignment(missionCampaign, place, "complete")}
-                                  className="min-h-11 rounded px-3 text-left text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
-                                >
-                                  Marquer fait
-                                </button>
+                            <span
+                              className={`grid size-8 shrink-0 place-items-center rounded-full ${assignment?.status === "completed" ? "bg-emerald-100 text-emerald-900" : assignment ? "bg-stone-100 text-stone-500" : inDraft ? "bg-blue-100 text-blue-900" : "bg-blue-700 text-white"}`}
+                            >
+                              {assignment?.status === "completed" ? (
+                                <Check size={16} aria-label="Terminé" />
+                              ) : inDraft ? (
+                                <Check size={16} aria-label="Dans la tournée" />
                               ) : (
+                                <MapPinned size={16} aria-hidden="true" />
+                              )}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-semibold text-stone-900">
+                                {place.nom}
+                              </span>
+                              <span className="text-xs text-stone-500">
+                                {place.foyers} foyers ·{" "}
+                                {assignment?.status === "completed"
+                                  ? `Fait par ${assignment.memberName || "un membre"}`
+                                  : assignment
+                                    ? assignment.isMine
+                                      ? "Dans votre tournée"
+                                      : `Pris par ${assignment.memberName || "un membre"}`
+                                    : !place.hasCoordinates
+                                      ? "Sans coordonnées"
+                                      : inDraft
+                                        ? "Sélectionné"
+                                        : "Disponible"}
+                              </span>
+                            </span>
+                            {available && !inDraft && (
+                              <Plus
+                                size={19}
+                                className="shrink-0 text-blue-800"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </button>
+                          {assignment && canCreate && (
+                            <details className="relative shrink-0">
+                              <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-md px-3 text-xs font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700">
+                                Gérer
+                              </summary>
+                              <div className="absolute right-0 z-40 mt-1 grid min-w-40 gap-1 rounded-md border border-stone-200 bg-white p-1 shadow-lg">
+                                {assignment.status === "claimed" ? (
+                                  <button
+                                    type="button"
+                                    disabled={isBusy}
+                                    onClick={() =>
+                                      void updateAssignment(
+                                        missionCampaign,
+                                        place,
+                                        "complete",
+                                      )
+                                    }
+                                    className="min-h-11 rounded px-3 text-left text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
+                                  >
+                                    Marquer fait
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    disabled={isBusy}
+                                    onClick={() =>
+                                      void updateAssignment(
+                                        missionCampaign,
+                                        place,
+                                        "reopen",
+                                      )
+                                    }
+                                    className="min-h-11 rounded px-3 text-left text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                                  >
+                                    Marquer non fait
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   disabled={isBusy}
-                                  onClick={() => void updateAssignment(missionCampaign, place, "reopen")}
-                                  className="min-h-11 rounded px-3 text-left text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                                  onClick={() =>
+                                    void updateAssignment(
+                                      missionCampaign,
+                                      place,
+                                      "release",
+                                    )
+                                  }
+                                  className="min-h-11 rounded px-3 text-left text-sm font-semibold text-stone-700 hover:bg-stone-100 disabled:opacity-50"
                                 >
-                                  Marquer non fait
+                                  Désattribuer le lieu
                                 </button>
-                              )}
+                              </div>
+                            </details>
+                          )}
+                          {assignment &&
+                            !canCreate &&
+                            missionCampaign.joined &&
+                            assignment.isMine &&
+                            assignment.status === "completed" && (
                               <button
                                 type="button"
                                 disabled={isBusy}
-                                onClick={() => void updateAssignment(missionCampaign, place, "release")}
-                                className="min-h-11 rounded px-3 text-left text-sm font-semibold text-stone-700 hover:bg-stone-100 disabled:opacity-50"
+                                onClick={() =>
+                                  void updateAssignment(
+                                    missionCampaign,
+                                    place,
+                                    "reopen",
+                                  )
+                                }
+                                aria-label={`Marquer ${place.nom} comme non fait`}
+                                className="min-h-11 shrink-0 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
                               >
-                                Désattribuer le lieu
+                                {isBusy ? (
+                                  <Loader2 size={14} className="animate-spin" />
+                                ) : (
+                                  "Non fait"
+                                )}
                               </button>
-                            </div>
-                          </details>
-                        )}
-                        {assignment && !canCreate && missionCampaign.joined && assignment.isMine && assignment.status === "completed" && (
-                          <button
-                            type="button"
-                            disabled={isBusy}
-                            onClick={() => void updateAssignment(missionCampaign, place, "reopen")}
-                            aria-label={`Marquer ${place.nom} comme non fait`}
-                            className="min-h-11 shrink-0 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
-                          >
-                            {isBusy ? <Loader2 size={14} className="animate-spin" /> : "Non fait"}
-                          </button>
-                        )}
+                            )}
                         </div>
                       </li>
                     );
@@ -1649,8 +1740,8 @@ export default function TractationPanel({
                       : undefined;
                     const canCorrectCurrent = Boolean(
                       currentAssignment &&
-                        (canCreate ||
-                          (missionCampaign.joined && currentAssignment.isMine)),
+                      (canCreate ||
+                        (missionCampaign.joined && currentAssignment.isMine)),
                     );
                     const routeIndex = missionRoute.indexOf(missionNextPlace);
                     const remainingStops = missionRoute
@@ -1716,29 +1807,58 @@ export default function TractationPanel({
                         )}
                         {currentAssignment?.status === "completed" ? (
                           <div className="space-y-2">
-                            <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-center text-sm font-semibold text-emerald-900">
+                            <p
+                              role="status"
+                              className="rounded-lg bg-emerald-50 px-3 py-2 text-center text-sm font-semibold text-emerald-900"
+                            >
                               Secteur marqué comme fait
                             </p>
                             {canCorrectCurrent && (
                               <button
                                 type="button"
-                                onClick={() => place && void updateAssignment(missionCampaign, place, "reopen")}
-                                disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
+                                onClick={() =>
+                                  place &&
+                                  void updateAssignment(
+                                    missionCampaign,
+                                    place,
+                                    "reopen",
+                                  )
+                                }
+                                disabled={
+                                  !place ||
+                                  busy === `${missionCampaign.id}:${place.id}`
+                                }
                                 className="min-h-12 w-full rounded-lg border border-amber-300 px-3 text-sm font-semibold text-amber-900 hover:bg-amber-50 disabled:opacity-50"
                               >
-                                {busy === `${missionCampaign.id}:${place?.id}` ? "Mise à jour…" : "Marquer non fait"}
+                                {busy === `${missionCampaign.id}:${place?.id}`
+                                  ? "Mise à jour…"
+                                  : "Marquer non fait"}
                               </button>
                             )}
                           </div>
                         ) : (
                           <button
                             type="button"
-                            onClick={() => place && void updateAssignment(missionCampaign, place, "complete")}
-                            disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
+                            onClick={() =>
+                              place &&
+                              void updateAssignment(
+                                missionCampaign,
+                                place,
+                                "complete",
+                              )
+                            }
+                            disabled={
+                              !place ||
+                              busy === `${missionCampaign.id}:${place.id}`
+                            }
                             className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 text-base font-bold text-white disabled:opacity-50"
                           >
                             {busy === `${missionCampaign.id}:${place?.id}` ? (
-                              <Loader2 size={20} className="animate-spin" aria-hidden="true" />
+                              <Loader2
+                                size={20}
+                                className="animate-spin"
+                                aria-hidden="true"
+                              />
                             ) : (
                               <Check size={20} aria-hidden="true" />
                             )}
@@ -1748,11 +1868,23 @@ export default function TractationPanel({
                         {canCorrectCurrent && (
                           <button
                             type="button"
-                            onClick={() => place && void updateAssignment(missionCampaign, place, "release")}
-                            disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
+                            onClick={() =>
+                              place &&
+                              void updateAssignment(
+                                missionCampaign,
+                                place,
+                                "release",
+                              )
+                            }
+                            disabled={
+                              !place ||
+                              busy === `${missionCampaign.id}:${place.id}`
+                            }
                             className="min-h-11 w-full text-sm font-semibold text-stone-600 underline underline-offset-2 disabled:opacity-50"
                           >
-                            {currentAssignment?.isMine ? "Mince, je libère ce secteur" : "Désattribuer ce secteur"}
+                            {currentAssignment?.isMine
+                              ? "Mince, je libère ce secteur"
+                              : "Désattribuer ce secteur"}
                           </button>
                         )}
                       </>

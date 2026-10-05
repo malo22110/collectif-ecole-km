@@ -20,7 +20,10 @@ interface OpenStreetMapProps {
   favoritePlaceIds?: string[];
   onToggleFavorite?: (placeId: string) => void;
   routePlaceIds?: string[];
-  assignmentStatuses?: Record<string, { status: "claimed" | "completed"; memberName?: string }>;
+  assignmentStatuses?: Record<
+    string,
+    { status: "claimed" | "completed"; memberName?: string }
+  >;
   campaignMode?: boolean;
   showHouseholdCounts?: boolean;
   selectedPlace?: TourLieuDit | null;

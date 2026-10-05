@@ -95,17 +95,23 @@ export async function GET(request: Request) {
               })
             : [],
         );
-        const visibleAssignments = assignmentSnapshot.docs.filter((assignmentDocument) =>
-          visiblePlaceIds.has(assignmentDocument.id) &&
-          (assignmentDocument.get("status") === "claimed" || assignmentDocument.get("status") === "completed"),
+        const visibleAssignments = assignmentSnapshot.docs.filter(
+          (assignmentDocument) =>
+            visiblePlaceIds.has(assignmentDocument.id) &&
+            (assignmentDocument.get("status") === "claimed" ||
+              assignmentDocument.get("status") === "completed"),
         );
-        const legacyOwnerUids = Array.from(new Set(visibleAssignments.flatMap((assignmentDocument) => {
-          const assignment = assignmentDocument.data();
-          return typeof assignment.claimedByUid === "string" &&
-            typeof assignment.claimedByName !== "string"
-            ? [assignment.claimedByUid]
-            : [];
-        })));
+        const legacyOwnerUids = Array.from(
+          new Set(
+            visibleAssignments.flatMap((assignmentDocument) => {
+              const assignment = assignmentDocument.data();
+              return typeof assignment.claimedByUid === "string" &&
+                typeof assignment.claimedByName !== "string"
+                ? [assignment.claimedByUid]
+                : [];
+            }),
+          ),
+        );
         const legacyOwnerNames = new Map<string, string>();
         for (let offset = 0; offset < legacyOwnerUids.length; offset += 30) {
           const ownerChunk = legacyOwnerUids.slice(offset, offset + 30);
@@ -135,7 +141,9 @@ export async function GET(request: Request) {
                 ? legacyOwnerNames.get(assignment.claimedByUid)
                 : undefined,
             );
-            return publicAssignment ? [[assignmentDocument.id, publicAssignment]] : [];
+            return publicAssignment
+              ? [[assignmentDocument.id, publicAssignment]]
+              : [];
           }),
         );
 
