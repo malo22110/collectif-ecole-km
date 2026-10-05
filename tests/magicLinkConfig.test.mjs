@@ -10,7 +10,7 @@ test("le lien magique revient sur le domaine canonique et la page de connexion",
   assert.equal(continueUrl.hostname, "collectif-ecole-km.fr");
   assert.equal(continueUrl.pathname, "/connexion");
   assert.equal(MAGIC_LINK_ACTION_CODE_SETTINGS.handleCodeInApp, true);
-  assert.equal(MAGIC_LINK_ACTION_CODE_SETTINGS.linkDomain, "collectif-ecole-km.web.app");
+  assert.equal("linkDomain" in MAGIC_LINK_ACTION_CODE_SETTINGS, false);
 });
 
 // [SPEC-MAIL-01] The callback must ask for an email in-page before attempting Firebase sign-in.
