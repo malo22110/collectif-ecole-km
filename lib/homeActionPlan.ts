@@ -8,6 +8,15 @@ export interface HomeActionPlanEntry {
   linkUrl?: string;
 }
 
+export function getNextHomeActionPlanEntry(
+  entries: HomeActionPlanEntry[],
+): HomeActionPlanEntry | undefined {
+  return (
+    entries.find((entry) => entry.status === "upcoming") ??
+    entries.find((entry) => entry.status === "current")
+  );
+}
+
 export const DEFAULT_HOME_ACTION_PLAN: HomeActionPlanEntry[] = [
   {
     date: "Samedi 26 Septembre",

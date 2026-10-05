@@ -4,19 +4,14 @@ import React, { useState } from "react";
 import logoImage from "../public/images/logo.png";
 import heroImage from "../public/images/hero.jpg";
 import reunionImage from "../public/images/reunion.jpg";
-import {
-  collection,
-  setDoc,
-  query,
-  where,
-  getDocs,
-  doc,
-  onSnapshot,
-  getCountFromServer,
-} from "firebase/firestore";
+import { collection, setDoc, query, where, getDocs, doc, onSnapshot } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
-import { DEFAULT_HOME_ACTION_PLAN, normalizeHomeActionPlan } from "../lib/homeActionPlan";
+import {
+  DEFAULT_HOME_ACTION_PLAN,
+  getNextHomeActionPlanEntry,
+  normalizeHomeActionPlan,
+} from "../lib/homeActionPlan";
 import {
   Leaf,
   ShieldCheck,
@@ -39,7 +34,6 @@ import UserAvatar from "./components/UserAvatar";
 export default function LandingPage() {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [memberCount, setMemberCount] = useState<number | null>(null);
-  const [petitionCount, setPetitionCount] = useState<number | null>(null);
   const [articles, setArticles] = useState<any[]>([]);
   const [presseArticles, setPresseArticles] = useState<any[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -101,34 +95,6 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    async function fetchPetitionCount() {
-      try {
-        const snap = await getCountFromServer(collection(db, "signatures"));
-        setPetitionCount(snap.data().count);
-      } catch (err) {
-        console.error("Erreur getCountFromServer petition:", err);
-      }
-    }
-    fetchPetitionCount();
-
-    const unsubPetition = onSnapshot(
-      doc(db, "stats", "petition"),
-      (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (typeof data.count === "number") {
-            setPetitionCount((prev) => (prev !== null ? Math.max(prev, data.count) : data.count));
-          }
-        }
-      },
-      (err) => {
-        console.error("Erreur lors de l'écoute stats/petition:", err);
-      },
-    );
-    return () => unsubPetition();
-  }, []);
-
-  useEffect(() => {
     const unsubscribe = onSnapshot(
       doc(db, "pages", "historique"),
       (snapshot) => {
@@ -140,6 +106,8 @@ export default function LandingPage() {
     );
     return () => unsubscribe();
   }, []);
+
+  const nextActionPlanEntry = getNextHomeActionPlanEntry(homeActionPlan);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -301,7 +269,7 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative pt-20 pb-16 md:pt-32 md:pb-24 px-4 overflow-hidden">
+        <section className="relative overflow-hidden px-4 pt-14 pb-12 md:pt-32 md:pb-24">
           <div className="absolute inset-0 z-0">
             <img
               src={heroImage.src}
@@ -319,7 +287,7 @@ export default function LandingPage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-stone-900 mb-6 leading-tight">
               Un nid tout neuf pour <span className="text-amber-600">nos écureuils</span>
             </h1>
-            <p className="text-lg md:text-xl text-stone-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="mx-auto mb-7 max-w-2xl text-lg leading-relaxed text-stone-600 md:mb-10 md:text-xl">
               Après le vote du conseil municipal, le dossier retourne chez l’architecte pour être
               ajusté à l’enveloppe prévue. Nous suivons cette étape avec la municipalité, pour
               l’avenir de notre école.
@@ -330,45 +298,39 @@ export default function LandingPage() {
                 <Users size={16} className="text-emerald-600" />
                 Déjà {memberCount !== null ? memberCount : 51} membres mobilisés
               </div>
-              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-stone-200 text-sm font-medium text-stone-700">
-                <Clock size={16} className="text-blue-600" />
-                Prochaine étape : reprise du dossier par l’architecte
-              </div>
             </div>
 
-            {/* Carte Verte Pétition */}
-            <div className="max-w-2xl mx-auto mb-8 bg-gradient-to-br from-emerald-800 to-emerald-950 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-emerald-700/60 relative overflow-hidden text-left">
-              <div className="absolute -right-6 -bottom-6 text-emerald-700/20 pointer-events-none">
-                <FileSignature size={200} />
-              </div>
-
-              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                <div>
-                  <div className="inline-flex items-center gap-2 bg-emerald-700/60 text-emerald-200 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 border border-emerald-600/50">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    Pétition citoyenne close
-                  </div>
-                  <div className="text-4xl md:text-5xl font-black tracking-tight text-white flex items-baseline gap-3 mb-1">
-                    <span>{petitionCount !== null ? petitionCount : "..."}</span>
-                    <span className="text-emerald-200 text-base md:text-xl font-medium">
-                      signatures citoyennes
+            {/* [SPEC-HOME-ACTION-PLAN-01] Le hero met en avant le prochain jalon publié du plan. */}
+            <div className="relative mx-auto mb-8 max-w-3xl overflow-hidden rounded-2xl border border-white/80 bg-white/95 text-left shadow-xl shadow-stone-900/10 backdrop-blur-sm">
+              <div className="absolute inset-y-0 left-0 w-1.5 bg-amber-500" aria-hidden="true" />
+              <div className="grid gap-5 p-5 pl-7 sm:p-6 sm:pl-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-8 md:p-8">
+                <div className="min-w-0">
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex min-h-7 items-center gap-2 rounded-full bg-amber-100 px-3 text-xs font-bold uppercase text-amber-950">
+                      <Clock size={14} aria-hidden="true" />
+                      {nextActionPlanEntry?.status === "current" ? "En cours" : "Prochaine étape"}
                     </span>
+                    {nextActionPlanEntry && (
+                      <span className="text-sm font-semibold text-stone-500">
+                        {nextActionPlanEntry.date}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs md:text-sm text-emerald-100/80 leading-snug">
-                    Merci à toutes celles et ceux qui ont soutenu la démarche. Le dossier entre dans
-                    une nouvelle phase de travail.
+                  <h2 className="text-xl font-black leading-snug text-stone-900 sm:text-2xl">
+                    {nextActionPlanEntry?.title ?? "Les prochaines étapes se dessinent"}
+                  </h2>
+                  <p className="mt-2 line-clamp-3 max-w-2xl text-sm leading-6 text-stone-600 sm:line-clamp-none sm:text-base">
+                    {nextActionPlanEntry?.description ??
+                      "Retrouvez ici les avancées et les prochaines étapes du collectif."}
                   </p>
                 </div>
-
-                <div className="w-full sm:w-auto flex flex-col gap-3 shrink-0">
-                  <a
-                    href="/petition"
-                    className="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-emerald-50 text-emerald-950 font-extrabold px-6 py-4 rounded-2xl shadow-lg hover:shadow-2xl transition-all text-base hover:scale-105 active:scale-95 border border-emerald-100"
-                  >
-                    <FileSignature size={20} className="text-emerald-700" />
-                    Voir le bilan de la pétition
-                  </a>
-                </div>
+                <a
+                  href="#plan"
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 md:w-auto md:min-w-48"
+                >
+                  Voir le plan complet
+                  <ChevronRight size={18} aria-hidden="true" />
+                </a>
               </div>
             </div>
 
