@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
 import { Heart } from "lucide-react";
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import type { TourLieuDit } from "@/lib/tourneeGeo";
+import { getBottomOverlayOcclusion, getMapFocusPanOffset } from "@/lib/missionMapViewport";
 
 interface OpenStreetMapProps {
   locations: TourLieuDit[];
@@ -15,6 +16,7 @@ interface OpenStreetMapProps {
   routePlaceIds?: string[];
   assignmentStatuses?: Record<string, { status: "claimed" | "completed"; memberName?: string }>;
   campaignMode?: boolean;
+  missionMode?: boolean;
   showHouseholdCounts?: boolean;
   selectedPlace?: TourLieuDit | null;
   onSelectPlace?: (place: TourLieuDit) => void;
@@ -31,14 +33,66 @@ function FitMapBounds({ bounds }: { bounds: LatLngBoundsExpression | null }) {
   return null;
 }
 
+function MapSizeObserver() {
+  const map = useMap();
+
+  useEffect(() => {
+    const mapElement = map.getContainer();
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+    });
+    observer.observe(mapElement);
+    return () => observer.disconnect();
+  }, [map]);
+
+  return null;
+}
+
 function FocusPlace({ place }: { place: TourLieuDit | null }) {
   const map = useMap();
+  const previousOcclusion = useRef(0);
+
   useEffect(() => {
-    if (place && Number.isFinite(place.lat) && Number.isFinite(place.lon)) {
-      map.flyTo([place.lat, place.lon], Math.max(map.getZoom(), 14), {
-        duration: 0.5,
-      });
-    }
+    if (!place || !Number.isFinite(place.lat) || !Number.isFinite(place.lon)) return;
+
+    const mapElement = map.getContainer();
+    const missionSheet = document.querySelector<HTMLElement>('[aria-label^="Mission "]');
+    let active = true;
+    let focusComplete = false;
+    previousOcclusion.current = 0;
+
+    const measureOcclusion = () => {
+      if (!active || !focusComplete || !missionSheet) return 0;
+      return getBottomOverlayOcclusion(
+        mapElement.getBoundingClientRect(),
+        missionSheet.getBoundingClientRect(),
+      );
+    };
+
+    const compensateForOcclusion = () => {
+      const currentOcclusion = measureOcclusion();
+      const delta = currentOcclusion - previousOcclusion.current;
+      previousOcclusion.current = currentOcclusion;
+      const panOffset = getMapFocusPanOffset(Math.abs(delta));
+      if (panOffset) map.panBy([0, Math.sign(delta) * panOffset], { animate: true, duration: 0.2 });
+    };
+    const onFocusMoveEnd = () => {
+      focusComplete = true;
+      compensateForOcclusion();
+    };
+
+    map.once("moveend", onFocusMoveEnd);
+    map.flyTo([place.lat, place.lon], Math.max(map.getZoom(), 14), { duration: 0.4 });
+
+    const observer = missionSheet ? new ResizeObserver(compensateForOcclusion) : null;
+    if (observer && missionSheet) observer.observe(missionSheet);
+
+    return () => {
+      active = false;
+      map.off("moveend", compensateForOcclusion);
+      map.off("moveend", onFocusMoveEnd);
+      observer?.disconnect();
+    };
   }, [map, place]);
   return null;
 }
@@ -62,6 +116,7 @@ export default function OpenStreetMap({
   routePlaceIds = [],
   assignmentStatuses = {},
   campaignMode = false,
+  missionMode = false,
   campaignJoined = false,
   routeGeometry = [],
   showHouseholdCounts = true,
@@ -94,7 +149,7 @@ export default function OpenStreetMap({
 
   return (
     <div
-      className={`relative z-0 isolate ${campaignMode ? "h-[70dvh] min-h-[480px]" : "h-[55vh] min-h-[400px]"} w-full overflow-hidden rounded-lg border border-stone-300 bg-stone-100 md:h-[68vh]`}
+      className={`relative z-0 isolate ${missionMode ? "sticky top-14 z-20 h-[calc(50dvh-3.5rem)] min-h-[220px] md:top-0 md:h-[50dvh]" : `${campaignMode ? "h-[70dvh] min-h-[480px]" : "h-[55vh] min-h-[400px]"} md:h-[68vh]`} w-full overflow-hidden rounded-lg border border-stone-300 bg-stone-100`}
     >
       <MapContainer
         center={[48.28, -3.31]}
@@ -108,6 +163,7 @@ export default function OpenStreetMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <MapSizeObserver />
         <FitMapBounds bounds={bounds} />
         <FocusPlace place={selectedPlace} />
         {routeGeometry.length > 1 && (

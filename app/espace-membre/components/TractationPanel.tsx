@@ -9,13 +9,12 @@ import {
   ArrowUp,
   ArrowUpRight,
   Check,
-  ChevronDown,
-  ChevronUp,
   Compass,
   Heart,
   ListChecks,
   Loader2,
   MapPinned,
+  MoreVertical,
   Navigation,
   Pencil,
   Plus,
@@ -61,8 +60,11 @@ type PageData = {
 export type CampaignMapState = {
   campaignId: string;
   title: string;
+  message: string;
   joined: boolean;
   placeIds: string[];
+  places: Array<Pick<Place, "id" | "nom" | "foyers">>;
+  attachment: Campaign["attachment"];
   assignmentStatuses: Record<string, { status: "claimed" | "completed"; memberName?: string }>;
   routePlaceIds: string[];
   origin: GeoPoint | null;
@@ -74,8 +76,10 @@ interface TractationPanelProps {
   onCanCreateChange?: (canCreate: boolean) => void;
   onStatisticsVisibleChange?: (visible: boolean) => void;
   onCampaignMapChange?: (campaign: CampaignMapState | null) => void;
+  onMissionModeChange?: (active: boolean) => void;
   selectedMapPlace?: Pick<Place, "id" | "nom" | "foyers"> | null;
   selectedCampaignId?: string | null;
+  showCampaignDetails?: boolean;
   onCampaignSelect?: (campaignId: string) => void;
   onRegisterMapPlaceAdder?: (handler: (placeId: string) => void) => void;
 }
@@ -122,8 +126,10 @@ export default function TractationPanel({
   onCanCreateChange,
   onStatisticsVisibleChange,
   onCampaignMapChange,
+  onMissionModeChange,
   selectedMapPlace = null,
   selectedCampaignId = null,
+  showCampaignDetails = true,
   onCampaignSelect,
   onRegisterMapPlaceAdder,
 }: TractationPanelProps) {
@@ -150,6 +156,7 @@ export default function TractationPanel({
     y: number;
     scrollTop: number;
   } | null>(null);
+  const missionSheetDragStart = useRef<number | null>(null);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editMessage, setEditMessage] = useState("");
@@ -210,8 +217,11 @@ export default function TractationPanel({
     onCampaignMapChange?.({
       campaignId: campaign.id,
       title: campaign.title,
+      message: campaign.message,
       joined: campaign.joined,
       placeIds: campaign.lieuDits.map((place) => place.id),
+      places: campaign.lieuDits.map(({ id, nom, foyers }) => ({ id, nom, foyers })),
+      attachment: campaign.attachment,
       assignmentStatuses,
       routePlaceIds: campaign.myRoutePlaceIds || [],
       origin: getRouteOrigin(campaign.id),
@@ -226,6 +236,7 @@ export default function TractationPanel({
       if (!place || !place.hasCoordinates || campaign.assignedPlaces?.[placeId]) return;
       setMissionCampaignId(campaign.id);
       setMapCampaignId(campaign.id);
+      onMissionModeChange?.(true);
       setMissionSheet("select");
       setShowRouteDetails(false);
       setError("");
@@ -236,7 +247,13 @@ export default function TractationPanel({
       });
       if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(16);
     });
-  }, [campaigns, selectedCampaignId, onRegisterMapPlaceAdder, favoritePlaceIds]);
+  }, [
+    campaigns,
+    selectedCampaignId,
+    onRegisterMapPlaceAdder,
+    onMissionModeChange,
+    favoritePlaceIds,
+  ]);
 
   useEffect(() => {
     setMapCampaignId(selectedCampaignId);
@@ -266,6 +283,7 @@ export default function TractationPanel({
   };
 
   const missionCampaign = campaigns.find((campaign) => campaign.id === missionCampaignId) || null;
+  const selectedCampaign = campaigns.find((campaign) => campaign.id === selectedCampaignId) || null;
   const resumableCampaign =
     campaigns.find(
       (campaign) =>
@@ -333,6 +351,7 @@ export default function TractationPanel({
   const openMission = (campaign: Campaign) => {
     setMissionCampaignId(campaign.id);
     setMapCampaignId(campaign.id);
+    onMissionModeChange?.(true);
     const routeInProgress = campaign.myRoutePlaceIds.some(
       (id) => campaign.assignedPlaces?.[id]?.status !== "completed",
     );
@@ -636,16 +655,22 @@ export default function TractationPanel({
 
   return (
     <section
-      className="space-y-3 border-t border-stone-200 pt-4"
-      aria-labelledby="ongoing-campaigns-title"
+      id={selectedCampaignId ? "campaign-details" : undefined}
+      className={`${selectedCampaignId && !showCampaignDetails ? "space-y-0 border-0 pt-0" : "space-y-3 border-t border-stone-200 pt-4"}`}
+      aria-labelledby={
+        selectedCampaignId && !showCampaignDetails ? undefined : "ongoing-campaigns-title"
+      }
+      aria-label={selectedCampaignId && !showCampaignDetails ? "Actions de la campagne" : undefined}
     >
-      <div className="flex items-center justify-between gap-3">
-        <h2 id="ongoing-campaigns-title" className="text-lg font-bold text-stone-900">
-          {selectedCampaignId ? "Détails de la campagne" : "Campagnes en cours"}
-        </h2>
-        <span className="text-xs text-stone-500">{campaigns.length}</span>
-      </div>
-      {error && (
+      {(!selectedCampaignId || showCampaignDetails) && (
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="ongoing-campaigns-title" className="text-lg font-bold text-stone-900">
+            {selectedCampaignId ? "Détails de la campagne" : "Campagnes en cours"}
+          </h2>
+          <span className="text-xs text-stone-500">{campaigns.length}</span>
+        </div>
+      )}
+      {(!selectedCampaignId || showCampaignDetails) && error && (
         <p
           role="alert"
           className="border-l-4 border-rose-600 bg-rose-50 px-3 py-2 text-sm text-rose-800"
@@ -653,7 +678,7 @@ export default function TractationPanel({
           {error}
         </p>
       )}
-      {loading ? (
+      {selectedCampaignId && !showCampaignDetails ? null : loading ? (
         <p role="status" className="py-6 text-center text-sm text-stone-500">
           <Loader2 size={17} className="mr-2 inline animate-spin" />
           Chargement…
@@ -738,20 +763,6 @@ export default function TractationPanel({
                       >
                         <Pencil size={16} aria-hidden="true" />
                         Modifier la campagne
-                      </button>
-                    )}
-                    {campaign.joined && (
-                      <button
-                        type="button"
-                        onClick={() => openMission(campaign)}
-                        className={`${myRoutePlaceIds.length ? "hidden lg:inline-flex" : "inline-flex"} btn-primary min-h-12 w-full justify-center px-4 text-base sm:w-auto`}
-                      >
-                        <Navigation size={18} aria-hidden="true" />
-                        {myRoutePlaceIds.length
-                          ? resumableRouteInProgress
-                            ? "Reprendre ma tournée"
-                            : "Préparer une nouvelle tournée"
-                          : "Préparer ma tournée"}
                       </button>
                     )}
                     {editingCampaignId === campaign.id ? (
@@ -958,17 +969,6 @@ export default function TractationPanel({
                       <p className="whitespace-pre-wrap text-sm leading-6 text-stone-700">
                         {campaign.message}
                       </p>
-                    )}
-                    {!campaign.joined && (
-                      <button
-                        type="button"
-                        onClick={() => void join(campaign.id)}
-                        disabled={busy === campaign.id}
-                        className="btn-primary min-h-10 px-4 py-2 text-sm"
-                      >
-                        <Users size={16} />
-                        {busy === campaign.id ? "Inscription…" : "Rejoindre cette campagne"}
-                      </button>
                     )}
                     {campaign.attachment && (
                       <button
@@ -1188,7 +1188,7 @@ export default function TractationPanel({
             })}
         </div>
       )}
-      {nextCursor && (
+      {!selectedCampaignId && nextCursor && (
         <button
           type="button"
           onClick={() => user && void load(user, nextCursor)}
@@ -1198,30 +1198,51 @@ export default function TractationPanel({
         </button>
       )}
 
-      {resumableCampaign && !missionCampaign && editingCampaignId !== resumableCampaign.id && (
-        <>
-          <div className="h-24 lg:hidden" aria-hidden="true" />
-          <footer className="fixed inset-x-0 bottom-0 z-[900] border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(28,25,23,0.14)] backdrop-blur lg:hidden">
-            <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
-              <p className="min-w-0 flex-1 text-xs leading-5 text-stone-600">
-                {
-                  resumableCampaign.myRoutePlaceIds.filter(
-                    (id) => resumableCampaign.assignedPlaces?.[id]?.status === "completed",
-                  ).length
-                }
-                /{resumableCampaign.myRoutePlaceIds.length} secteurs terminés
-              </p>
-              <button
-                type="button"
-                onClick={() => openMission(resumableCampaign)}
-                className="btn-primary min-h-14 shrink-0 justify-center px-5 text-base"
-              >
-                <Navigation size={19} aria-hidden="true" />
-                {resumableRouteInProgress ? "Reprendre ma tournée" : "Nouvelle tournée"}
-              </button>
-            </div>
-          </footer>
-        </>
+      {selectedCampaignId && selectedCampaignId !== editingCampaignId && selectedCampaign && (
+        <footer className="fixed inset-x-0 bottom-0 z-[900] border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(28,25,23,0.14)] backdrop-blur md:left-64">
+          <div className="mx-auto flex w-full max-w-7xl items-center gap-3">
+            {selectedCampaign.joined ? (
+              <>
+                <p className="hidden min-w-0 flex-1 text-sm text-stone-600 sm:block">
+                  {selectedCampaign.myRoutePlaceIds.length
+                    ? `${selectedCampaign.myRoutePlaceIds.filter((id) => selectedCampaign.assignedPlaces?.[id]?.status === "completed").length}/${selectedCampaign.myRoutePlaceIds.length} secteurs terminés`
+                    : "Vous êtes inscrit à cette campagne"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => openMission(selectedCampaign)}
+                  className="btn-primary min-h-12 w-full justify-center px-4 text-base sm:w-auto sm:min-w-64"
+                >
+                  <Navigation size={18} aria-hidden="true" />
+                  {selectedCampaign.myRoutePlaceIds.length
+                    ? resumableRouteInProgress
+                      ? "Reprendre ma tournée"
+                      : "Préparer une nouvelle tournée"
+                    : "Préparer ma tournée"}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="hidden min-w-0 flex-1 text-sm text-stone-600 sm:block">
+                  Participez à cette campagne et préparez votre tournée.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void join(selectedCampaign.id)}
+                  disabled={busy === selectedCampaign.id}
+                  className="btn-primary min-h-12 w-full justify-center px-4 text-base sm:w-auto sm:min-w-64 disabled:cursor-wait"
+                >
+                  {busy === selectedCampaign.id ? (
+                    <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Users size={18} aria-hidden="true" />
+                  )}
+                  {busy === selectedCampaign.id ? "Inscription…" : "Rejoindre cette campagne"}
+                </button>
+              </>
+            )}
+          </div>
+        </footer>
       )}
 
       {/* [SPEC-TRACTATION-06] Keep the complete mobile mission flow in a thumb-reachable sheet. */}
@@ -1230,10 +1251,37 @@ export default function TractationPanel({
       )}
       {missionCampaign && (
         <section
-          className="fixed inset-x-0 bottom-0 z-[1000] flex max-h-[72dvh] flex-col rounded-t-2xl border border-stone-300 bg-white shadow-[0_-12px_36px_rgba(28,25,23,0.2)] lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-[1000] flex h-[50dvh] max-h-[50dvh] flex-col rounded-t-2xl border border-stone-300 bg-white shadow-[0_-12px_36px_rgba(28,25,23,0.2)] lg:hidden"
           aria-label={`Mission ${missionCampaign.title}`}
         >
-          <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-stone-300" aria-hidden="true" />
+          <div
+            className="flex h-9 shrink-0 touch-none cursor-grab items-center justify-center active:cursor-grabbing"
+            role="group"
+            aria-label="Poignée du panneau de tournée : glissez vers le bas pour fermer, vers le haut pour les détails"
+            onPointerDown={(event) => {
+              if (event.pointerType === "mouse" && event.button !== 0) return;
+              missionSheetDragStart.current = event.clientY;
+            }}
+            onPointerUp={(event) => {
+              const startY = missionSheetDragStart.current;
+              missionSheetDragStart.current = null;
+              if (startY === null) return;
+              const deltaY = event.clientY - startY;
+              if (deltaY > 72) {
+                setMissionCampaignId(null);
+                setMapCampaignId(null);
+                setShowRouteDetails(false);
+                onMissionModeChange?.(false);
+              } else if (deltaY < -56 && missionSheet === "select") {
+                setShowRouteDetails(true);
+              }
+            }}
+            onPointerCancel={() => {
+              missionSheetDragStart.current = null;
+            }}
+          >
+            <span className="h-1.5 w-12 rounded-full bg-stone-300" aria-hidden="true" />
+          </div>
           <header className="flex items-center gap-3 border-b border-stone-200 px-4 py-3">
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold text-stone-900">
@@ -1250,6 +1298,7 @@ export default function TractationPanel({
               onClick={() => {
                 setMissionCampaignId(null);
                 setMapCampaignId(null);
+                onMissionModeChange?.(false);
               }}
               aria-label="Fermer le mode mission"
               className="grid size-11 shrink-0 place-items-center rounded-full text-stone-600 hover:bg-stone-100"
@@ -1261,10 +1310,6 @@ export default function TractationPanel({
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-3">
             {missionSheet === "select" && (
               <div className="space-y-3">
-                <p className="text-xs leading-5 text-stone-600">
-                  Choisissez parmi tous les secteurs de cette campagne. Vos favoris sont
-                  présélectionnés, mais ne limitent pas votre tournée.
-                </p>
                 <div className="flex gap-2">
                   <label className="relative min-w-0 flex-1">
                     <span className="sr-only">Rechercher un secteur dans la campagne</span>
@@ -1642,84 +1687,83 @@ export default function TractationPanel({
 
           {missionSheet === "select" && (
             <footer className="sticky bottom-0 z-20 shrink-0 border-t border-stone-200 bg-white px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(28,25,23,0.08)]">
-              {showRouteDetails && (
-                <div
-                  id="mission-route-details"
-                  className="mb-3 max-h-[27dvh] overflow-y-auto rounded-lg border border-stone-200 bg-stone-50 px-3"
-                  aria-label="Détails de la tournée"
-                  onTouchStart={(event) => {
-                    const touch = event.touches[0];
-                    if (touch)
-                      routeDetailsTouchStart.current = {
-                        y: touch.clientY,
-                        scrollTop: event.currentTarget.scrollTop,
-                      };
-                  }}
-                  onTouchEnd={(event) => {
-                    const start = routeDetailsTouchStart.current;
-                    const touch = event.changedTouches[0];
-                    routeDetailsTouchStart.current = null;
-                    if (
-                      start &&
-                      touch &&
-                      start.scrollTop <= 1 &&
-                      event.currentTarget.scrollTop <= 1 &&
-                      touch.clientY - start.y > 56
-                    ) {
-                      setShowRouteDetails(false);
-                    }
-                  }}
-                >
-                  {missionDraft.length ? (
-                    <ol className="divide-y divide-stone-200">
-                      {missionDraft.map((placeId, index) => {
-                        const place = missionCampaign.lieuDits.find((item) => item.id === placeId);
-                        if (!place) return null;
-                        return (
-                          <li key={placeId} className="flex min-h-12 items-center gap-2 py-1">
-                            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-emerald-800 text-xs font-bold text-white">
-                              {index + 1}
-                            </span>
-                            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-900">
-                              {place.nom}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => moveRouteDraftPlace(missionCampaign, index, -1)}
-                              disabled={index === 0}
-                              aria-label={`Monter ${place.nom}`}
-                              className="grid size-10 shrink-0 place-items-center rounded-md text-stone-700 disabled:opacity-30"
-                            >
-                              <ArrowUp size={16} aria-hidden="true" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => moveRouteDraftPlace(missionCampaign, index, 1)}
-                              disabled={index === missionDraft.length - 1}
-                              aria-label={`Descendre ${place.nom}`}
-                              className="grid size-10 shrink-0 place-items-center rounded-md text-stone-700 disabled:opacity-30"
-                            >
-                              <ArrowDown size={16} aria-hidden="true" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => toggleRouteDraftPlace(missionCampaign, placeId)}
-                              aria-label={`Retirer ${place.nom} de la tournée`}
-                              className="grid size-10 shrink-0 place-items-center rounded-md text-stone-500"
-                            >
-                              <X size={16} aria-hidden="true" />
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ol>
-                  ) : (
-                    <p className="py-4 text-center text-sm text-stone-600">
-                      Aucun secteur sélectionné.
-                    </p>
-                  )}
-                </div>
-              )}
+              <div
+                id="mission-route-details"
+                hidden={!showRouteDetails}
+                className="mb-3 max-h-[18dvh] overflow-y-auto rounded-lg border border-stone-200 bg-stone-50 px-3"
+                aria-label="Détails de la tournée"
+                onTouchStart={(event) => {
+                  const touch = event.touches[0];
+                  if (touch)
+                    routeDetailsTouchStart.current = {
+                      y: touch.clientY,
+                      scrollTop: event.currentTarget.scrollTop,
+                    };
+                }}
+                onTouchEnd={(event) => {
+                  const start = routeDetailsTouchStart.current;
+                  const touch = event.changedTouches[0];
+                  routeDetailsTouchStart.current = null;
+                  if (
+                    start &&
+                    touch &&
+                    start.scrollTop <= 1 &&
+                    event.currentTarget.scrollTop <= 1 &&
+                    touch.clientY - start.y > 56
+                  ) {
+                    setShowRouteDetails(false);
+                  }
+                }}
+              >
+                {missionDraft.length ? (
+                  <ol className="divide-y divide-stone-200">
+                    {missionDraft.map((placeId, index) => {
+                      const place = missionCampaign.lieuDits.find((item) => item.id === placeId);
+                      if (!place) return null;
+                      return (
+                        <li key={placeId} className="flex min-h-12 items-center gap-2 py-1">
+                          <span className="grid size-7 shrink-0 place-items-center rounded-full bg-emerald-800 text-xs font-bold text-white">
+                            {index + 1}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-900">
+                            {place.nom}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => moveRouteDraftPlace(missionCampaign, index, -1)}
+                            disabled={index === 0}
+                            aria-label={`Monter ${place.nom}`}
+                            className="grid size-10 shrink-0 place-items-center rounded-md text-stone-700 disabled:opacity-30"
+                          >
+                            <ArrowUp size={16} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveRouteDraftPlace(missionCampaign, index, 1)}
+                            disabled={index === missionDraft.length - 1}
+                            aria-label={`Descendre ${place.nom}`}
+                            className="grid size-10 shrink-0 place-items-center rounded-md text-stone-700 disabled:opacity-30"
+                          >
+                            <ArrowDown size={16} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleRouteDraftPlace(missionCampaign, placeId)}
+                            aria-label={`Retirer ${place.nom} de la tournée`}
+                            className="grid size-10 shrink-0 place-items-center rounded-md text-stone-500"
+                          >
+                            <X size={16} aria-hidden="true" />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                ) : (
+                  <p className="py-4 text-center text-sm text-stone-600">
+                    Aucun secteur sélectionné.
+                  </p>
+                )}
+              </div>
               {error && (
                 <p
                   role="alert"
@@ -1729,28 +1773,33 @@ export default function TractationPanel({
                 </p>
               )}
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowRouteDetails((value) => !value)}
-                  aria-expanded={showRouteDetails}
-                  aria-controls="mission-route-details"
-                  className="flex min-h-14 min-w-0 flex-1 items-center gap-2 rounded-lg px-1 text-left hover:bg-stone-50"
-                >
-                  <ListChecks size={20} className="shrink-0 text-stone-700" aria-hidden="true" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold text-stone-900">
-                      Détails de la tournée
-                    </span>
-                    <span className="block truncate text-xs text-stone-500">
-                      {missionDraft.length} secteur(s) sélectionné(s)
-                    </span>
-                  </span>
-                  {showRouteDetails ? (
-                    <ChevronDown size={18} className="shrink-0 text-stone-500" aria-hidden="true" />
-                  ) : (
-                    <ChevronUp size={18} className="shrink-0 text-stone-500" aria-hidden="true" />
-                  )}
-                </button>
+                <details className="relative shrink-0">
+                  <summary
+                    aria-label="Actions de la tournée"
+                    className="grid size-12 cursor-pointer list-none place-items-center rounded-lg border border-stone-300 bg-white text-stone-700"
+                  >
+                    <MoreVertical size={20} aria-hidden="true" />
+                  </summary>
+                  <div className="absolute bottom-[calc(100%+0.5rem)] left-0 z-30 grid min-w-52 gap-1 rounded-lg border border-stone-200 bg-white p-1 shadow-lg">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        setShowRouteDetails((value) => !value);
+                        event.currentTarget.closest("details")?.removeAttribute("open");
+                      }}
+                      aria-expanded={showRouteDetails}
+                      aria-controls="mission-route-details"
+                      className="flex min-h-11 items-center gap-2 rounded-md px-3 text-left text-sm font-semibold text-stone-800 hover:bg-stone-100"
+                    >
+                      <ListChecks size={17} aria-hidden="true" />
+                      {showRouteDetails ? "Masquer les détails" : "Modifier la tournée"}
+                    </button>
+                    <p className="px-3 pb-2 text-xs leading-5 text-stone-500">
+                      {missionDraft.length} secteur(s) sélectionné(s). Vous pouvez les réordonner ou
+                      les retirer.
+                    </p>
+                  </div>
+                </details>
                 <button
                   type="button"
                   onClick={() => void claimRoute(missionCampaign)}

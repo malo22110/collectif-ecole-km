@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   campaignInputSchema,
@@ -20,6 +21,65 @@ import {
 } from "../lib/tractationValidation.ts";
 import { chunkOrderedRoutePoints } from "../lib/tourneeGeo.ts";
 import { toPublicPlaceAssignment } from "../lib/tractationAssignmentDisplay.ts";
+import { getBottomOverlayOcclusion, getMapFocusPanOffset } from "../lib/missionMapViewport.ts";
+
+// [SPEC-TRACTATION-06] Campaign participation and route preparation actions stay fixed and reachable while viewing campaign details.
+test("place les actions de campagne dans un footer fixe avec dégagement mobile", async () => {
+  const panel = await readFile(
+    new URL("../app/espace-membre/components/TractationPanel.tsx", import.meta.url),
+    "utf8",
+  );
+  const page = await readFile(
+    new URL("../app/espace-membre/tournees/page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(panel, /footer className="fixed inset-x-0 bottom-0[^\"]*md:left-64/);
+  assert.match(panel, /Rejoindre cette campagne/);
+  assert.match(panel, /Préparer ma tournée/);
+  assert.match(panel, /Modifier la tournée/);
+  assert.match(page, /Infos sur la tournée/);
+  assert.match(panel, /showCampaignDetails = true/);
+  assert.match(panel, /selectedCampaignId && !showCampaignDetails \? null/);
+  assert.match(panel, /h-\[50dvh\] max-h-\[50dvh\]/);
+  assert.match(panel, /onPointerDown=\{\(event\) =>/);
+  assert.match(panel, /deltaY > 72/);
+  assert.match(panel, /setMissionCampaignId\(null\)/);
+  assert.match(panel, /max-h-\[18dvh\]/);
+  assert.match(page, /pb-\[calc\(7rem\+env\(safe-area-inset-bottom\)\)\]/);
+  assert.match(page, /"campaignInfo"/);
+  assert.match(page, /onClick=\{\(\) => setView\("campaignInfo"\)\}/);
+  assert.match(page, /missionMode=\{missionMode\}/);
+  assert.match(page, /showCampaignDetails=\{false\}/);
+  assert.doesNotMatch(page, /Choisissez parmi tous les secteurs de cette campagne/);
+});
+
+// [SPEC-TRACTATION-06] Keep a selected map marker centered in the unobscured map area.
+test("compense le recentrage en fonction de la partie de carte cachée par le tiroir", () => {
+  const mapRect = { top: 100, right: 390, bottom: 760, left: 0, height: 660, width: 390 };
+  const expandedSheet = {
+    top: 520,
+    right: 390,
+    bottom: 844,
+    left: 0,
+    height: 324,
+    width: 390,
+  };
+  const collapsedSheet = {
+    top: 700,
+    right: 390,
+    bottom: 844,
+    left: 0,
+    height: 144,
+    width: 390,
+  };
+
+  assert.equal(getBottomOverlayOcclusion(mapRect, expandedSheet), 240);
+  assert.equal(getMapFocusPanOffset(240), 120);
+  assert.equal(getBottomOverlayOcclusion(mapRect, collapsedSheet), 60);
+  assert.equal(getMapFocusPanOffset(60), 30);
+  assert.equal(getBottomOverlayOcclusion(mapRect, { ...expandedSheet, left: 400, right: 790 }), 0);
+});
 
 // [SPEC-TRACTATION-01] Campaign creation rejects empty, oversized, or duplicate location selections.
 test("valide les champs de campagne et refuse les lieux répétés", () => {

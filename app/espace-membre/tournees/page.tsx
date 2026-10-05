@@ -3,7 +3,16 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Heart, Loader2, MapPinned, Plus, Settings2 } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowLeft,
+  Heart,
+  Info,
+  Loader2,
+  MapPinned,
+  Plus,
+  Settings2,
+} from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type { TourLieuDit } from "@/lib/tourneeGeo";
@@ -21,7 +30,7 @@ const OpenStreetMap = dynamic(() => import("./OpenStreetMap"), {
   ),
 });
 
-type HubView = "loading" | "setup" | "campaigns" | "campaign" | "preferences";
+type HubView = "loading" | "setup" | "campaigns" | "campaign" | "campaignInfo" | "preferences";
 type PrivatePreferences = {
   favoritePlaceIds: string[];
   setupComplete: boolean;
@@ -40,6 +49,8 @@ export default function TourneesPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [view, setView] = useState<HubView>("loading");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [missionMode, setMissionMode] = useState(false);
+  const [downloadingCampaignDocument, setDownloadingCampaignDocument] = useState(false);
   const mapPlaceAdder = useRef<((placeId: string) => void) | null>(null);
   const [canCreateCampaign, setCanCreateCampaign] = useState(false);
   const [showStatistics, setShowStatistics] = useState(false);
@@ -246,6 +257,7 @@ export default function TourneesPage() {
   const openCampaign = useCallback((campaignId: string) => {
     setSelectedCampaignId(campaignId);
     setCampaignMap(null);
+    setMissionMode(false);
     setView("campaign");
     setSelectedPlace(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -253,6 +265,7 @@ export default function TourneesPage() {
   const backToCampaigns = useCallback(() => {
     setSelectedCampaignId(null);
     setCampaignMap(null);
+    setMissionMode(false);
     setSelectedPlace(null);
     setView("campaigns");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -261,12 +274,41 @@ export default function TourneesPage() {
   const title =
     view === "campaign"
       ? campaignMap?.title || "Campagne"
-      : view === "preferences"
-        ? "Mes lieux favoris"
-        : "Campagnes en cours";
+      : view === "campaignInfo"
+        ? campaignMap?.title || "Infos sur la tournée"
+        : view === "preferences"
+          ? "Mes lieux favoris"
+          : "Campagnes en cours";
+
+  const downloadCampaignDocument = async () => {
+    if (!currentUser || !campaignMap?.attachment || !campaignMap.campaignId) return;
+    setDownloadingCampaignDocument(true);
+    setPageError("");
+    try {
+      const response = await fetch(`/api/tractation/${campaignMap.campaignId}/document`, {
+        headers: { Authorization: `Bearer ${await currentUser.getIdToken()}` },
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Impossible de télécharger le document.");
+      const objectUrl = URL.createObjectURL(await response.blob());
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = campaignMap.attachment.fileName;
+      anchor.click();
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      setPageError(
+        error instanceof Error ? error.message : "Impossible de télécharger le document.",
+      );
+    } finally {
+      setDownloadingCampaignDocument(false);
+    }
+  };
 
   return (
-    <main className="min-h-full bg-stone-50 p-4 pb-[max(2rem,env(safe-area-inset-bottom))] sm:p-5 md:p-8">
+    <main
+      className={`min-h-full bg-stone-50 p-4 sm:p-5 md:p-8 ${view === "campaign" ? "pb-[calc(7rem+env(safe-area-inset-bottom))]" : "pb-[max(2rem,env(safe-area-inset-bottom))]"}`}
+    >
       <div
         className={`mx-auto w-full ${view === "campaign" ? "max-w-7xl space-y-4" : "max-w-4xl space-y-5"}`}
       >
@@ -292,9 +334,19 @@ export default function TourneesPage() {
               {view !== "campaigns" && (
                 <button
                   type="button"
-                  onClick={() => (view === "campaign" ? backToCampaigns() : setView("campaigns"))}
+                  onClick={() =>
+                    view === "campaignInfo"
+                      ? setView("campaign")
+                      : view === "campaign"
+                        ? backToCampaigns()
+                        : setView("campaigns")
+                  }
                   aria-label={
-                    view === "campaign" ? "Retour aux campagnes" : "Retour aux campagnes en cours"
+                    view === "campaignInfo"
+                      ? "Retour à la tournée"
+                      : view === "campaign"
+                        ? "Retour aux campagnes"
+                        : "Retour aux campagnes en cours"
                   }
                   className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700"
                 >
@@ -331,6 +383,17 @@ export default function TourneesPage() {
                   className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700"
                 >
                   <Settings2 size={19} aria-hidden="true" />
+                </button>
+              )}
+              {view === "campaign" && campaignMap && (
+                <button
+                  type="button"
+                  onClick={() => setView("campaignInfo")}
+                  aria-label="Infos sur la tournée"
+                  title="Infos sur la tournée"
+                  className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700"
+                >
+                  <Info size={20} aria-hidden="true" />
                 </button>
               )}
             </header>
@@ -373,6 +436,67 @@ export default function TourneesPage() {
               </section>
             )}
 
+            {view === "campaignInfo" && campaignMap && (
+              <section id="campaign-info" className="mx-auto w-full max-w-3xl space-y-5">
+                <div className="border-b border-stone-200 pb-4">
+                  <p className="text-sm font-semibold uppercase text-emerald-800">
+                    Informations de la campagne
+                  </p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-stone-700">
+                    {campaignMap.message}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-stone-600">
+                  <span>{campaignMap.places.length} secteurs ciblés</span>
+                  <span>
+                    {
+                      Object.values(campaignMap.assignmentStatuses).filter(
+                        (assignment) => assignment.status === "completed",
+                      ).length
+                    }{" "}
+                    secteurs terminés
+                  </span>
+                </div>
+                <section aria-labelledby="campaign-info-places" className="space-y-2">
+                  <h2 id="campaign-info-places" className="font-bold text-stone-900">
+                    Secteurs concernés
+                  </h2>
+                  <ul className="max-h-[45dvh] divide-y divide-stone-200 overflow-y-auto border-y border-stone-200">
+                    {campaignMap.places.map((place) => (
+                      <li
+                        key={place.id}
+                        className="flex min-h-12 items-center justify-between gap-3 py-2"
+                      >
+                        <span className="min-w-0 truncate text-sm font-medium text-stone-800">
+                          {place.nom}
+                        </span>
+                        <span className="shrink-0 text-xs text-stone-500">
+                          {place.foyers} foyers
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+                {campaignMap.attachment && (
+                  <button
+                    type="button"
+                    onClick={() => void downloadCampaignDocument()}
+                    disabled={downloadingCampaignDocument}
+                    className="btn-secondary min-h-11 px-4 py-2 text-sm"
+                  >
+                    {downloadingCampaignDocument ? (
+                      <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <ArrowDownToLine size={16} aria-hidden="true" />
+                    )}
+                    {downloadingCampaignDocument
+                      ? "Téléchargement…"
+                      : campaignMap.attachment.fileName}
+                  </button>
+                )}
+              </section>
+            )}
+
             {view === "preferences" && (
               <MemberPlacePreferences
                 places={locations.map(({ id, nom }) => ({ id, nom }))}
@@ -384,14 +508,6 @@ export default function TourneesPage() {
             {view === "campaign" && (
               <>
                 <section id="places-map-section" className="scroll-mt-3 space-y-3">
-                  {campaignMap && (
-                    <p className="text-xs text-stone-600">
-                      La carte est limitée aux secteurs de cette campagne. Les marqueurs
-                      représentent des lieux-dits, pas des domiciles. Le calcul routier transmet le
-                      départ et les étapes au service de routage configuré, dans l’ordre de votre
-                      tournée.
-                    </p>
-                  )}
                   {campaignMap?.routePlaceIds.length ? (
                     <div
                       className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-blue-700 bg-blue-50 px-3 py-2 text-sm text-blue-950"
@@ -452,6 +568,7 @@ export default function TourneesPage() {
                       routePlaceIds={campaignMap.routePlaceIds}
                       assignmentStatuses={campaignMap.assignmentStatuses}
                       campaignMode
+                      missionMode={missionMode}
                       campaignJoined={campaignMap.joined}
                       onAddToRoute={(placeId) => mapPlaceAdder.current?.(placeId)}
                       routeGeometry={roadRoute?.geometry}
@@ -491,6 +608,8 @@ export default function TourneesPage() {
                   onCampaignMapChange={handleCampaignMapChange}
                   selectedMapPlace={selectedPlace}
                   selectedCampaignId={selectedCampaignId}
+                  showCampaignDetails={false}
+                  onMissionModeChange={setMissionMode}
                   onCampaignSelect={openCampaign}
                   onRegisterMapPlaceAdder={registerMapPlaceAdder}
                 />
