@@ -14,8 +14,13 @@ const mailTransport_1 = require("./mailTransport");
 const mailInboxSync_1 = require("./mailInboxSync");
 const mailInboxUtils_1 = require("./mailInboxUtils");
 const mailQueue_1 = require("./mailQueue");
+const magicLinkConfig_1 = require("./magicLinkConfig");
 (0, v2_1.setGlobalOptions)({ region: "europe-west9" });
-exports.envoyerMailBienvenue = (0, firestore_2.onDocumentUpdated)({ document: "membres/{membreId}", database: "ecole-db", secrets: [mailTransport_1.smtpPassword] }, async (event) => {
+exports.envoyerMailBienvenue = (0, firestore_2.onDocumentUpdated)({
+    document: "membres/{membreId}",
+    database: "ecole-db",
+    secrets: [mailTransport_1.smtpPassword],
+}, async (event) => {
     const membreAvant = event.data?.before.data();
     const membreApres = event.data?.after.data();
     if (!membreAvant || !membreApres)
@@ -65,8 +70,8 @@ ${(0, emailTemplates_1.getEmailFooter)(false)}`;
             text: textContent,
             html: htmlContent,
             headers: {
-                'X-Entity-Ref-ID': event.params.membreId
-            }
+                "X-Entity-Ref-ID": event.params.membreId,
+            },
         };
         try {
             await transporter.sendMail(mailOptions);
@@ -77,19 +82,20 @@ ${(0, emailTemplates_1.getEmailFooter)(false)}`;
         }
     }
 });
-exports.envoyerMagicLink = (0, firestore_2.onDocumentCreated)({ document: "magicLinks/{linkId}", database: "ecole-db", secrets: [mailTransport_1.smtpPassword] }, async (event) => {
+exports.envoyerMagicLink = (0, firestore_2.onDocumentCreated)({
+    document: "magicLinks/{linkId}",
+    database: "ecole-db",
+    secrets: [mailTransport_1.smtpPassword],
+}, async (event) => {
     const data = event.data?.data();
-    if (!data || !data.email || data.status !== 'pending')
+    if (!data || !data.email || data.status !== "pending")
         return;
     const email = data.email;
-    const redirectUrl = data.url || 'https://collectif-ecole-km.web.app/';
     try {
-        const actionCodeSettings = {
-            url: redirectUrl,
-            handleCodeInApp: true,
-        };
         // Génération du lien de connexion sécurisé
-        const signinLink = await admin.auth().generateSignInWithEmailLink(email, actionCodeSettings);
+        const signinLink = await admin
+            .auth()
+            .generateSignInWithEmailLink(email, magicLinkConfig_1.MAGIC_LINK_ACTION_CODE_SETTINGS);
         const transporter = (0, mailTransport_1.createMailTransport)();
         const textContent = `Bonjour,
 
@@ -122,15 +128,18 @@ Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sé
             to: email,
             subject: "Votre lien magique de connexion 🪄",
             text: textContent,
-            html: htmlContent
+            html: htmlContent,
         };
         await transporter.sendMail(mailOptions);
         logger.info(`Magic link envoyé à ${email}`);
-        await event.data?.ref.update({ status: 'sent', sentAt: admin.firestore.FieldValue.serverTimestamp() });
+        await event.data?.ref.update({
+            status: "sent",
+            sentAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
     }
     catch (error) {
         logger.error("Erreur lors de l'envoi du Magic Link :", error);
-        await event.data?.ref.update({ status: 'error', error: String(error) });
+        await event.data?.ref.update({ status: "error", error: String(error) });
     }
 });
 async function processSpreadMail(docSnap) {
@@ -140,7 +149,7 @@ async function processSpreadMail(docSnap) {
             return null;
         transaction.update(docSnap.ref, {
             status: "sending",
-            startedAt: admin.firestore.FieldValue.serverTimestamp()
+            startedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
         return current.data();
     });
@@ -151,11 +160,18 @@ async function processSpreadMail(docSnap) {
         const subject = data.subject || "Nouvelle communication du collectif";
         const bodyContent = data.html || "<p>Message vide.</p>";
         const isTest = data.testMode === true;
-        const deliverySnapshot = await docSnap.ref.collection("recipients").where("status", "==", "pending").limit(1000).get();
-        const deliveries = deliverySnapshot.docs.filter(delivery => typeof delivery.get("email") === "string");
+        const deliverySnapshot = await docSnap.ref
+            .collection("recipients")
+            .where("status", "==", "pending")
+            .limit(1000)
+            .get();
+        const deliveries = deliverySnapshot.docs.filter((delivery) => typeof delivery.get("email") === "string");
         if (deliveries.length === 0) {
             logger.info("Aucun destinataire trouvé pour ce mail.");
-            await docSnap.ref.update({ status: "error", error: "Aucun destinataire éligible." });
+            await docSnap.ref.update({
+                status: "error",
+                error: "Aucun destinataire éligible.",
+            });
             return;
         }
         const htmlContent = (0, emailTemplates_1.getBaseHtmlTemplate)(bodyContent);
@@ -171,52 +187,78 @@ async function processSpreadMail(docSnap) {
                 to: email,
                 subject: subject,
                 html: htmlContent,
-                headers: { "X-Collectif-Campaign-ID": docSnap.id }
+                headers: { "X-Collectif-Campaign-ID": docSnap.id },
             };
             try {
                 const result = await transporter.sendMail(mailOptions);
                 sentCount++;
-                await deliveryRef.ref.update({ status: "sent", messageId: result.messageId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
+                await deliveryRef.ref.update({
+                    status: "sent",
+                    messageId: result.messageId,
+                    sentAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
                 const indexId = (0, mailInboxUtils_1.getMailMessageIndexId)(result.messageId);
                 if (indexId) {
-                    await firestore.collection("mailMessageIndex").doc(indexId).set({ threadId: docSnap.id, campaignId: docSnap.id })
-                        .catch(error => logger.error("Impossible d’indexer le Message-ID de campagne.", error));
+                    await firestore
+                        .collection("mailMessageIndex")
+                        .doc(indexId)
+                        .set({ threadId: docSnap.id, campaignId: docSnap.id })
+                        .catch((error) => logger.error("Impossible d’indexer le Message-ID de campagne.", error));
                 }
                 await docSnap.ref.update({
                     sentCount: admin.firestore.FieldValue.increment(1),
                     pendingCount: admin.firestore.FieldValue.increment(-1),
-                    status: "sending"
+                    status: "sending",
                 });
             }
             catch (err) {
                 logger.error(`Erreur d'envoi à ${email}:`, err);
                 failedCount++;
-                await deliveryRef.ref.update({ status: "error", error: "Échec de livraison SMTP.", failedAt: admin.firestore.FieldValue.serverTimestamp() });
+                await deliveryRef.ref.update({
+                    status: "error",
+                    error: "Échec de livraison SMTP.",
+                    failedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
                 await docSnap.ref.update({
                     failedCount: admin.firestore.FieldValue.increment(1),
                     pendingCount: admin.firestore.FieldValue.increment(-1),
-                    status: "sending"
+                    status: "sending",
                 });
             }
         }
-        logger.info("Campagne traitée.", { sentCount, failedCount, testMode: isTest });
+        logger.info("Campagne traitée.", {
+            sentCount,
+            failedCount,
+            testMode: isTest,
+        });
         await docSnap.ref.update({
             status: failedCount === 0 ? "sent" : sentCount > 0 ? "partial" : "error",
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
             sentCount,
             failedCount,
-            error: failedCount ? "Une ou plusieurs livraisons ont échoué." : admin.firestore.FieldValue.delete()
+            error: failedCount
+                ? "Une ou plusieurs livraisons ont échoué."
+                : admin.firestore.FieldValue.delete(),
         });
     }
     catch (error) {
         logger.error("Erreur lors de l'envoi du SpreadMail :", error);
-        await docSnap.ref.update({ status: 'error', error: String(error) });
+        await docSnap.ref.update({ status: "error", error: String(error) });
     }
 }
-exports.envoyerSpreadMail = (0, firestore_2.onDocumentWritten)({ document: "mailOutbox/{mailId}", database: "ecole-db", secrets: [mailTransport_1.smtpPassword], timeoutSeconds: 540, retry: true }, async (event) => {
+exports.envoyerSpreadMail = (0, firestore_2.onDocumentWritten)({
+    document: "mailOutbox/{mailId}",
+    database: "ecole-db",
+    secrets: [mailTransport_1.smtpPassword],
+    timeoutSeconds: 540,
+    retry: true,
+}, async (event) => {
     const before = event.data?.before.data();
     const after = event.data?.after.data();
-    if (!event.data?.after.exists || !after || after.status !== "pending" || before?.status === "pending")
+    if (!event.data?.after.exists ||
+        !after ||
+        after.status !== "pending" ||
+        before?.status === "pending")
         return;
     // Si le mail est programmé dans le futur, on ne fait rien.
     // C'est le Cron Job qui s'en chargera.
@@ -230,11 +272,12 @@ exports.envoyerSpreadMail = (0, firestore_2.onDocumentWritten)({ document: "mail
 exports.checkScheduledMails = (0, scheduler_1.onSchedule)({ schedule: "every 5 minutes", secrets: [mailTransport_1.smtpPassword], timeoutSeconds: 540 }, async (event) => {
     const now = new Date();
     // [SPEC-MAIL-03] Reprendre aussi les envois immédiats si leur événement Firestore a été manqué.
-    const snapshot = await (0, firestore_1.getFirestore)("ecole-db").collection("mailOutbox")
+    const snapshot = await (0, firestore_1.getFirestore)("ecole-db")
+        .collection("mailOutbox")
         .where("status", "==", "pending")
         .limit(1000)
         .get();
-    const dueMails = snapshot.docs.filter(doc => (0, mailQueue_1.isMailDueForDelivery)(doc.get("scheduledAt"), now));
+    const dueMails = snapshot.docs.filter((doc) => (0, mailQueue_1.isMailDueForDelivery)(doc.get("scheduledAt"), now));
     if (dueMails.length === 0) {
         logger.info("Aucun mail arrivé à échéance dans la file d’attente.");
         return;
@@ -252,7 +295,7 @@ exports.syncMailInbox = (0, scheduler_1.onSchedule)({ schedule: "every 5 minutes
 exports.envoyerReponseBoiteMail = (0, firestore_2.onDocumentCreated)({
     document: "mailInbox/{messageId}/replies/{replyId}",
     database: "ecole-db",
-    secrets: [mailTransport_1.smtpPassword]
+    secrets: [mailTransport_1.smtpPassword],
 }, async (event) => {
     const replyRef = event.data?.ref;
     if (!replyRef)
@@ -262,20 +305,27 @@ exports.envoyerReponseBoiteMail = (0, firestore_2.onDocumentCreated)({
         const snapshot = await transaction.get(replyRef);
         if (!snapshot.exists || snapshot.get("status") !== "pending")
             return null;
-        transaction.update(replyRef, { status: "sending", startedAt: admin.firestore.FieldValue.serverTimestamp() });
+        transaction.update(replyRef, {
+            status: "sending",
+            startedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
         return snapshot.data();
     });
     if (!replyData)
         return;
     try {
         const recipient = typeof replyData.to === "string" ? replyData.to : "";
-        const subject = typeof replyData.subject === "string" ? replyData.subject.slice(0, 500) : "Re: Votre message";
+        const subject = typeof replyData.subject === "string"
+            ? replyData.subject.slice(0, 500)
+            : "Re: Votre message";
         const text = typeof replyData.text === "string" ? replyData.text.slice(0, 12000) : "";
         if (!recipient || !text)
             throw new Error("Réponse sans destinataire ou contenu.");
         const originalMessageId = typeof replyData.originalMessageId === "string" ? replyData.originalMessageId.trim() : "";
         const references = Array.isArray(replyData.originalReferences)
-            ? replyData.originalReferences.filter((value) => typeof value === "string").slice(-10)
+            ? replyData.originalReferences
+                .filter((value) => typeof value === "string")
+                .slice(-10)
             : [];
         if (originalMessageId && !references.includes(originalMessageId))
             references.push(originalMessageId);
@@ -287,8 +337,8 @@ exports.envoyerReponseBoiteMail = (0, firestore_2.onDocumentCreated)({
             text,
             headers: {
                 ...(originalMessageId ? { "In-Reply-To": originalMessageId } : {}),
-                ...(references.length ? { References: references.join(" ") } : {})
-            }
+                ...(references.length ? { References: references.join(" ") } : {}),
+            },
         });
         const originalMessage = await replyRef.parent.parent?.get();
         const threadId = typeof originalMessage?.get("threadId") === "string"
@@ -296,30 +346,38 @@ exports.envoyerReponseBoiteMail = (0, firestore_2.onDocumentCreated)({
             : replyRef.parent.parent?.id;
         const messageIndexId = (0, mailInboxUtils_1.getMailMessageIndexId)(result.messageId);
         if (messageIndexId && threadId) {
-            await firestore.collection("mailMessageIndex").doc(messageIndexId).set({ threadId, inboxMessageId: replyRef.parent.parent?.id });
+            await firestore
+                .collection("mailMessageIndex")
+                .doc(messageIndexId)
+                .set({ threadId, inboxMessageId: replyRef.parent.parent?.id });
         }
         await replyRef.update({
             status: "sent",
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            smtpMessageId: result.messageId
+            smtpMessageId: result.messageId,
         });
-        await replyRef.parent.parent?.update({ latestReplyAt: admin.firestore.FieldValue.serverTimestamp() });
+        await replyRef.parent.parent?.update({
+            latestReplyAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
     }
     catch (error) {
         logger.error("Erreur lors de l’envoi d’une réponse depuis la boîte de réception.", error);
-        await replyRef.update({ status: "error", error: "L’envoi a échoué. Réessayez depuis le message." });
+        await replyRef.update({
+            status: "error",
+            error: "L’envoi a échoué. Réessayez depuis le message.",
+        });
     }
 });
 // --- PÉTITION ---
 exports.updatePetitionStats = (0, firestore_2.onDocumentWritten)({ document: "signatures/{sigId}", database: "ecole-db" }, async (event) => {
     try {
-        const snapshot = await (0, firestore_1.getFirestore)("ecole-db").collection('signatures').get();
+        const snapshot = await (0, firestore_1.getFirestore)("ecole-db").collection("signatures").get();
         let validSignatures = [];
         let habitantsKergrist = 0;
         let parentsEleves = 0;
         let communesVoisines = 0;
         let autres = 0;
-        snapshot.forEach(doc => {
+        snapshot.forEach((doc) => {
             const data = doc.data();
             validSignatures.push(data);
             const q = (data.qualite || "").toLowerCase();
@@ -338,23 +396,34 @@ exports.updatePetitionStats = (0, firestore_2.onDocumentWritten)({ document: "si
             }
         });
         validSignatures.sort((a, b) => {
-            const timeA = a.createdAt ? (typeof a.createdAt.toMillis === 'function' ? a.createdAt.toMillis() : 0) : 0;
-            const timeB = b.createdAt ? (typeof b.createdAt.toMillis === 'function' ? b.createdAt.toMillis() : 0) : 0;
+            const timeA = a.createdAt
+                ? typeof a.createdAt.toMillis === "function"
+                    ? a.createdAt.toMillis()
+                    : 0
+                : 0;
+            const timeB = b.createdAt
+                ? typeof b.createdAt.toMillis === "function"
+                    ? b.createdAt.toMillis()
+                    : 0
+                : 0;
             return timeB - timeA;
         });
         const recentNames = validSignatures.slice(0, 10).map(petitionPublicNames_1.formatPublicRecentSigner);
         // On déduplique la liste des noms récents pour l'affichage propre
         const dedupedRecent = [...new Set(recentNames)];
-        await (0, firestore_1.getFirestore)("ecole-db").collection('stats').doc('petition').set({
+        await (0, firestore_1.getFirestore)("ecole-db")
+            .collection("stats")
+            .doc("petition")
+            .set({
             count: validSignatures.length,
             recent: dedupedRecent.slice(0, 10),
             breakdown: {
                 habitantsKergrist,
                 parentsEleves,
                 communesVoisines,
-                autres
+                autres,
             },
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         }, { merge: true });
         logger.info("Statistiques de la pétition recalculées avec succès.");
     }
@@ -364,11 +433,17 @@ exports.updatePetitionStats = (0, firestore_2.onDocumentWritten)({ document: "si
 });
 exports.updateMemberStats = (0, firestore_2.onDocumentWritten)({ document: "membres/{membreId}", database: "ecole-db" }, async (event) => {
     try {
-        const snapshot = await (0, firestore_1.getFirestore)("ecole-db").collection('membres').where('status', '==', 'validated').get();
+        const snapshot = await (0, firestore_1.getFirestore)("ecole-db")
+            .collection("membres")
+            .where("status", "==", "validated")
+            .get();
         const count = snapshot.size;
-        await (0, firestore_1.getFirestore)("ecole-db").collection('stats').doc('membres').set({
+        await (0, firestore_1.getFirestore)("ecole-db")
+            .collection("stats")
+            .doc("membres")
+            .set({
             count: Math.max(count, 51),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         }, { merge: true });
     }
     catch (err) {

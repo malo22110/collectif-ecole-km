@@ -15,7 +15,7 @@ import { createMailTransport, mailFrom, smtpPassword } from "./mailTransport";
 import { syncInfomaniakInbox } from "./mailInboxSync";
 import { getMailMessageIndexId } from "./mailInboxUtils";
 import { isMailDueForDelivery } from "./mailQueue";
-import { MAGIC_LINK_CONTINUE_URL } from "./magicLinkConfig";
+import { MAGIC_LINK_ACTION_CODE_SETTINGS } from "./magicLinkConfig";
 
 setGlobalOptions({ region: "europe-west9" });
 
@@ -109,13 +109,10 @@ export const envoyerMagicLink = onDocumentCreated(
     const email = data.email;
 
     try {
-      const actionCodeSettings = {
-        url: MAGIC_LINK_CONTINUE_URL,
-        handleCodeInApp: true,
-      };
-
       // Génération du lien de connexion sécurisé
-      const signinLink = await admin.auth().generateSignInWithEmailLink(email, actionCodeSettings);
+      const signinLink = await admin
+        .auth()
+        .generateSignInWithEmailLink(email, MAGIC_LINK_ACTION_CODE_SETTINGS);
 
       const transporter = createMailTransport();
 
