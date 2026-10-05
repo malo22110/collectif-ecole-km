@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownToLine,
   ArrowLeft,
+  Check,
   Heart,
   Info,
   Loader2,
@@ -31,6 +32,8 @@ const OpenStreetMap = dynamic(() => import("./OpenStreetMap"), {
 });
 
 type HubView = "loading" | "setup" | "campaigns" | "campaign" | "campaignInfo" | "preferences";
+type FirstTourGuideStep =
+  "welcome" | "favorites" | "campaigns" | "join" | "select-sectors" | "done" | null;
 type PrivatePreferences = {
   favoritePlaceIds: string[];
   setupComplete: boolean;
@@ -48,6 +51,7 @@ export default function TourneesPage() {
   const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [view, setView] = useState<HubView>("loading");
+  const [firstTourGuideStep, setFirstTourGuideStep] = useState<FirstTourGuideStep>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [missionMode, setMissionMode] = useState(false);
   const [downloadingCampaignDocument, setDownloadingCampaignDocument] = useState(false);
@@ -59,6 +63,7 @@ export default function TourneesPage() {
   const [roadRouteError, setRoadRouteError] = useState("");
   const [roadRouteRetry, setRoadRouteRetry] = useState(0);
   const [pageError, setPageError] = useState("");
+  const firstTourGuideCheckedUid = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -107,6 +112,19 @@ export default function TourneesPage() {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const uid = currentUser?.uid;
+    if (!uid || view !== "campaigns" || firstTourGuideCheckedUid.current === uid) return;
+    firstTourGuideCheckedUid.current = uid;
+    try {
+      if (!window.localStorage.getItem(`first-tour-guide:v1:${uid}`)) {
+        setFirstTourGuideStep("welcome");
+      }
+    } catch {
+      setFirstTourGuideStep("welcome");
+    }
+  }, [currentUser?.uid, view]);
 
   const mapLocations = useMemo(() => {
     if (!campaignMap) return [];
@@ -258,10 +276,37 @@ export default function TourneesPage() {
     setSelectedCampaignId(campaignId);
     setCampaignMap(null);
     setMissionMode(false);
+    setFirstTourGuideStep((step) => (step === "campaigns" ? "join" : step));
     setView("campaign");
     setSelectedPlace(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  const handleFirstTourGuideEvent = useCallback(
+    (event: "select-sectors" | "resume-tour" | "tour-reserved") => {
+      setFirstTourGuideStep((step) => {
+        if (step === null) return null;
+        if (event === "select-sectors" && (step === "join" || step === "campaigns")) {
+          return "select-sectors";
+        }
+        if (event === "resume-tour" && step === "join") return "done";
+        if (event === "tour-reserved" && step === "select-sectors") return "done";
+        return step;
+      });
+    },
+    [],
+  );
+
+  const finishFirstTourGuide = (result: "completed" | "skipped") => {
+    if (currentUser) {
+      try {
+        window.localStorage.setItem(`first-tour-guide:v1:${currentUser.uid}`, result);
+      } catch {
+        // The guide can still be dismissed when browser storage is unavailable.
+      }
+    }
+    setFirstTourGuideStep(null);
+  };
   const backToCampaigns = useCallback(() => {
     setSelectedCampaignId(null);
     setCampaignMap(null);
@@ -405,6 +450,99 @@ export default function TourneesPage() {
               >
                 {pageError}
               </p>
+            )}
+
+            {firstTourGuideStep && (
+              <aside
+                aria-live="polite"
+                aria-label="Guide de première tournée"
+                className={`z-[800] border border-emerald-200 bg-white p-4 shadow-lg ${missionMode ? "fixed inset-x-3 top-[4.5rem] mx-auto max-w-xl rounded-xl" : "rounded-lg"}`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-black text-emerald-900">
+                    {firstTourGuideStep === "welcome" || firstTourGuideStep === "favorites" ? (
+                      "1"
+                    ) : firstTourGuideStep === "campaigns" ? (
+                      "2"
+                    ) : firstTourGuideStep === "join" ? (
+                      "3"
+                    ) : firstTourGuideStep === "select-sectors" ? (
+                      "4"
+                    ) : (
+                      <Check size={17} aria-hidden="true" />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-bold text-stone-900">
+                      {firstTourGuideStep === "welcome" && "Votre première tournée"}
+                      {firstTourGuideStep === "favorites" && "Choisissez vos favoris"}
+                      {firstTourGuideStep === "campaigns" && "Ouvrez une campagne"}
+                      {firstTourGuideStep === "join" && "Rejoignez la campagne"}
+                      {firstTourGuideStep === "select-sectors" && "Composez votre tournée"}
+                      {firstTourGuideStep === "done" && "C’est prêt !"}
+                    </h2>
+                    <p className="mt-1 text-sm leading-5 text-stone-600">
+                      {firstTourGuideStep === "welcome" &&
+                        "En quelques étapes, vous pourrez choisir une campagne et réserver vos secteurs."}
+                      {firstTourGuideStep === "favorites" &&
+                        "Les favoris vous aident à retrouver vos secteurs près de chez vous. C’est facultatif."}
+                      {firstTourGuideStep === "campaigns" &&
+                        "Choisissez une campagne disponible pour voir ses secteurs sur la carte."}
+                      {firstTourGuideStep === "join" &&
+                        "Utilisez le bouton fixe en bas pour rejoindre la campagne ou préparer votre tournée."}
+                      {firstTourGuideStep === "select-sectors" &&
+                        "Touchez les points de la carte ou choisissez les secteurs dans la liste, puis prenez la tournée."}
+                      {firstTourGuideStep === "done" &&
+                        "Votre tournée est réservée. Vous pouvez la reprendre depuis le bouton fixe en bas."}
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                      {firstTourGuideStep !== "done" && (
+                        <button
+                          type="button"
+                          onClick={() => finishFirstTourGuide("skipped")}
+                          className="min-h-10 px-3 text-sm font-semibold text-stone-600 underline underline-offset-2"
+                        >
+                          Ignorer le guide
+                        </button>
+                      )}
+                      {firstTourGuideStep === "welcome" && (
+                        <button
+                          type="button"
+                          onClick={() => setFirstTourGuideStep("favorites")}
+                          className="btn-primary min-h-10 px-4"
+                        >
+                          Commencer
+                        </button>
+                      )}
+                      {firstTourGuideStep === "favorites" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (view === "preferences") {
+                              setView("campaigns");
+                              setFirstTourGuideStep("campaigns");
+                            } else {
+                              setView("preferences");
+                            }
+                          }}
+                          className="btn-primary min-h-10 px-4"
+                        >
+                          {view === "preferences" ? "Continuer" : "Choisir mes favoris"}
+                        </button>
+                      )}
+                      {firstTourGuideStep === "done" && (
+                        <button
+                          type="button"
+                          onClick={() => finishFirstTourGuide("completed")}
+                          className="btn-primary min-h-10 px-4"
+                        >
+                          Terminer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </aside>
             )}
 
             {view === "campaigns" && (
@@ -610,6 +748,7 @@ export default function TourneesPage() {
                   selectedCampaignId={selectedCampaignId}
                   showCampaignDetails={false}
                   onMissionModeChange={setMissionMode}
+                  onFirstTourGuideEvent={handleFirstTourGuideEvent}
                   onCampaignSelect={openCampaign}
                   onRegisterMapPlaceAdder={registerMapPlaceAdder}
                 />

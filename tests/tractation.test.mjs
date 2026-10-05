@@ -161,6 +161,28 @@ test("découpe les requêtes routières sans changer l’ordre des étapes", () 
   );
 });
 
+// [SPEC-TRACTATION-06] The first-route guide is skippable and advances from campaign actions.
+test("guide le premier parcours avec favoris facultatifs et étapes reliées aux actions", async () => {
+  const page = await readFile(
+    new URL("../app/espace-membre/tournees/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const panel = await readFile(
+    new URL("../app/espace-membre/components/TractationPanel.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(page, /first-tour-guide:v1:/);
+  assert.match(page, /if \(step === null\) return null/);
+  assert.match(page, /Choisissez vos favoris/);
+  assert.match(page, /C’est facultatif/);
+  assert.match(page, /Ouvrez une campagne/);
+  assert.match(page, /onFirstTourGuideEvent=\{handleFirstTourGuideEvent\}/);
+  assert.match(panel, /onFirstTourGuideEvent\?\.\("select-sectors"\)/);
+  assert.match(panel, /routeInProgress \? "resume-tour" : "select-sectors"/);
+  assert.match(panel, /onFirstTourGuideEvent\?\.\("tour-reserved"\)/);
+});
+
 // [SPEC-TRACTATION-04] Only explicit claim, complete, reopen, and release transitions are accepted.
 test("valide les actions d’une réservation partagée de lieu", () => {
   for (const action of ["claim", "complete", "release", "reopen"]) {

@@ -77,6 +77,7 @@ interface TractationPanelProps {
   onStatisticsVisibleChange?: (visible: boolean) => void;
   onCampaignMapChange?: (campaign: CampaignMapState | null) => void;
   onMissionModeChange?: (active: boolean) => void;
+  onFirstTourGuideEvent?: (event: "select-sectors" | "resume-tour" | "tour-reserved") => void;
   selectedMapPlace?: Pick<Place, "id" | "nom" | "foyers"> | null;
   selectedCampaignId?: string | null;
   showCampaignDetails?: boolean;
@@ -127,6 +128,7 @@ export default function TractationPanel({
   onStatisticsVisibleChange,
   onCampaignMapChange,
   onMissionModeChange,
+  onFirstTourGuideEvent,
   selectedMapPlace = null,
   selectedCampaignId = null,
   showCampaignDetails = true,
@@ -237,6 +239,7 @@ export default function TractationPanel({
       setMissionCampaignId(campaign.id);
       setMapCampaignId(campaign.id);
       onMissionModeChange?.(true);
+      onFirstTourGuideEvent?.("select-sectors");
       setMissionSheet("select");
       setShowRouteDetails(false);
       setError("");
@@ -252,6 +255,7 @@ export default function TractationPanel({
     selectedCampaignId,
     onRegisterMapPlaceAdder,
     onMissionModeChange,
+    onFirstTourGuideEvent,
     favoritePlaceIds,
   ]);
 
@@ -356,6 +360,7 @@ export default function TractationPanel({
       (id) => campaign.assignedPlaces?.[id]?.status !== "completed",
     );
     setMissionSheet(routeInProgress ? "run" : "select");
+    onFirstTourGuideEvent?.(routeInProgress ? "resume-tour" : "select-sectors");
     setMissionPlaceFilter("all");
     setShowRouteDetails(false);
     setError("");
@@ -493,6 +498,7 @@ export default function TractationPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lieuDitIds: routePlaceIds }),
       });
+      onFirstTourGuideEvent?.("tour-reserved");
       setRouteDrafts((current) => ({ ...current, [campaign.id]: [] }));
       setMissionSheet("run");
       if (typeof navigator !== "undefined" && "vibrate" in navigator)
