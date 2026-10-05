@@ -13,7 +13,7 @@ if (!Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
 
 export const mailFrom = {
   name: process.env.MAIL_FROM_NAME || "Collectif Kergrist-Moëlou",
-  address: process.env.MAIL_FROM_ADDRESS || smtpUser
+  address: process.env.MAIL_FROM_ADDRESS || smtpUser,
 };
 
 export function createMailTransport() {
@@ -23,7 +23,7 @@ export function createMailTransport() {
     secure: smtpPort === 465,
     auth: {
       user: smtpUser,
-      pass: smtpPassword.value()
-    }
+      pass: smtpPassword.value(),
+    },
   });
 }

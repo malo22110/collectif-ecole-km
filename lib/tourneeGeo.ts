@@ -12,22 +12,31 @@ export interface TourLieuDit extends GeoPoint {
 }
 
 export function distanceKm(first: GeoPoint, second: GeoPoint): number {
-  const radians = (degrees: number) => degrees * Math.PI / 180;
+  const radians = (degrees: number) => (degrees * Math.PI) / 180;
   const earthRadiusKm = 6371.0088;
   const deltaLat = radians(second.lat - first.lat);
   const deltaLon = radians(second.lon - first.lon);
   const firstLat = radians(first.lat);
   const secondLat = radians(second.lat);
-  const haversine = Math.sin(deltaLat / 2) ** 2
-    + Math.cos(firstLat) * Math.cos(secondLat) * Math.sin(deltaLon / 2) ** 2;
+  const haversine =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(firstLat) * Math.cos(secondLat) * Math.sin(deltaLon / 2) ** 2;
 
-  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+  return (
+    earthRadiusKm *
+    2 *
+    Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+  );
 }
 
-export function nearestLocatedPlaces<T extends TourLieuDit>(origin: GeoPoint, places: T[], limit = 3) {
+export function nearestLocatedPlaces<T extends TourLieuDit>(
+  origin: GeoPoint,
+  places: T[],
+  limit = 3,
+) {
   return places
-    .filter(place => Number.isFinite(place.lat) && Number.isFinite(place.lon))
-    .map(place => ({ ...place, distanceKm: distanceKm(origin, place) }))
+    .filter((place) => Number.isFinite(place.lat) && Number.isFinite(place.lon))
+    .map((place) => ({ ...place, distanceKm: distanceKm(origin, place) }))
     .sort((first, second) => first.distanceKm - second.distanceKm)
     .slice(0, limit);
 }
@@ -39,9 +48,19 @@ export interface TourRouteSegment<T extends GeoPoint> {
 }
 
 // [SPEC-TRACTATION-10] Routing chunks preserve the selected order and chain through each previous endpoint.
-export function chunkOrderedRoutePoints<T extends GeoPoint>(origin: GeoPoint, stops: T[], maxCoordinates = 100): GeoPoint[][] {
-  if (!Number.isInteger(maxCoordinates) || maxCoordinates < 2 || maxCoordinates > 100) {
-    throw new RangeError("Une requête de routage doit contenir de 2 à 100 coordonnées.");
+export function chunkOrderedRoutePoints<T extends GeoPoint>(
+  origin: GeoPoint,
+  stops: T[],
+  maxCoordinates = 100,
+): GeoPoint[][] {
+  if (
+    !Number.isInteger(maxCoordinates) ||
+    maxCoordinates < 2 ||
+    maxCoordinates > 100
+  ) {
+    throw new RangeError(
+      "Une requête de routage doit contenir de 2 à 100 coordonnées.",
+    );
   }
 
   const chunks: GeoPoint[][] = [];
@@ -56,9 +75,19 @@ export function chunkOrderedRoutePoints<T extends GeoPoint>(origin: GeoPoint, st
 }
 
 // [SPEC-TOURNEE-05] Keep Google Maps links short enough for mobile by splitting long tours into ordered segments.
-export function buildTourRouteSegments<T extends GeoPoint>(origin: GeoPoint, stops: T[], stopsPerSegment = 4): TourRouteSegment<T>[] {
-  if (!Number.isInteger(stopsPerSegment) || stopsPerSegment < 1 || stopsPerSegment > 4) {
-    throw new RangeError("Une étape d’itinéraire doit contenir entre 1 et 4 lieux.");
+export function buildTourRouteSegments<T extends GeoPoint>(
+  origin: GeoPoint,
+  stops: T[],
+  stopsPerSegment = 4,
+): TourRouteSegment<T>[] {
+  if (
+    !Number.isInteger(stopsPerSegment) ||
+    stopsPerSegment < 1 ||
+    stopsPerSegment > 4
+  ) {
+    throw new RangeError(
+      "Une étape d’itinéraire doit contenir entre 1 et 4 lieux.",
+    );
   }
 
   const segments: TourRouteSegment<T>[] = [];
@@ -70,7 +99,7 @@ export function buildTourRouteSegments<T extends GeoPoint>(origin: GeoPoint, sto
     segments.push({
       origin: segmentOrigin,
       destination,
-      waypoints: segmentStops.slice(0, -1)
+      waypoints: segmentStops.slice(0, -1),
     });
     segmentOrigin = { lat: destination.lat, lon: destination.lon };
   }

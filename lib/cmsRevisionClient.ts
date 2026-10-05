@@ -3,7 +3,10 @@ import type { CmsPageData } from "@/lib/cmsRevisionModel";
 
 const API_PATH = "/api/admin/cms-revisions";
 
-async function requestCmsRevisions<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function requestCmsRevisions<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   const user = auth.currentUser;
   if (!user) throw new Error("Connectez-vous pour consulter l’historique.");
 
@@ -24,7 +27,7 @@ async function requestCmsRevisions<T>(path: string, init: RequestInit = {}): Pro
 
 export async function publishCmsPageRevision(
   data: CmsPageData,
-  origin: "visual" | "expert" | "draft"
+  origin: "visual" | "expert" | "draft",
 ): Promise<{ version: number }> {
   return requestCmsRevisions(API_PATH, {
     method: "POST",
@@ -48,7 +51,9 @@ export async function loadCmsPageRevisions(cursor?: string): Promise<{
   return requestCmsRevisions(`${API_PATH}${query}`);
 }
 
-export async function restoreCmsPageRevision(revisionId: string): Promise<{ version: number }> {
+export async function restoreCmsPageRevision(
+  revisionId: string,
+): Promise<{ version: number }> {
   return requestCmsRevisions(API_PATH, {
     method: "PUT",
     body: JSON.stringify({ revisionId }),

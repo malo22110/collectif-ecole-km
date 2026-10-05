@@ -2,8 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { signInWithPopup, GoogleAuthProvider, isSignInWithEmailLink, onAuthStateChanged, signInWithEmailLink } from "firebase/auth";
-import { addDoc, collection, query, serverTimestamp, where, getDocs } from "firebase/firestore";
+import {
+  signInWithPopup,
+  GoogleAuthProvider,
+  isSignInWithEmailLink,
+  onAuthStateChanged,
+  signInWithEmailLink,
+} from "firebase/auth";
+import {
+  addDoc,
+  collection,
+  query,
+  serverTimestamp,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserCircle2 } from "lucide-react";
@@ -26,7 +39,9 @@ export default function ConnexionPage() {
 
   useEffect(() => {
     if (!isSignInWithEmailLink(auth, window.location.href)) return;
-    const savedEmail = window.localStorage.getItem("emailForSignIn") || window.prompt("Confirmez l’adresse e-mail destinataire du lien.");
+    const savedEmail =
+      window.localStorage.getItem("emailForSignIn") ||
+      window.prompt("Confirmez l’adresse e-mail destinataire du lien.");
     if (!savedEmail) return;
 
     void signInWithEmailLink(auth, savedEmail, window.location.href)
@@ -34,7 +49,11 @@ export default function ConnexionPage() {
         window.localStorage.removeItem("emailForSignIn");
         router.replace("/espace-membre");
       })
-      .catch(() => setAuthError("Le lien de connexion est invalide ou a expiré. Demandez-en un nouveau."));
+      .catch(() =>
+        setAuthError(
+          "Le lien de connexion est invalide ou a expiré. Demandez-en un nouveau.",
+        ),
+      );
   }, [router]);
 
   const handleGoogleLogin = async () => {
@@ -44,7 +63,7 @@ export default function ConnexionPage() {
       await signInWithPopup(auth, provider);
       router.push("/espace-membre");
     } catch (err: any) {
-      if (err.code !== 'auth/popup-closed-by-user') {
+      if (err.code !== "auth/popup-closed-by-user") {
         setAuthError(err.message || "Erreur de connexion");
       }
     }
@@ -58,9 +77,9 @@ export default function ConnexionPage() {
         email: email.trim(),
         url: `${window.location.origin}/connexion`,
         createdAt: serverTimestamp(),
-        status: "pending"
+        status: "pending",
       });
-      window.localStorage.setItem('emailForSignIn', email.trim());
+      window.localStorage.setItem("emailForSignIn", email.trim());
       setLinkSent(true);
     } catch (err: any) {
       setAuthError(err.message || "Erreur lors de l'envoi du lien");
@@ -75,26 +94,45 @@ export default function ConnexionPage() {
             <UserCircle2 size={32} />
           </div>
           <h1 className="text-2xl font-bold text-stone-900 mb-2">Connexion</h1>
-          <p className="text-stone-500">Accédez aux outils réservés aux membres du collectif.</p>
+          <p className="text-stone-500">
+            Accédez aux outils réservés aux membres du collectif.
+          </p>
         </div>
 
         {authMode === "idle" ? (
           <div>
-            {authError && <p className="text-rose-500 text-sm mb-4 font-bold bg-rose-50 p-3 rounded-lg border border-rose-200 text-center">{authError}</p>}
+            {authError && (
+              <p className="text-rose-500 text-sm mb-4 font-bold bg-rose-50 p-3 rounded-lg border border-rose-200 text-center">
+                {authError}
+              </p>
+            )}
             <div className="flex flex-col gap-3">
-              <button onClick={handleGoogleLogin} className="w-full py-3 bg-white border-2 border-stone-200 text-stone-700 font-bold rounded-xl hover:bg-stone-50 transition-colors flex items-center justify-center gap-2">
-                <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
+              <button
+                onClick={handleGoogleLogin}
+                className="w-full py-3 bg-white border-2 border-stone-200 text-stone-700 font-bold rounded-xl hover:bg-stone-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <img
+                  src="https://www.google.com/favicon.ico"
+                  className="w-5 h-5"
+                  alt="Google"
+                />
                 Continuer avec Google
               </button>
-              <button onClick={() => setAuthMode("login")} className="w-full py-3 bg-stone-800 text-white font-bold rounded-xl hover:bg-stone-900 transition-colors">
+              <button
+                onClick={() => setAuthMode("login")}
+                className="w-full py-3 bg-stone-800 text-white font-bold rounded-xl hover:bg-stone-900 transition-colors"
+              >
                 Lien magique par Email
               </button>
             </div>
-            
+
             <div className="mt-8 text-center border-t border-stone-100 pt-6">
-               <Link href="/#rejoindre" className="text-emerald-600 font-medium hover:underline text-sm">
-                 Pas encore membre ? Rejoignez-nous !
-               </Link>
+              <Link
+                href="/#rejoindre"
+                className="text-emerald-600 font-medium hover:underline text-sm"
+              >
+                Pas encore membre ? Rejoignez-nous !
+              </Link>
             </div>
           </div>
         ) : (
@@ -102,27 +140,55 @@ export default function ConnexionPage() {
             <h4 className="font-bold text-stone-900 mb-4 text-center">
               Connexion sécurisée par email
             </h4>
-            {authError && <p className="text-red-500 text-sm mb-3 text-center">{authError}</p>}
-            
+            {authError && (
+              <p className="text-red-500 text-sm mb-3 text-center">
+                {authError}
+              </p>
+            )}
+
             {linkSent ? (
               <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
-                <p className="text-emerald-800 font-medium mb-2">Lien magique envoyé ! 🪄</p>
-                <p className="text-sm text-emerald-700">Consultez votre boîte mail <strong>{email}</strong> et cliquez sur le lien pour vous connecter automatiquement.</p>
-                <button type="button" onClick={() => setLinkSent(false)} className="text-xs text-emerald-600 underline mt-4 font-medium">Je n'ai rien reçu, recommencer</button>
+                <p className="text-emerald-800 font-medium mb-2">
+                  Lien magique envoyé ! 🪄
+                </p>
+                <p className="text-sm text-emerald-700">
+                  Consultez votre boîte mail <strong>{email}</strong> et cliquez
+                  sur le lien pour vous connecter automatiquement.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setLinkSent(false)}
+                  className="text-xs text-emerald-600 underline mt-4 font-medium"
+                >
+                  Je n'ai rien reçu, recommencer
+                </button>
               </div>
             ) : (
               <>
-                <p className="text-sm text-stone-600 mb-4 text-center">Entrez l'email utilisé lors de votre adhésion. Nous vous enverrons un lien de connexion magique (sans mot de passe).</p>
-                <input 
-                  type="email" 
-                  placeholder="Votre adresse email" 
-                  required 
+                <p className="text-sm text-stone-600 mb-4 text-center">
+                  Entrez l'email utilisé lors de votre adhésion. Nous vous
+                  enverrons un lien de connexion magique (sans mot de passe).
+                </p>
+                <input
+                  type="email"
+                  placeholder="Votre adresse email"
+                  required
                   className="input-base mb-4 w-full p-3 border border-stone-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
-                  value={email} onChange={e => setEmail(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setAuthMode("idle")} className="w-1/3 px-4 py-3 border border-stone-200 rounded-xl text-stone-600 font-medium hover:bg-stone-50 transition-colors">Retour</button>
-                  <button type="submit" className="w-2/3 px-4 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode("idle")}
+                    className="w-1/3 px-4 py-3 border border-stone-200 rounded-xl text-stone-600 font-medium hover:bg-stone-50 transition-colors"
+                  >
+                    Retour
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-2/3 px-4 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors"
+                  >
                     Recevoir le lien
                   </button>
                 </div>
@@ -130,9 +196,12 @@ export default function ConnexionPage() {
             )}
           </form>
         )}
-        
+
         <div className="mt-6 text-center">
-          <Link href="/" className="inline-flex items-center gap-1 text-stone-400 hover:text-stone-600 text-sm font-medium">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-stone-400 hover:text-stone-600 text-sm font-medium"
+          >
             <ArrowLeft size={14} /> Retour à l'accueil
           </Link>
         </div>

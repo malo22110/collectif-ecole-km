@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebaseAdmin";
-import { findPotentialPetitionDuplicatePairs, groupPetitionSigners, type PetitionSigner } from "@/lib/petitionSignerGroups";
+import {
+  findPotentialPetitionDuplicatePairs,
+  groupPetitionSigners,
+  type PetitionSigner,
+} from "@/lib/petitionSignerGroups";
 import { calculatePetitionStats } from "@/functions/src/petitionStats";
 
 export const dynamic = "force-dynamic";
 
 function escapeHtml(value: unknown): string {
-  return String(value ?? "").replace(/[&<>"']/g, character => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[character]!);
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[character]!,
+  );
 }
 
 function htmlResponse(html: string, status = 200) {
@@ -22,8 +30,8 @@ function htmlResponse(html: string, status = 200) {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "private, no-store, max-age=0",
       "X-Content-Type-Options": "nosniff",
-      "Referrer-Policy": "no-referrer"
-    }
+      "Referrer-Policy": "no-referrer",
+    },
   });
 }
 
@@ -33,14 +41,20 @@ export async function GET(request: Request) {
     const authorization = request.headers.get("Authorization");
     const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
     if (!token) {
-      return NextResponse.json({ error: "Authentification requise." }, { status: 401 });
+      return NextResponse.json(
+        { error: "Authentification requise." },
+        { status: 401 },
+      );
     }
 
     let email: string;
     try {
       const decodedToken = await adminAuth.verifyIdToken(token, true);
       if (!decodedToken.email) {
-        return NextResponse.json({ error: "Adresse e-mail absente du compte." }, { status: 401 });
+        return NextResponse.json(
+          { error: "Adresse e-mail absente du compte." },
+          { status: 401 },
+        );
       }
       email = decodedToken.email;
     } catch {
@@ -56,47 +70,73 @@ export async function GET(request: Request) {
         : [];
 
     if (!memberSnapshot.exists || !roles.includes("admin")) {
-      return NextResponse.json({ error: "Accès réservé aux administrateurs." }, { status: 403 });
+      return NextResponse.json(
+        { error: "Accès réservé aux administrateurs." },
+        { status: 403 },
+      );
     }
 
     const capturedAt = new Date();
-    const signaturesSnapshot = await adminDb.collection("signatures")
-      .select("prenom", "nom", "email", "ville", "qualite", "source", "potentialDuplicate")
+    const signaturesSnapshot = await adminDb
+      .collection("signatures")
+      .select(
+        "prenom",
+        "nom",
+        "email",
+        "ville",
+        "qualite",
+        "source",
+        "potentialDuplicate",
+      )
       .get();
 
-    const signers: PetitionSigner[] = signaturesSnapshot.docs.map(document => {
+    const signers: PetitionSigner[] = signaturesSnapshot.docs.map(
+      (document) => {
         const data = document.data();
         return {
           prenom: String(data.prenom || ""),
           nom: String(data.nom || ""),
           ville: String(data.ville || ""),
           qualite: String(data.qualite || ""),
-          source: data.source === "papier" ? "papier" : data.source === "accord_collectif" ? "accord_collectif" : "en ligne",
-          signature: data.source === "papier"
-            ? String(data.email || "Signature recueillie sur papier")
-            : data.source === "accord_collectif"
-              ? "Accord de principe — réunion fondatrice"
-              : String(data.email || document.id),
-          potentialDuplicate: data.potentialDuplicate === true
+          source:
+            data.source === "papier"
+              ? "papier"
+              : data.source === "accord_collectif"
+                ? "accord_collectif"
+                : "en ligne",
+          signature:
+            data.source === "papier"
+              ? String(data.email || "Signature recueillie sur papier")
+              : data.source === "accord_collectif"
+                ? "Accord de principe — réunion fondatrice"
+                : String(data.email || document.id),
+          potentialDuplicate: data.potentialDuplicate === true,
         };
-      });
+      },
+    );
     const signerGroups = groupPetitionSigners(signers);
-    const signerCount = signerGroups.reduce((total, group) => total + group.signers.length, 0);
-    const potentialDuplicates = findPotentialPetitionDuplicatePairs(signerGroups);
+    const signerCount = signerGroups.reduce(
+      (total, group) => total + group.signers.length,
+      0,
+    );
+    const potentialDuplicates =
+      findPotentialPetitionDuplicatePairs(signerGroups);
     const petitionStats = calculatePetitionStats(signers);
 
     const extractedAt = new Intl.DateTimeFormat("fr-FR", {
       dateStyle: "long",
       timeStyle: "short",
-      timeZone: "Europe/Paris"
+      timeZone: "Europe/Paris",
     }).format(capturedAt);
 
     let signerIndex = 0;
-    const rows = signerGroups.map(group => {
-      const sectionHeader = `<tr class="section-heading"><th colspan="5">${escapeHtml(group.title)} (${group.signers.length})</th></tr>`;
-      const groupRows = group.signers.map(signer => {
-        signerIndex += 1;
-        return `
+    const rows = signerGroups
+      .map((group) => {
+        const sectionHeader = `<tr class="section-heading"><th colspan="5">${escapeHtml(group.title)} (${group.signers.length})</th></tr>`;
+        const groupRows = group.signers
+          .map((signer) => {
+            signerIndex += 1;
+            return `
       <tr>
         <td class="number">${signerIndex}</td>
         <td>${escapeHtml(`${signer.prenom} ${signer.nom}`.trim())}</td>
@@ -104,23 +144,65 @@ export async function GET(request: Request) {
         <td>${escapeHtml(signer.qualite)}</td>
         <td>${escapeHtml(signer.signature)}</td>
       </tr>`;
-      }).join("");
-      return group.signers.length ? sectionHeader + groupRows : "";
-    }).join("");
-    const getSignerSourceLabel = (signer: PetitionSigner) => signer.source === "papier"
-      ? "papier"
-      : signer.source === "accord_collectif" ? "accord de principe" : "en ligne";
-    const duplicateRows = potentialDuplicates.map(pair => `
-      <li><strong>N° ${pair.firstRow}</strong> — ${escapeHtml(`${pair.first.prenom} ${pair.first.nom}`.trim())} (${getSignerSourceLabel(pair.first)}), ${escapeHtml(pair.first.ville || "commune non précisée")} et <strong>N° ${pair.secondRow}</strong> — ${escapeHtml(`${pair.second.prenom} ${pair.second.nom}`.trim())} (${getSignerSourceLabel(pair.second)}), ${escapeHtml(pair.second.ville || "commune non précisée")}</li>`).join("");
+          })
+          .join("");
+        return group.signers.length ? sectionHeader + groupRows : "";
+      })
+      .join("");
+    const getSignerSourceLabel = (signer: PetitionSigner) =>
+      signer.source === "papier"
+        ? "papier"
+        : signer.source === "accord_collectif"
+          ? "accord de principe"
+          : "en ligne";
+    const duplicateRows = potentialDuplicates
+      .map(
+        (pair) => `
+      <li><strong>N° ${pair.firstRow}</strong> — ${escapeHtml(`${pair.first.prenom} ${pair.first.nom}`.trim())} (${getSignerSourceLabel(pair.first)}), ${escapeHtml(pair.first.ville || "commune non précisée")} et <strong>N° ${pair.secondRow}</strong> — ${escapeHtml(`${pair.second.prenom} ${pair.second.nom}`.trim())} (${getSignerSourceLabel(pair.second)}), ${escapeHtml(pair.second.ville || "commune non précisée")}</li>`,
+      )
+      .join("");
     const statisticRows = [
-      ["Habitants de Kergrist-Moëlou", petitionStats.habitantsKergrist, `${petitionStats.habitantsKergristPercent}%`],
-      ["Parents d’élèves (catégorie statistique)", petitionStats.parentsEleves, `${petitionStats.parentsElevesPercent}%`],
-      ["Communes voisines", petitionStats.communesVoisines, `${petitionStats.communesVoisinesPercent}%`],
-      ["Autres soutiens", petitionStats.autres, `${petitionStats.autresPercent}%`],
-      ["Qualité déclarée « parent d’élève » (non vérifiée)", petitionStats.declaredParentOfPupilQuality, `${petitionStats.declaredParentOfPupilQualityPercent}%`],
-      ["Signataires déclarés parent d’élève / 47 parents au total", `${petitionStats.declaredParentOfPupilQuality} / 47`, `${petitionStats.parentSignersOfKnownParentsPercent.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`],
-      ["Part estimée des électeurs kergristois (base 539)", petitionStats.habitantsKergrist, `${(petitionStats.kergristElectorateEstimatePercent ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`]
-    ].map(([label, count, share]) => `<tr><th>${escapeHtml(label)}</th><td>${count}</td><td>${escapeHtml(share)}</td></tr>`).join("");
+      [
+        "Habitants de Kergrist-Moëlou",
+        petitionStats.habitantsKergrist,
+        `${petitionStats.habitantsKergristPercent}%`,
+      ],
+      [
+        "Parents d’élèves (catégorie statistique)",
+        petitionStats.parentsEleves,
+        `${petitionStats.parentsElevesPercent}%`,
+      ],
+      [
+        "Communes voisines",
+        petitionStats.communesVoisines,
+        `${petitionStats.communesVoisinesPercent}%`,
+      ],
+      [
+        "Autres soutiens",
+        petitionStats.autres,
+        `${petitionStats.autresPercent}%`,
+      ],
+      [
+        "Qualité déclarée « parent d’élève » (non vérifiée)",
+        petitionStats.declaredParentOfPupilQuality,
+        `${petitionStats.declaredParentOfPupilQualityPercent}%`,
+      ],
+      [
+        "Signataires déclarés parent d’élève / 47 parents au total",
+        `${petitionStats.declaredParentOfPupilQuality} / 47`,
+        `${petitionStats.parentSignersOfKnownParentsPercent.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`,
+      ],
+      [
+        "Part estimée des électeurs kergristois (base 539)",
+        petitionStats.habitantsKergrist,
+        `${(petitionStats.kergristElectorateEstimatePercent ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`,
+      ],
+    ]
+      .map(
+        ([label, count, share]) =>
+          `<tr><th>${escapeHtml(label)}</th><td>${count}</td><td>${escapeHtml(share)}</td></tr>`,
+      )
+      .join("");
 
     const html = `<!doctype html>
 <html lang="fr">
@@ -206,6 +288,9 @@ export async function GET(request: Request) {
     return htmlResponse(html);
   } catch (error) {
     console.error("Erreur lors de l'export de la pétition:", error);
-    return NextResponse.json({ error: "Impossible de générer l'extraction." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Impossible de générer l'extraction." },
+      { status: 500 },
+    );
   }
 }

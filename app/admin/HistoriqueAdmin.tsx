@@ -20,18 +20,23 @@ export default function HistoriqueAdmin({
   const [isDirty, setIsDirty] = useState(false);
   const [isSimplified, setIsSimplified] = useState(false);
   // Onglet admin : éditeur ou révisions en attente
-  const [adminTab, setAdminTab] = useState<"editor" | "reviews" | "history">("editor");
+  const [adminTab, setAdminTab] = useState<"editor" | "reviews" | "history">(
+    "editor",
+  );
   const [editorReloadKey, setEditorReloadKey] = useState(0);
 
-  const handleDirtyChange = useCallback((dirty: boolean) => {
-    setIsDirty(dirty);
-    onDirtyChange?.(dirty);
-  }, [onDirtyChange]);
+  const handleDirtyChange = useCallback(
+    (dirty: boolean) => {
+      setIsDirty(dirty);
+      onDirtyChange?.(dirty);
+    },
+    [onDirtyChange],
+  );
 
   const handleModeChange = (newMode: "visual" | "expert") => {
     if (isDirty) {
       const confirmed = window.confirm(
-        "⚠️ Vous avez des modifications non sauvegardées.\n\nSi vous changez de mode, vos modifications seront perdues. Continuer quand même ?"
+        "⚠️ Vous avez des modifications non sauvegardées.\n\nSi vous changez de mode, vos modifications seront perdues. Continuer quand même ?",
       );
       if (!confirmed) return;
     }
@@ -43,7 +48,9 @@ export default function HistoriqueAdmin({
     <div className="mt-8 border-t border-stone-200 pt-6">
       {/* Barre de contrôle globale */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 className="text-xl font-bold text-stone-900">Édition de la page Historique</h2>
+        <h2 className="text-xl font-bold text-stone-900">
+          Édition de la page Historique
+        </h2>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Toggle résumé / détails pour la preview (mode visuel uniquement) */}
@@ -51,13 +58,13 @@ export default function HistoriqueAdmin({
             <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
               <button
                 onClick={() => setIsSimplified(false)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${!isSimplified ? 'bg-white shadow-sm text-stone-900' : 'text-stone-500'}`}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${!isSimplified ? "bg-white shadow-sm text-stone-900" : "text-stone-500"}`}
               >
                 Détails
               </button>
               <button
                 onClick={() => setIsSimplified(true)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${isSimplified ? 'bg-white shadow-sm text-stone-900' : 'text-stone-500'}`}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${isSimplified ? "bg-white shadow-sm text-stone-900" : "text-stone-500"}`}
               >
                 Résumé
               </button>
@@ -110,7 +117,9 @@ export default function HistoriqueAdmin({
 
       {/* Contenu selon onglet */}
       {adminTab === "history" ? (
-        <CmsRevisionHistory onRestored={() => setEditorReloadKey(key => key + 1)} />
+        <CmsRevisionHistory
+          onRestored={() => setEditorReloadKey((key) => key + 1)}
+        />
       ) : adminTab === "reviews" ? (
         <DraftReviewPanel />
       ) : mode === "expert" ? (

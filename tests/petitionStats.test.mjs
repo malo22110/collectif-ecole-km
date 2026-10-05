@@ -11,7 +11,7 @@ test("calcule la ventilation officielle avec priorité Kergrist puis parent puis
     { ville: "Saint-Brieuc", qualite: "Autre soutien" },
     { ville: "", qualite: "Ancien(ne) élève" },
     { ville: "", qualite: "Habitant(e) de Kergrist" },
-    { ville: "Rostrenen", qualite: "Ami des parents" }
+    { ville: "Rostrenen", qualite: "Ami des parents" },
   ]);
 
   assert.deepEqual(stats, {
@@ -27,9 +27,15 @@ test("calcule la ventilation officielle avec priorité Kergrist puis parent puis
     autresPercent: 14.3,
     declaredParentOfPupilQualityPercent: 28.6,
     parentSignersOfKnownParentsPercent: 4.26,
-    kergristElectorateEstimatePercent: 0.37
+    kergristElectorateEstimatePercent: 0.37,
   });
-  assert.equal(stats.habitantsKergrist + stats.parentsEleves + stats.communesVoisines + stats.autres, stats.total);
+  assert.equal(
+    stats.habitantsKergrist +
+      stats.parentsEleves +
+      stats.communesVoisines +
+      stats.autres,
+    stats.total,
+  );
 });
 
 test("renvoie des compteurs nuls pour une liste vide", () => {
@@ -46,13 +52,19 @@ test("renvoie des compteurs nuls pour une liste vide", () => {
     autresPercent: 0,
     declaredParentOfPupilQualityPercent: 0,
     parentSignersOfKnownParentsPercent: 0,
-    kergristElectorateEstimatePercent: null
+    kergristElectorateEstimatePercent: null,
   });
 });
 
 test("calcule la part des parent d’élève signataires sur la base communiquée de 47 parents", () => {
-  const entries = Array.from({ length: 41 }, () => ({ ville: "Rostrenen", qualite: "Parent d’élève (actuel ou futur)" }));
-  assert.equal(calculatePetitionStats(entries).parentSignersOfKnownParentsPercent, 87.23);
+  const entries = Array.from({ length: 41 }, () => ({
+    ville: "Rostrenen",
+    qualite: "Parent d’élève (actuel ou futur)",
+  }));
+  assert.equal(
+    calculatePetitionStats(entries).parentSignersOfKnownParentsPercent,
+    87.23,
+  );
 });
 
 test("compte la qualité explicite Parent d’élève avec ou sans accent et exclut les amis", () => {
@@ -64,13 +76,19 @@ test("compte la qualité explicite Parent d’élève avec ou sans accent et exc
     { ville: "Rostrenen", qualite: "Parent" },
     { ville: "Rostrenen", qualite: "Élève" },
     { ville: "Rostrenen", qualite: "Eleve" },
-    { ville: "Rostrenen", qualite: "Ancien(ne) élève" }
+    { ville: "Rostrenen", qualite: "Ancien(ne) élève" },
   ]);
   assert.equal(stats.parentsEleves, 2);
   assert.equal(stats.declaredParentOfPupilQuality, 2);
 });
 
 test("calcule l’estimation de part de population électorale au centième", () => {
-  const entries = Array.from({ length: 126 }, () => ({ ville: "Kergrist-Moëlou", qualite: "Habitant(e) de Kergrist" }));
-  assert.equal(calculatePetitionStats(entries).kergristElectorateEstimatePercent, 23.38);
+  const entries = Array.from({ length: 126 }, () => ({
+    ville: "Kergrist-Moëlou",
+    qualite: "Habitant(e) de Kergrist",
+  }));
+  assert.equal(
+    calculatePetitionStats(entries).kergristElectorateEstimatePercent,
+    23.38,
+  );
 });

@@ -20,7 +20,16 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { publishCmsPageRevision } from "@/lib/cmsRevisionClient";
-import { CheckCircle2, XCircle, Clock, User, ChevronDown, ChevronUp, Eye, FileText } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  User,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  FileText,
+} from "lucide-react";
 import BlockRenderer from "../components/cms/BlockRenderer";
 
 interface Draft {
@@ -41,17 +50,21 @@ export default function DraftReviewPanel() {
   const [expandedDraft, setExpandedDraft] = useState<string | null>(null);
   const [rejectComment, setRejectComment] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ id: string; msg: string; ok: boolean } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    id: string;
+    msg: string;
+    ok: boolean;
+  } | null>(null);
   const [isSimplified, setIsSimplified] = useState(false);
 
   // [SPEC-CMS-DRAFT-01] Écoute en temps réel des brouillons en attente
   useEffect(() => {
     const q = query(
       collection(db, "cms_drafts"),
-      where("status", "==", "pending")
+      where("status", "==", "pending"),
     );
     const unsub = onSnapshot(q, (snap) => {
-      setDrafts(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Draft)));
+      setDrafts(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Draft));
     });
     return () => unsub();
   }, []);
@@ -70,7 +83,11 @@ export default function DraftReviewPanel() {
       await publishCmsPageRevision(draft.data, "draft");
       // Supprime le draft après publication
       await deleteDoc(doc(db, "cms_drafts", draft.id));
-      setFeedback({ id: draft.id, msg: "✅ Modification publiée avec succès !", ok: true });
+      setFeedback({
+        id: draft.id,
+        msg: "✅ Modification publiée avec succès !",
+        ok: true,
+      });
       setExpandedDraft(null);
     } catch (err: any) {
       setFeedback({ id: draft.id, msg: `Erreur : ${err.message}`, ok: false });
@@ -91,7 +108,11 @@ export default function DraftReviewPanel() {
         reviewComment: rejectComment.trim(),
         reviewedAt: Timestamp.now(),
       });
-      setFeedback({ id: draft.id, msg: "Révision rejetée. L'éditeur sera notifié.", ok: true });
+      setFeedback({
+        id: draft.id,
+        msg: "Révision rejetée. L'éditeur sera notifié.",
+        ok: true,
+      });
       setRejectComment("");
       setExpandedDraft(null);
     } catch (err: any) {
@@ -117,14 +138,20 @@ export default function DraftReviewPanel() {
         const submittedAt = draft.submittedAt?.toDate?.();
 
         return (
-          <div key={draft.id} className="border border-amber-200 rounded-2xl overflow-hidden shadow-sm bg-white">
+          <div
+            key={draft.id}
+            className="border border-amber-200 rounded-2xl overflow-hidden shadow-sm bg-white"
+          >
             {/* En-tête du brouillon */}
             <div className="bg-amber-50 px-5 py-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Clock size={18} className="text-amber-500 shrink-0" />
                 <div>
                   <p className="font-bold text-stone-900 text-sm">
-                    Révision de la page <span className="font-mono text-amber-700">{draft.pageId}</span>
+                    Révision de la page{" "}
+                    <span className="font-mono text-amber-700">
+                      {draft.pageId}
+                    </span>
                   </p>
                   <div className="flex items-center gap-2 text-xs text-stone-500 mt-0.5">
                     <User size={11} />
@@ -132,7 +159,15 @@ export default function DraftReviewPanel() {
                     {submittedAt && (
                       <>
                         <span>·</span>
-                        <span>{submittedAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                        <span>
+                          {submittedAt.toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
                       </>
                     )}
                   </div>
@@ -143,17 +178,25 @@ export default function DraftReviewPanel() {
                 onClick={() => setExpandedDraft(isExpanded ? null : draft.id)}
                 className="flex items-center gap-1.5 text-xs font-medium text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
                 aria-expanded={isExpanded}
-                aria-label={isExpanded ? "Masquer les détails" : "Voir les modifications"}
+                aria-label={
+                  isExpanded ? "Masquer les détails" : "Voir les modifications"
+                }
               >
                 <FileText size={13} />
                 {isExpanded ? "Masquer" : "Voir les modifications"}
-                {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                {isExpanded ? (
+                  <ChevronUp size={13} />
+                ) : (
+                  <ChevronDown size={13} />
+                )}
               </button>
             </div>
 
             {/* Feedback */}
             {feedback?.id === draft.id && (
-              <div className={`px-5 py-3 text-sm font-medium ${feedback.ok ? "bg-emerald-50 text-emerald-800 border-b border-emerald-200" : "bg-rose-50 text-rose-800 border-b border-rose-200"}`}>
+              <div
+                className={`px-5 py-3 text-sm font-medium ${feedback.ok ? "bg-emerald-50 text-emerald-800 border-b border-emerald-200" : "bg-rose-50 text-rose-800 border-b border-rose-200"}`}
+              >
                 {feedback.msg}
               </div>
             )}
@@ -163,10 +206,22 @@ export default function DraftReviewPanel() {
               <div className="p-5 space-y-5">
                 {/* Toggle résumé/détails pour le diff */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-stone-500">Mode aperçu :</span>
+                  <span className="text-xs font-medium text-stone-500">
+                    Mode aperçu :
+                  </span>
                   <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
-                    <button onClick={() => setIsSimplified(false)} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${!isSimplified ? 'bg-white shadow-sm text-stone-900' : 'text-stone-500'}`}>Détails</button>
-                    <button onClick={() => setIsSimplified(true)} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${isSimplified ? 'bg-white shadow-sm text-stone-900' : 'text-stone-500'}`}>Résumé</button>
+                    <button
+                      onClick={() => setIsSimplified(false)}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${!isSimplified ? "bg-white shadow-sm text-stone-900" : "text-stone-500"}`}
+                    >
+                      Détails
+                    </button>
+                    <button
+                      onClick={() => setIsSimplified(true)}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${isSimplified ? "bg-white shadow-sm text-stone-900" : "text-stone-500"}`}
+                    >
+                      Résumé
+                    </button>
                   </div>
                 </div>
 
@@ -177,12 +232,24 @@ export default function DraftReviewPanel() {
                     <div>
                       <div className="bg-stone-100 px-4 py-2 border-b border-stone-200 flex items-center gap-2">
                         <Eye size={13} className="text-stone-500" />
-                        <span className="text-xs font-bold text-stone-600 uppercase tracking-wide">Version actuelle (publiée)</span>
+                        <span className="text-xs font-bold text-stone-600 uppercase tracking-wide">
+                          Version actuelle (publiée)
+                        </span>
                       </div>
                       <div className="overflow-x-hidden bg-stone-50">
                         {liveData?.blocks?.map((block: any, idx: number) => (
-                          <div key={idx} className="border-b border-stone-100 last:border-0">
-                            <BlockRenderer block={block} context={{ isSimplified, setActiveTopic: () => {}, commentCounts: {} }} />
+                          <div
+                            key={idx}
+                            className="border-b border-stone-100 last:border-0"
+                          >
+                            <BlockRenderer
+                              block={block}
+                              context={{
+                                isSimplified,
+                                setActiveTopic: () => {},
+                                commentCounts: {},
+                              }}
+                            />
                           </div>
                         ))}
                       </div>
@@ -192,12 +259,24 @@ export default function DraftReviewPanel() {
                     <div>
                       <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 flex items-center gap-2">
                         <Clock size={13} className="text-amber-600" />
-                        <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">Version proposée</span>
+                        <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
+                          Version proposée
+                        </span>
                       </div>
                       <div className="overflow-x-hidden bg-amber-50/30">
                         {draft.data?.blocks?.map((block: any, idx: number) => (
-                          <div key={idx} className="border-b border-amber-100 last:border-0">
-                            <BlockRenderer block={block} context={{ isSimplified, setActiveTopic: () => {}, commentCounts: {} }} />
+                          <div
+                            key={idx}
+                            className="border-b border-amber-100 last:border-0"
+                          >
+                            <BlockRenderer
+                              block={block}
+                              context={{
+                                isSimplified,
+                                setActiveTopic: () => {},
+                                commentCounts: {},
+                              }}
+                            />
                           </div>
                         ))}
                       </div>
@@ -207,7 +286,10 @@ export default function DraftReviewPanel() {
 
                 {/* Zone de rejet */}
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-stone-600" htmlFor={`reject-comment-${draft.id}`}>
+                  <label
+                    className="text-xs font-medium text-stone-600"
+                    htmlFor={`reject-comment-${draft.id}`}
+                  >
                     Motif de rejet (obligatoire pour rejeter) :
                   </label>
                   <textarea
@@ -228,7 +310,9 @@ export default function DraftReviewPanel() {
                     aria-label="Approuver et publier les modifications"
                   >
                     <CheckCircle2 size={16} />
-                    {processingId === draft.id ? "Publication..." : "Approuver et publier"}
+                    {processingId === draft.id
+                      ? "Publication..."
+                      : "Approuver et publier"}
                   </button>
                   <button
                     onClick={() => reject(draft)}

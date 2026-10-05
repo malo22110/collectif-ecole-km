@@ -25,18 +25,25 @@ export function buildSignaturesCsv(rows: SignatureExportRow[]): string {
     "Lien avec l'école",
     "Source",
     "Doublon potentiel",
-    "Date de signature"
+    "Date de signature",
   ];
-  const lines = [header, ...rows.map(row => [
-    row.prenom,
-    row.nom,
-    row.email,
-    row.ville,
-    row.qualite,
-    row.source === "papier" ? "Papier" : row.source === "accord_collectif" ? "Accord de principe (réunion fondatrice)" : "En ligne",
-    row.potentialDuplicate ? "Oui" : "Non",
-    row.createdAt
-  ])];
+  const lines = [
+    header,
+    ...rows.map((row) => [
+      row.prenom,
+      row.nom,
+      row.email,
+      row.ville,
+      row.qualite,
+      row.source === "papier"
+        ? "Papier"
+        : row.source === "accord_collectif"
+          ? "Accord de principe (réunion fondatrice)"
+          : "En ligne",
+      row.potentialDuplicate ? "Oui" : "Non",
+      row.createdAt,
+    ]),
+  ];
 
-  return `\uFEFF${lines.map(line => line.map(safeSpreadsheetCell).join(";")).join("\r\n")}`;
+  return `\uFEFF${lines.map((line) => line.map(safeSpreadsheetCell).join(";")).join("\r\n")}`;
 }

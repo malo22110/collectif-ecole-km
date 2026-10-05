@@ -6,7 +6,14 @@
 
 import React, { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, collection, onSnapshot, updateDoc, deleteField } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  onSnapshot,
+  updateDoc,
+  deleteField,
+} from "firebase/firestore";
 import { ShieldAlert, ShieldCheck, Check, X, Clock } from "lucide-react";
 
 interface Membre {
@@ -39,15 +46,28 @@ export default function GestionnairePage() {
 
   useEffect(() => {
     const email = auth.currentUser?.email;
-    if (!email) { setHasAccess(false); return; }
+    if (!email) {
+      setHasAccess(false);
+      return;
+    }
     const checkRole = async () => {
       try {
         const snap = await getDoc(doc(db, "membres", email));
         if (snap.exists()) {
-          const roles = Array.isArray(snap.data().roles) ? snap.data().roles : (snap.data().role ? [snap.data().role] : []);
-          setHasAccess(roles.includes("admin") || roles.includes("gestionnaire"));
-        } else { setHasAccess(false); }
-      } catch { setHasAccess(false); }
+          const roles = Array.isArray(snap.data().roles)
+            ? snap.data().roles
+            : snap.data().role
+              ? [snap.data().role]
+              : [];
+          setHasAccess(
+            roles.includes("admin") || roles.includes("gestionnaire"),
+          );
+        } else {
+          setHasAccess(false);
+        }
+      } catch {
+        setHasAccess(false);
+      }
     };
     checkRole();
   }, []);
@@ -56,9 +76,11 @@ export default function GestionnairePage() {
     if (!hasAccess) return;
     const unsub = onSnapshot(collection(db, "membres"), (snap) => {
       const withRequests = snap.docs
-        .map(d => ({ id: d.id, ...d.data() } as Membre))
-        .filter(m =>
-          (Array.isArray(m.roleRequests) && m.roleRequests.length > 0) || m.roleRequest
+        .map((d) => ({ id: d.id, ...d.data() }) as Membre)
+        .filter(
+          (m) =>
+            (Array.isArray(m.roleRequests) && m.roleRequests.length > 0) ||
+            m.roleRequest,
         );
       setPendingRequests(withRequests);
     });
@@ -68,8 +90,16 @@ export default function GestionnairePage() {
   const handleApprove = async (membre: Membre) => {
     setProcessing(membre.id);
     try {
-      const currentRoles = Array.isArray(membre.roles) ? membre.roles : (membre.role && membre.role !== "membre" ? [membre.role] : []);
-      const reqs = Array.isArray(membre.roleRequests) ? membre.roleRequests : (membre.roleRequest ? [membre.roleRequest] : []);
+      const currentRoles = Array.isArray(membre.roles)
+        ? membre.roles
+        : membre.role && membre.role !== "membre"
+          ? [membre.role]
+          : [];
+      const reqs = Array.isArray(membre.roleRequests)
+        ? membre.roleRequests
+        : membre.roleRequest
+          ? [membre.roleRequest]
+          : [];
       const newRoles = Array.from(new Set([...currentRoles, ...reqs]));
       await updateDoc(doc(db, "membres", membre.id), {
         roles: newRoles,
@@ -99,13 +129,19 @@ export default function GestionnairePage() {
   };
 
   if (hasAccess === null)
-    return <div className="p-8 text-center text-stone-500">Vérification des droits...</div>;
+    return (
+      <div className="p-8 text-center text-stone-500">
+        Vérification des droits...
+      </div>
+    );
   if (!hasAccess)
     return (
       <div className="p-8 text-center flex flex-col items-center">
         <ShieldAlert size={48} className="mb-4 text-red-500" />
         <h2 className="text-xl font-bold text-red-700">Accès refusé</h2>
-        <p className="text-stone-500">Vous n'avez pas les droits pour accéder à cette page.</p>
+        <p className="text-stone-500">
+          Vous n'avez pas les droits pour accéder à cette page.
+        </p>
       </div>
     );
 
@@ -113,16 +149,21 @@ export default function GestionnairePage() {
     <div className="p-4 md:p-8">
       <div className="flex items-center gap-3 mb-2">
         <ShieldCheck size={28} className="text-emerald-600" />
-        <h1 className="text-2xl md:text-3xl font-black text-stone-900">Gestion des demandes de rôles</h1>
+        <h1 className="text-2xl md:text-3xl font-black text-stone-900">
+          Gestion des demandes de rôles
+        </h1>
       </div>
       <p className="text-stone-500 text-sm mb-8">
-        Approuvez ou refusez les demandes de rôles soumises par les membres du collectif.
+        Approuvez ou refusez les demandes de rôles soumises par les membres du
+        collectif.
       </p>
 
       {pendingRequests.length === 0 ? (
         <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center">
           <Check size={40} className="text-emerald-400 mx-auto mb-4" />
-          <p className="text-stone-500 font-medium">Aucune demande en attente. Tout est à jour !</p>
+          <p className="text-stone-500 font-medium">
+            Aucune demande en attente. Tout est à jour !
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden shadow-sm">
@@ -139,30 +180,55 @@ export default function GestionnairePage() {
             </span>
           </div>
           <div className="divide-y divide-stone-100">
-            {pendingRequests.map(membre => {
-              const reqs = Array.isArray(membre.roleRequests) ? membre.roleRequests : [membre.roleRequest].filter(Boolean) as string[];
-              const currentRoles = Array.isArray(membre.roles) ? membre.roles : (membre.role ? [membre.role] : []);
+            {pendingRequests.map((membre) => {
+              const reqs = Array.isArray(membre.roleRequests)
+                ? membre.roleRequests
+                : ([membre.roleRequest].filter(Boolean) as string[]);
+              const currentRoles = Array.isArray(membre.roles)
+                ? membre.roles
+                : membre.role
+                  ? [membre.role]
+                  : [];
               const isProcessing = processing === membre.id;
               return (
-                <div key={membre.id} className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div
+                  key={membre.id}
+                  className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                >
                   <div className="flex-1">
-                    <div className="font-bold text-stone-900">{membre.prenom} {membre.nom}</div>
+                    <div className="font-bold text-stone-900">
+                      {membre.prenom} {membre.nom}
+                    </div>
                     <div className="text-stone-500 text-sm">{membre.email}</div>
                     <div className="flex flex-wrap items-center gap-2 mt-2">
-                      <span className="text-xs text-stone-400 mr-1">Rôles actuels :</span>
-                      {currentRoles.length > 0 ? currentRoles.map(r => (
-                        <span key={r} className="text-[10px] uppercase bg-stone-100 px-1.5 py-0.5 rounded text-stone-600">
-                          {ROLE_LABELS[r] || r}
+                      <span className="text-xs text-stone-400 mr-1">
+                        Rôles actuels :
+                      </span>
+                      {currentRoles.length > 0 ? (
+                        currentRoles.map((r) => (
+                          <span
+                            key={r}
+                            className="text-[10px] uppercase bg-stone-100 px-1.5 py-0.5 rounded text-stone-600"
+                          >
+                            {ROLE_LABELS[r] || r}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-stone-400 italic">
+                          membre
                         </span>
-                      )) : <span className="text-xs text-stone-400 italic">membre</span>}
+                      )}
                     </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <Clock size={14} className="text-amber-500 shrink-0" />
-                      {reqs.map(r => (
-                        <span key={r} className="text-[11px] font-bold uppercase bg-amber-100 text-amber-800 px-2 py-1 rounded-md border border-amber-200">
+                      {reqs.map((r) => (
+                        <span
+                          key={r}
+                          className="text-[11px] font-bold uppercase bg-amber-100 text-amber-800 px-2 py-1 rounded-md border border-amber-200"
+                        >
                           {ROLE_LABELS[r] || r}
                         </span>
                       ))}

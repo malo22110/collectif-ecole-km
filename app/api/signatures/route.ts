@@ -23,9 +23,13 @@ export async function GET(request: Request) {
     }
 
     // Vérifier que l'utilisateur est bien membre validé ou admin
-    const adminEmails = ['lecam.malo@gmail.com', 'contact@collectif-ecole-km.fr', 'collectif.ecole.km@gmail.com'];
+    const adminEmails = [
+      "lecam.malo@gmail.com",
+      "contact@collectif-ecole-km.fr",
+      "collectif.ecole.km@gmail.com",
+    ];
     const isAdmin = adminEmails.includes(email);
-    
+
     let isMember = false;
     if (!isAdmin) {
       const membreDoc = await adminDb.collection("membres").doc(email).get();
@@ -35,18 +39,24 @@ export async function GET(request: Request) {
     }
 
     if (!isAdmin && !isMember) {
-      return NextResponse.json({ error: "Accès réservé aux membres validés" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Accès réservé aux membres validés" },
+        { status: 403 },
+      );
     }
 
     // Récupérer les signatures
-    const signaturesSnap = await adminDb.collection("signatures").orderBy("createdAt", "desc").get();
-    
-    const signatures = signaturesSnap.docs.map(signatureDoc => {
+    const signaturesSnap = await adminDb
+      .collection("signatures")
+      .orderBy("createdAt", "desc")
+      .get();
+
+    const signatures = signaturesSnap.docs.map((signatureDoc) => {
       const data = signatureDoc.data();
       let isoDate = null;
       try {
         if (data.createdAt) {
-          if (typeof data.createdAt.toDate === 'function') {
+          if (typeof data.createdAt.toDate === "function") {
             isoDate = data.createdAt.toDate().toISOString();
           } else {
             isoDate = new Date(data.createdAt).toISOString();
@@ -62,16 +72,28 @@ export async function GET(request: Request) {
         nom: data.nom,
         ville: data.ville,
         qualite: data.qualite,
-        source: data.source === "papier" ? "papier" : data.source === "accord_collectif" ? "accord_collectif" : "en ligne",
+        source:
+          data.source === "papier"
+            ? "papier"
+            : data.source === "accord_collectif"
+              ? "accord_collectif"
+              : "en ligne",
         potentialDuplicate: data.potentialDuplicate === true,
-        potentialDuplicateCount: Array.isArray(data.potentialDuplicateCandidates) ? data.potentialDuplicateCandidates.length : 0,
+        potentialDuplicateCount: Array.isArray(
+          data.potentialDuplicateCandidates,
+        )
+          ? data.potentialDuplicateCandidates.length
+          : 0,
         createdAt: isoDate,
       };
     });
 
-    return NextResponse.json({ signatures }, {
-      headers: { "Cache-Control": "private, no-store, max-age=0" }
-    });
+    return NextResponse.json(
+      { signatures },
+      {
+        headers: { "Cache-Control": "private, no-store, max-age=0" },
+      },
+    );
   } catch (error) {
     console.error("Erreur API signatures:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
