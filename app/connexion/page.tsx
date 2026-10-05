@@ -75,7 +75,6 @@ export default function ConnexionPage() {
     try {
       await addDoc(collection(db, "magicLinks"), {
         email: email.trim(),
-        url: `${window.location.origin}/connexion`,
         createdAt: serverTimestamp(),
         status: "pending",
       });

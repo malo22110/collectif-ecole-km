@@ -150,7 +150,6 @@ export default function Comments({
       // On demande au serveur d'envoyer le mail joli via Firestore
       await addDoc(collection(db, "magicLinks"), {
         email: email,
-        url: window.location.href,
         createdAt: serverTimestamp(),
         status: "pending",
       });

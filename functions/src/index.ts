@@ -15,6 +15,7 @@ import { createMailTransport, mailFrom, smtpPassword } from "./mailTransport";
 import { syncInfomaniakInbox } from "./mailInboxSync";
 import { getMailMessageIndexId } from "./mailInboxUtils";
 import { isMailDueForDelivery } from "./mailQueue";
+import { MAGIC_LINK_CONTINUE_URL } from "./magicLinkConfig";
 
 setGlobalOptions({ region: "europe-west9" });
 
@@ -113,11 +114,10 @@ export const envoyerMagicLink = onDocumentCreated(
     if (!data || !data.email || data.status !== "pending") return;
 
     const email = data.email;
-    const redirectUrl = data.url || "https://collectif-ecole-km.web.app/";
 
     try {
       const actionCodeSettings = {
-        url: redirectUrl,
+        url: MAGIC_LINK_CONTINUE_URL,
         handleCodeInApp: true,
       };
 

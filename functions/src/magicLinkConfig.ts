@@ -1,0 +1,1 @@
+export const MAGIC_LINK_CONTINUE_URL = "https://collectif-ecole-km.fr/connexion";
