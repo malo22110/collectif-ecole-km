@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import logoImage from "../public/images/logo.png";
+import heroImage from "../public/images/hero.jpg";
 import { collection, setDoc, query, where, getDocs, doc, onSnapshot, getCountFromServer } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
@@ -168,7 +170,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/images/logo.png" alt="Logo Collectif" className="w-10 h-10 object-contain rounded-full border border-stone-200 bg-white" />
+            <img src={logoImage.src} alt="Logo Collectif" className="w-10 h-10 object-contain rounded-full border border-stone-200 bg-white" />
             <span className="font-semibold text-stone-800 hidden sm:block text-sm md:text-base">
               Collectif citoyen pour la rénovation de l'école
             </span>
@@ -229,7 +231,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section className="relative pt-20 pb-16 md:pt-32 md:pb-24 px-4 overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <img src="/images/hero.jpg" alt="École de Kergrist-Moëlou" className="w-full h-full object-cover object-center" />
+            <img src={heroImage.src} alt="École de Kergrist-Moëlou" className="w-full h-full object-cover object-center" />
             <div className="absolute inset-0 bg-white/50 pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-br from-amber-100/40 to-emerald-100/40 pointer-events-none" />
           </div>

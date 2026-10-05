@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import heroImage from "../public/images/hero.jpg";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
       "Collectif citoyen pour la rénovation concertée, responsable et durable de l'école de Kergrist-Moëlou (22110).",
     images: [
       {
-        url: "/images/hero.jpg",
+        url: heroImage.src,
         width: 1200,
         height: 630,
         alt: "École de Kergrist-Moëlou",
