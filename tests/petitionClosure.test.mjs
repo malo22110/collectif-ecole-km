@@ -11,6 +11,10 @@ test("la page publique archive la pétition sans formulaire ni création Firesto
   ]);
   assert.doesNotMatch(page, /<form|setDoc\(|addDoc\(/);
   assert.match(page, /La pétition est close/);
+  assert.match(page, /Pétition Citoyenne pour la Sauvegarde de l/);
+  assert.match(page, /Valorisons les études engagées vers un projet maîtrisé/);
+  assert.match(page, /réévaluation à la baisse du dossier de rénovation déjà engagé/);
+  assert.match(page, /550 000 € HT/);
   assert.match(rules, /match \/signatures\/\{sigId\}[\s\S]*?allow create: if false;/);
   assert.doesNotMatch(home, /Signer la pétition|Signer la pétition maintenant|Prochain conseil municipal/);
   assert.match(home, /dossier retourne chez l’architecte/);
