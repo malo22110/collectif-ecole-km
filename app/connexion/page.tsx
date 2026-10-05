@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   signInWithEmailLink,
 } from "firebase/auth";
-import { addDoc, collection, query, serverTimestamp, where, getDocs } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserCircle2 } from "lucide-react";
@@ -18,6 +18,8 @@ export default function ConnexionPage() {
   const [authMode, setAuthMode] = useState<"idle" | "login">("idle");
   const [email, setEmail] = useState("");
   const [linkSent, setLinkSent] = useState(false);
+  const [isMagicLink, setIsMagicLink] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [authError, setAuthError] = useState("");
   const router = useRouter();
 
@@ -32,20 +34,34 @@ export default function ConnexionPage() {
 
   useEffect(() => {
     if (!isSignInWithEmailLink(auth, window.location.href)) return;
-    const savedEmail =
-      window.localStorage.getItem("emailForSignIn") ||
-      window.prompt("Confirmez l’adresse e-mail destinataire du lien.");
-    if (!savedEmail) return;
+    // [SPEC-MAIL-01] Never sign in automatically with a potentially stale email saved on this device.
+    setIsMagicLink(true);
+    setEmail(window.localStorage.getItem("emailForSignIn") || "");
+  }, []);
 
-    void signInWithEmailLink(auth, savedEmail, window.location.href)
-      .then(() => {
-        window.localStorage.removeItem("emailForSignIn");
-        router.replace("/espace-membre");
-      })
-      .catch(() =>
-        setAuthError("Le lien de connexion est invalide ou a expiré. Demandez-en un nouveau."),
+  const handleCompleteMagicLink = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const confirmedEmail = email.trim();
+    if (!confirmedEmail) return;
+
+    setAuthError("");
+    setIsSigningIn(true);
+    try {
+      if (!isSignInWithEmailLink(auth, window.location.href)) {
+        throw new Error("Ce lien de connexion est invalide ou a déjà été utilisé.");
+      }
+      await signInWithEmailLink(auth, confirmedEmail, window.location.href);
+      window.localStorage.removeItem("emailForSignIn");
+      router.replace("/espace-membre");
+    } catch {
+      window.localStorage.removeItem("emailForSignIn");
+      setAuthError(
+        "Impossible de valider ce lien avec cette adresse. Vérifiez l’e-mail utilisé pour le recevoir, ou demandez un nouveau lien.",
       );
-  }, [router]);
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setAuthError("");
@@ -87,7 +103,46 @@ export default function ConnexionPage() {
           <p className="text-stone-500">Accédez aux outils réservés aux membres du collectif.</p>
         </div>
 
-        {authMode === "idle" ? (
+        {isMagicLink ? (
+          <form onSubmit={handleCompleteMagicLink} className="space-y-4 text-left">
+            <h2 className="text-center text-lg font-bold text-stone-900">
+              Confirmer votre adresse e-mail
+            </h2>
+            <p className="text-center text-sm leading-6 text-stone-600">
+              Saisissez l’adresse qui a reçu ce lien pour terminer la connexion.
+            </p>
+            {authError && (
+              <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-center text-sm font-semibold text-rose-800">
+                {authError}
+              </p>
+            )}
+            <label htmlFor="magic-link-email" className="input-label">
+              Adresse e-mail
+            </label>
+            <input
+              id="magic-link-email"
+              type="email"
+              name="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              required
+              autoFocus
+              value={email}
+              onChange={(event) => setEmail(event.currentTarget.value)}
+              className="input-base min-h-12 w-full"
+              placeholder="nom@exemple.fr"
+            />
+            <button
+              type="submit"
+              disabled={isSigningIn || !email.trim()}
+              className="btn-primary min-h-12 w-full justify-center disabled:cursor-wait"
+            >
+              {isSigningIn ? "Vérification du lien…" : "Terminer la connexion"}
+            </button>
+          </form>
+        ) : authMode === "idle" ? (
           <div>
             {authError && (
               <p className="text-rose-500 text-sm mb-4 font-bold bg-rose-50 p-3 rounded-lg border border-rose-200 text-center">
