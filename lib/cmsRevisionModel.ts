@@ -32,3 +32,13 @@ export function buildVersionedCmsPageData(
 
   return { ...publishedData, version: nextVersion };
 }
+
+export function buildVersionedHomeActionPlanData(
+  currentData: CmsPageData,
+  proposedData: CmsPageData,
+): CmsPageData {
+  return buildVersionedCmsPageData(currentData, {
+    ...currentData,
+    homeActionPlan: proposedData.homeActionPlan,
+  });
+}

@@ -103,6 +103,7 @@ export default function VisualCmsEditor({
   isSimplified = false,
   isAdmin = true,
   userEmail = "",
+  homeActionPlanOnly = false,
 }: {
   pageId?: string;
   onDirtyChange?: (dirty: boolean) => void;
@@ -111,6 +112,7 @@ export default function VisualCmsEditor({
   isSimplified?: boolean;
   isAdmin?: boolean;
   userEmail?: string;
+  homeActionPlanOnly?: boolean;
 }) {
   const [pageData, setPageData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -191,10 +193,11 @@ export default function VisualCmsEditor({
     try {
       await addDoc(collection(db, "cms_drafts"), {
         pageId,
+        ...(homeActionPlanOnly ? { scope: "homeActionPlan" } : {}),
         status: "pending",
         submittedBy: userEmail,
         submittedAt: serverTimestamp(),
-        data: pageData,
+        data: homeActionPlanOnly ? { homeActionPlan: pageData.homeActionPlan } : pageData,
       });
       setSubmitted(true);
       setIsDirty(false);
@@ -256,7 +259,9 @@ export default function VisualCmsEditor({
       {/* Sticky save bar */}
       <div className="sticky top-0 z-30 bg-white border-b border-stone-200 px-6 py-3 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-3">
-          <h3 className="font-bold text-stone-900">Éditeur Visuel : Page Historique</h3>
+          <h3 className="font-bold text-stone-900">
+            {homeActionPlanOnly ? "Plan d’action de l’accueil" : "Éditeur Visuel : Page Historique"}
+          </h3>
           {isDirty && (
             <span className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full animate-pulse">
               Modifications non sauvegardées
@@ -313,6 +318,7 @@ export default function VisualCmsEditor({
           </div>
           <button
             type="button"
+            disabled={(pageData.homeActionPlan || DEFAULT_HOME_ACTION_PLAN).length >= 100}
             onClick={() =>
               updateHomeActionPlan([
                 ...(pageData.homeActionPlan || DEFAULT_HOME_ACTION_PLAN),
@@ -324,7 +330,8 @@ export default function VisualCmsEditor({
                 },
               ])
             }
-            className="btn-secondary min-h-10 px-3 py-2 text-sm"
+            className="btn-secondary min-h-10 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="Ajouter une étape au plan d’action"
           >
             <Plus size={16} aria-hidden="true" /> Ajouter une étape
           </button>
@@ -333,7 +340,7 @@ export default function VisualCmsEditor({
         <ol className="divide-y divide-stone-200">
           {(pageData.homeActionPlan || DEFAULT_HOME_ACTION_PLAN).map(
             (item: HomeActionPlanEntry, itemIndex: number, items: HomeActionPlanEntry[]) => (
-              <li key={`${item.date}-${itemIndex}`} className="grid min-w-0 gap-3 py-4">
+              <li key={itemIndex} className="grid min-w-0 gap-3 py-4">
                 <div className="flex min-w-0 items-center justify-between gap-3">
                   <span className="text-sm font-semibold text-stone-800">
                     Étape {itemIndex + 1}
@@ -450,7 +457,7 @@ export default function VisualCmsEditor({
       </section>
 
       {/* Block list: each block renders editor + preview in the same row */}
-      <div className="divide-y divide-stone-200">
+      <div className={`divide-y divide-stone-200 ${homeActionPlanOnly ? "hidden" : ""}`}>
         {pageData.blocks.map((block: any, index: number) => (
           <div key={index} className={`flex min-h-0 ${showPreview ? "flex-row" : "flex-col"}`}>
             {/* ── Left: editor form ── */}

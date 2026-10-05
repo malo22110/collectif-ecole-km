@@ -5,7 +5,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { ArrowRight, BookOpenText, HelpCircle, Newspaper, UserRoundCog } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenText,
+  HelpCircle,
+  ListChecks,
+  Newspaper,
+  UserRoundCog,
+} from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 
 const tools = [
@@ -17,6 +24,15 @@ const tools = [
     action: "Gérer les articles",
     icon: BookOpenText,
     color: "bg-sky-100 text-sky-900",
+  },
+  {
+    role: "redacteur",
+    href: "/espace-membre/redaction/plan-action",
+    title: "Plan d’action",
+    description: "Proposer une mise à jour des étapes affichées sur la page d’accueil.",
+    action: "Modifier le plan",
+    icon: ListChecks,
+    color: "bg-amber-100 text-amber-900",
   },
   {
     role: "faq",

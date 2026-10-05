@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildCmsRevisionSnapshot, buildVersionedCmsPageData } from "../lib/cmsRevisionModel.ts";
+import {
+  buildCmsRevisionSnapshot,
+  buildVersionedCmsPageData,
+  buildVersionedHomeActionPlanData,
+} from "../lib/cmsRevisionModel.ts";
 
 // [SPEC-CMS-HISTORY-01] Each publication archives the previous document and the client cannot select its version.
 test("archive l’état précédent et calcule la version côté serveur", () => {
@@ -21,10 +25,21 @@ test("archive l’état précédent et calcule la version côté serveur", () =>
   assert.equal(next.version, 8);
   assert.deepEqual(next.blocks, proposed.blocks);
 });
-
 test("une page historique sans version démarre à la version 1", () => {
   assert.deepEqual(buildVersionedCmsPageData({}, { version: 42, header: { title: "Page" } }), {
     header: { title: "Page" },
     version: 1,
+  });
+});
+
+// [SPEC-HOME-ACTION-PLAN-01] Approval of a plan draft must preserve newer unrelated CMS content.
+test("publie le plan d’action sur la page courante sans remplacer ses autres champs", () => {
+  const latestPage = { version: 4, header: { title: "Titre récent" }, homeActionPlan: [] };
+  const proposedPlan = { homeActionPlan: [{ title: "Nouvelle étape" }] };
+
+  assert.deepEqual(buildVersionedHomeActionPlanData(latestPage, proposedPlan), {
+    version: 5,
+    header: { title: "Titre récent" },
+    homeActionPlan: [{ title: "Nouvelle étape" }],
   });
 });

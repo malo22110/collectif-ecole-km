@@ -5,8 +5,10 @@ import { adminAuth, adminDb } from "@/lib/firebaseAdmin";
 import {
   buildCmsRevisionSnapshot,
   buildVersionedCmsPageData,
+  buildVersionedHomeActionPlanData,
   type CmsPageData,
 } from "@/lib/cmsRevisionModel";
+import { homeActionPlanDraftSchema } from "@/lib/homeActionPlanSchema";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,7 @@ const publishSchema = z
   .object({
     data: z.record(z.string(), z.unknown()),
     origin: z.enum(["visual", "expert", "draft"]),
+    scope: z.literal("homeActionPlan").optional(),
   })
   .strict();
 const restoreSchema = z
@@ -194,6 +197,24 @@ export async function POST(request: Request) {
   if (!parsed.success)
     return NextResponse.json({ error: "Document ou origine invalide." }, { status: 400 });
 
+  let scopedPlan: z.infer<typeof homeActionPlanDraftSchema> | null = null;
+  if (parsed.data.scope) {
+    if (parsed.data.origin !== "draft") {
+      return NextResponse.json(
+        { error: "Cette portée est réservée aux brouillons." },
+        { status: 400 },
+      );
+    }
+    const plan = homeActionPlanDraftSchema.safeParse(parsed.data.data);
+    if (!plan.success) {
+      return NextResponse.json(
+        { error: "Le plan d’action proposé est invalide." },
+        { status: 400 },
+      );
+    }
+    scopedPlan = plan.data;
+  }
+
   try {
     const pageRef = adminDb.collection("pages").doc(PAGE_ID);
     const revisionRef = pageRef.collection("revisions").doc();
@@ -203,7 +224,9 @@ export async function POST(request: Request) {
         throw new RevisionOperationError("Document fiscal introuvable.", 404);
 
       const currentData = currentSnapshot.data() as CmsPageData;
-      const nextData = buildVersionedCmsPageData(currentData, parsed.data.data);
+      const nextData = scopedPlan
+        ? buildVersionedHomeActionPlanData(currentData, scopedPlan)
+        : buildVersionedCmsPageData(currentData, parsed.data.data);
       transaction.create(revisionRef, {
         ...buildCmsRevisionSnapshot(currentData, authorization.admin.email, parsed.data.origin),
         createdAt: FieldValue.serverTimestamp(),

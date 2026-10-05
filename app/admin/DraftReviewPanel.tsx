@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { publishCmsPageRevision } from "@/lib/cmsRevisionClient";
+import { normalizeHomeActionPlan } from "@/lib/homeActionPlan";
 import {
   CheckCircle2,
   XCircle,
@@ -35,6 +36,7 @@ import BlockRenderer from "../components/cms/BlockRenderer";
 interface Draft {
   id: string;
   pageId: string;
+  scope?: "homeActionPlan";
   status: "pending" | "approved" | "rejected";
   submittedBy: string;
   submittedAt: Timestamp;
@@ -77,7 +79,7 @@ export default function DraftReviewPanel() {
     setProcessingId(draft.id);
     try {
       // [SPEC-CMS-HISTORY-01] Toute publication approuvée archive aussi la version précédente.
-      await publishCmsPageRevision(draft.data, "draft");
+      await publishCmsPageRevision(draft.data, "draft", draft.scope);
       // Supprime le draft après publication
       await deleteDoc(doc(db, "cms_drafts", draft.id));
       setFeedback({
@@ -145,8 +147,12 @@ export default function DraftReviewPanel() {
                 <Clock size={18} className="text-amber-500 shrink-0" />
                 <div>
                   <p className="font-bold text-stone-900 text-sm">
-                    Révision de la page{" "}
-                    <span className="font-mono text-amber-700">{draft.pageId}</span>
+                    {draft.scope === "homeActionPlan"
+                      ? "Révision du plan d’action de l’accueil"
+                      : "Révision de la page"}{" "}
+                    {draft.scope !== "homeActionPlan" && (
+                      <span className="font-mono text-amber-700">{draft.pageId}</span>
+                    )}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-stone-500 mt-0.5">
                     <User size={11} />
@@ -212,58 +218,66 @@ export default function DraftReviewPanel() {
                   </div>
                 </div>
 
-                {/* Diff côte à côte */}
-                <div className="border border-stone-200 rounded-xl overflow-hidden">
-                  <div className="grid grid-cols-2 divide-x divide-stone-200">
-                    {/* Colonne gauche : version publiée */}
-                    <div>
-                      <div className="bg-stone-100 px-4 py-2 border-b border-stone-200 flex items-center gap-2">
-                        <Eye size={13} className="text-stone-500" />
-                        <span className="text-xs font-bold text-stone-600 uppercase tracking-wide">
-                          Version actuelle (publiée)
-                        </span>
+                {/* [SPEC-HOME-ACTION-PLAN-01] A scoped plan draft previews only its own field. */}
+                {draft.scope === "homeActionPlan" ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <PlanPreview title="Plan publié" value={liveData?.homeActionPlan} />
+                    <PlanPreview title="Plan proposé" value={draft.data?.homeActionPlan} proposed />
+                  </div>
+                ) : (
+                  /* Diff côte à côte */
+                  <div className="border border-stone-200 rounded-xl overflow-hidden">
+                    <div className="grid grid-cols-2 divide-x divide-stone-200">
+                      {/* Colonne gauche : version publiée */}
+                      <div>
+                        <div className="bg-stone-100 px-4 py-2 border-b border-stone-200 flex items-center gap-2">
+                          <Eye size={13} className="text-stone-500" />
+                          <span className="text-xs font-bold text-stone-600 uppercase tracking-wide">
+                            Version actuelle (publiée)
+                          </span>
+                        </div>
+                        <div className="overflow-x-hidden bg-stone-50">
+                          {liveData?.blocks?.map((block: any, idx: number) => (
+                            <div key={idx} className="border-b border-stone-100 last:border-0">
+                              <BlockRenderer
+                                block={block}
+                                context={{
+                                  isSimplified,
+                                  setActiveTopic: () => {},
+                                  commentCounts: {},
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="overflow-x-hidden bg-stone-50">
-                        {liveData?.blocks?.map((block: any, idx: number) => (
-                          <div key={idx} className="border-b border-stone-100 last:border-0">
-                            <BlockRenderer
-                              block={block}
-                              context={{
-                                isSimplified,
-                                setActiveTopic: () => {},
-                                commentCounts: {},
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
 
-                    {/* Colonne droite : version proposée */}
-                    <div>
-                      <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 flex items-center gap-2">
-                        <Clock size={13} className="text-amber-600" />
-                        <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
-                          Version proposée
-                        </span>
-                      </div>
-                      <div className="overflow-x-hidden bg-amber-50/30">
-                        {draft.data?.blocks?.map((block: any, idx: number) => (
-                          <div key={idx} className="border-b border-amber-100 last:border-0">
-                            <BlockRenderer
-                              block={block}
-                              context={{
-                                isSimplified,
-                                setActiveTopic: () => {},
-                                commentCounts: {},
-                              }}
-                            />
-                          </div>
-                        ))}
+                      {/* Colonne droite : version proposée */}
+                      <div>
+                        <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 flex items-center gap-2">
+                          <Clock size={13} className="text-amber-600" />
+                          <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
+                            Version proposée
+                          </span>
+                        </div>
+                        <div className="overflow-x-hidden bg-amber-50/30">
+                          {draft.data?.blocks?.map((block: any, idx: number) => (
+                            <div key={idx} className="border-b border-amber-100 last:border-0">
+                              <BlockRenderer
+                                block={block}
+                                context={{
+                                  isSimplified,
+                                  setActiveTopic: () => {},
+                                  commentCounts: {},
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Zone de rejet */}
                 <div className="space-y-2">
@@ -309,5 +323,43 @@ export default function DraftReviewPanel() {
         );
       })}
     </div>
+  );
+}
+
+function PlanPreview({
+  title,
+  value,
+  proposed = false,
+}: {
+  title: string;
+  value: unknown;
+  proposed?: boolean;
+}) {
+  const entries = normalizeHomeActionPlan(value);
+
+  return (
+    <section
+      aria-label={title}
+      className={`border p-4 ${proposed ? "border-amber-200 bg-amber-50/30" : "border-stone-200 bg-stone-50"}`}
+    >
+      <h3 className="mb-3 text-sm font-bold text-stone-800">{title}</h3>
+      {entries.length ? (
+        <ol className="space-y-3">
+          {entries.map((entry, index) => (
+            <li key={`${entry.date}-${index}`} className="border-t border-stone-200 pt-3">
+              <p className="text-xs font-semibold text-emerald-800">{entry.date}</p>
+              <p className="font-bold text-stone-900">{entry.title}</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-stone-600">{entry.description}</p>
+              <p className="mt-1 text-xs text-stone-500">État : {entry.status}</p>
+              {entry.linkUrl && (
+                <p className="mt-1 break-all text-xs text-stone-500">Lien : {entry.linkUrl}</p>
+              )}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="text-sm text-stone-500">Aucune étape.</p>
+      )}
+    </section>
   );
 }

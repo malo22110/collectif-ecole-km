@@ -25,10 +25,11 @@ async function requestCmsRevisions<T>(path: string, init: RequestInit = {}): Pro
 export async function publishCmsPageRevision(
   data: CmsPageData,
   origin: "visual" | "expert" | "draft",
+  scope?: "homeActionPlan",
 ): Promise<{ version: number }> {
   return requestCmsRevisions(API_PATH, {
     method: "POST",
-    body: JSON.stringify({ data, origin }),
+    body: JSON.stringify({ data, origin, ...(scope ? { scope } : {}) }),
   });
 }
 
