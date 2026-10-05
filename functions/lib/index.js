@@ -93,9 +93,10 @@ exports.envoyerMagicLink = (0, firestore_2.onDocumentCreated)({
     const email = data.email;
     try {
         // Génération du lien de connexion sécurisé
-        const signinLink = await admin
+        const firebaseActionLink = await admin
             .auth()
             .generateSignInWithEmailLink(email, magicLinkConfig_1.MAGIC_LINK_ACTION_CODE_SETTINGS);
+        const signinLink = (0, magicLinkConfig_1.buildDirectMagicLink)(firebaseActionLink);
         const transporter = (0, mailTransport_1.createMailTransport)();
         const textContent = `Bonjour,
 
