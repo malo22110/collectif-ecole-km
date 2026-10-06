@@ -103,17 +103,17 @@ export default function TimelineBlock({ data, context }: TimelineBlockProps) {
                       )}
 
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-stone-100">
-                        {event.sourceUrl && (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(encodeURI(event.sourceUrl), "_blank");
-                            }}
+                        {event.sourceUrl && event.sourceUrl !== "#" && (
+                          <a
+                            href={encodeURI(event.sourceUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(event) => event.stopPropagation()}
                             className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 hover:underline"
                           >
-                            <span>PV {event.sourceLabel}</span>
+                            <span>{event.sourceLabel}</span>
                             <ExternalLink size={14} />
-                          </span>
+                          </a>
                         )}
                         <span className="text-xs font-bold text-stone-400 group-hover:text-emerald-600 transition-colors flex items-center gap-1 ml-auto">
                           Détails <ChevronRight size={14} />
@@ -222,9 +222,10 @@ export default function TimelineBlock({ data, context }: TimelineBlockProps) {
                   <a
                     href={encodeURI(activeStep.sourceUrl)}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center justify-between p-4 bg-white border border-stone-200 shadow-sm hover:border-amber-300 hover:shadow-md text-stone-800 rounded-xl transition-all font-medium group"
                   >
-                    <span>PV : {activeStep.sourceLabel}</span>
+                    <span>{activeStep.sourceLabel}</span>
                     <ExternalLink
                       size={18}
                       className="text-amber-600 group-hover:scale-110 transition-transform"
