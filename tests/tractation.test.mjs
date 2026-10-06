@@ -57,7 +57,10 @@ test("place les actions de campagne dans un footer fixe avec dégagement mobile"
   assert.doesNotMatch(panel, /\$\{missionDraft\.length\} secteur\(s\) sélectionné\(s\)/);
   assert.match(page, /Infos sur la tournée/);
   assert.match(panel, /showCampaignDetails = true/);
-  assert.match(panel, /selectedCampaignId && !showCampaignDetails \? null/);
+  assert.match(
+    panel,
+    /selectedCampaignId && !showCampaignDetails && !editCampaignRequested \? null/,
+  );
   assert.match(panel, /h-\[50dvh\] max-h-\[50dvh\]/);
   assert.match(panel, /onPointerDown=\{\(event\) =>/);
   assert.match(panel, /deltaY > 72/);
@@ -69,8 +72,37 @@ test("place les actions de campagne dans un footer fixe avec dégagement mobile"
   assert.match(page, /"campaignInfo"/);
   assert.match(page, /onClick=\{\(\) => setView\("campaignInfo"\)\}/);
   assert.match(page, /missionMode=\{missionMode\}/);
-  assert.match(page, /showCampaignDetails=\{false\}/);
+  assert.match(page, /showCampaignDetails=\{editingCampaign\}/);
   assert.doesNotMatch(page, /Choisissez parmi tous les secteurs de cette campagne/);
+});
+
+// [SPEC-TRACTATION-07] Campaign managers can reopen the existing editor from the campaign info view.
+test("rend la modification de campagne accessible aux responsables tractation", async () => {
+  const page = await readFile(
+    new URL("../app/espace-membre/tournees/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const panel = await readFile(
+    new URL("../app/espace-membre/components/TractationPanel.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(page, /view === "campaignInfo" && campaignMap/);
+  assert.match(
+    page,
+    /view === "campaign" && campaignMap && canCreateCampaign && !editingCampaign[\s\S]*?aria-label="Modifier la campagne"/,
+  );
+  assert.match(
+    page,
+    /canCreateCampaign && \([\s\S]*?setEditingCampaign\(true\);[\s\S]*?Modifier la campagne/,
+  );
+  assert.match(page, /editCampaignRequested=\{editingCampaign\}/);
+  assert.match(page, /onCampaignEditClose=\{\(\) => setEditingCampaign\(false\)\}/);
+  assert.match(
+    panel,
+    /if \(!editCampaignRequested \|\| !canCreate \|\| !selectedCampaignId \|\| loading\) return/,
+  );
+  assert.match(panel, /setEditingCampaignId\(campaign\.id\)/);
+  assert.match(panel, /const closeCampaignEdit = \(\) => \{[\s\S]*?onCampaignEditClose\?\.\(\)/);
 });
 
 // [SPEC-TRACTATION-04] Releasing one stop keeps the active mission on the next remaining stop.

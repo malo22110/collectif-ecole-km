@@ -95,6 +95,8 @@ interface TractationPanelProps {
   selectedMapPlace?: Pick<Place, "id" | "nom" | "foyers"> | null;
   selectedCampaignId?: string | null;
   showCampaignDetails?: boolean;
+  editCampaignRequested?: boolean;
+  onCampaignEditClose?: () => void;
   onCampaignSelect?: (campaignId: string) => void;
   onRegisterMapPlaceAdder?: (handler: (placeId: string) => void) => void;
 }
@@ -146,6 +148,8 @@ export default function TractationPanel({
   selectedMapPlace = null,
   selectedCampaignId = null,
   showCampaignDetails = true,
+  editCampaignRequested = false,
+  onCampaignEditClose,
   onCampaignSelect,
   onRegisterMapPlaceAdder,
 }: TractationPanelProps) {
@@ -182,6 +186,17 @@ export default function TractationPanel({
   const [editPlaceIds, setEditPlaceIds] = useState<string[]>([]);
   const [editPlaceSearch, setEditPlaceSearch] = useState("");
   const [savingCampaign, setSavingCampaign] = useState(false);
+
+  useEffect(() => {
+    if (!editCampaignRequested || !canCreate || !selectedCampaignId || loading) return;
+    const campaign = campaigns.find((item) => item.id === selectedCampaignId);
+    if (!campaign || editingCampaignId === campaign.id) return;
+    setEditTitle(campaign.title);
+    setEditMessage(campaign.message);
+    setEditPlaceIds(campaign.lieuDits.map((place) => place.id));
+    setEditPlaceSearch("");
+    setEditingCampaignId(campaign.id);
+  }, [editCampaignRequested, canCreate, selectedCampaignId, loading, campaigns, editingCampaignId]);
 
   useEffect(() => {
     if (routeToCancel && !cancelDialogRef.current?.open) cancelDialogRef.current?.showModal();
@@ -456,6 +471,11 @@ export default function TractationPanel({
     setEditingCampaignId(campaign.id);
   };
 
+  const closeCampaignEdit = () => {
+    setEditingCampaignId(null);
+    onCampaignEditClose?.();
+  };
+
   const toggleCampaignPlace = (campaign: Campaign, placeId: string) => {
     const assignment = campaign.assignedPlaces?.[placeId];
     if (assignment && editPlaceIds.includes(placeId)) return;
@@ -482,8 +502,8 @@ export default function TractationPanel({
           lieuDitIds: editPlaceIds,
         }),
       });
-      setEditingCampaignId(null);
       await load(user);
+      closeCampaignEdit();
     } catch (saveError) {
       setError(
         saveError instanceof Error ? saveError.message : "Impossible de modifier cette campagne.",
@@ -814,7 +834,7 @@ export default function TractationPanel({
           {error}
         </p>
       )}
-      {selectedCampaignId && !showCampaignDetails ? null : loading ? (
+      {selectedCampaignId && !showCampaignDetails && !editCampaignRequested ? null : loading ? (
         <p role="status" className="py-6 text-center text-sm text-stone-500">
           <Loader2 size={17} className="mr-2 inline animate-spin" />
           Chargement…
@@ -920,7 +940,7 @@ export default function TractationPanel({
                           </h3>
                           <button
                             type="button"
-                            onClick={() => setEditingCampaignId(null)}
+                            onClick={closeCampaignEdit}
                             aria-label="Annuler la modification"
                             className="grid size-10 place-items-center rounded-md text-stone-600 hover:bg-stone-100"
                           >
@@ -1087,7 +1107,7 @@ export default function TractationPanel({
                         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                           <button
                             type="button"
-                            onClick={() => setEditingCampaignId(null)}
+                            onClick={closeCampaignEdit}
                             className="btn-secondary min-h-11 justify-center px-4"
                           >
                             Annuler

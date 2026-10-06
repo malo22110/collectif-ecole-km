@@ -11,6 +11,7 @@ import {
   Info,
   Loader2,
   MapPinned,
+  Pencil,
   Plus,
   Settings2,
 } from "lucide-react";
@@ -63,6 +64,7 @@ export default function TourneesPage() {
   const [view, setView] = useState<HubView>("loading");
   const [firstTourGuideStep, setFirstTourGuideStep] = useState<FirstTourGuideStep>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [editingCampaign, setEditingCampaign] = useState(false);
   const [missionMode, setMissionMode] = useState(false);
   const [downloadingCampaignDocument, setDownloadingCampaignDocument] = useState(false);
   const mapPlaceAdder = useRef<((placeId: string) => void) | null>(null);
@@ -305,6 +307,7 @@ export default function TourneesPage() {
   const completeSetup = useCallback(() => setView("campaigns"), []);
   const openCampaign = useCallback((campaignId: string) => {
     setSelectedCampaignId(campaignId);
+    setEditingCampaign(false);
     setCampaignMap(null);
     setMissionMode(false);
     setFirstTourGuideStep((step) => (step === "campaigns" ? "join" : step));
@@ -353,6 +356,7 @@ export default function TourneesPage() {
   };
   const backToCampaigns = useCallback(() => {
     setSelectedCampaignId(null);
+    setEditingCampaign(false);
     setCampaignMap(null);
     setMissionMode(false);
     setSelectedPlace(null);
@@ -483,6 +487,17 @@ export default function TourneesPage() {
                   className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700"
                 >
                   <Settings2 size={19} aria-hidden="true" />
+                </button>
+              )}
+              {view === "campaign" && campaignMap && canCreateCampaign && !editingCampaign && (
+                <button
+                  type="button"
+                  onClick={() => setEditingCampaign(true)}
+                  aria-label="Modifier la campagne"
+                  title="Modifier la campagne"
+                  className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-stone-700"
+                >
+                  <Pencil size={19} aria-hidden="true" />
                 </button>
               )}
               {view === "campaign" && campaignMap && (
@@ -646,6 +661,18 @@ export default function TourneesPage() {
                   <p className="text-sm font-semibold uppercase text-emerald-800">
                     Informations de la campagne
                   </p>
+                  {canCreateCampaign && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCampaign(true);
+                        setView("campaign");
+                      }}
+                      className="btn-secondary mt-3 min-h-11 px-4 text-sm"
+                    >
+                      <Pencil size={17} aria-hidden="true" /> Modifier la campagne
+                    </button>
+                  )}
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-stone-700">
                     {campaignMap.message}
                   </p>
@@ -712,140 +739,142 @@ export default function TourneesPage() {
 
             {view === "campaign" && (
               <>
-                <section id="places-map-section" className="scroll-mt-3 space-y-3">
-                  {previewPlaceIds ? (
-                    <p
-                      className="border-l-4 border-blue-700 bg-blue-50 px-3 py-2 text-sm text-blue-950"
-                      role="status"
-                    >
-                      Aperçu : {previewPlaceIds.length} secteur(s) choisis, dans l’ordre indiqué sur
-                      la carte.
-                    </p>
-                  ) : campaignMap?.runningRoute && campaignMap.routePlaceIds.length ? (
-                    <div
-                      className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-blue-700 bg-blue-50 px-3 py-2 text-sm text-blue-950"
-                      role="status"
-                      aria-live="polite"
-                    >
-                      {roadRouteLoading ? (
-                        <>
-                          <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-                          Calcul de l’itinéraire dans l’ordre de votre tournée…
-                        </>
-                      ) : roadRoute ? (
-                        <>
-                          <MapPinned size={16} aria-hidden="true" />
-                          <strong>
-                            {(roadRoute.distanceMeters / 1000).toLocaleString("fr-FR", {
-                              maximumFractionDigits: 1,
-                            })}{" "}
-                            km
-                          </strong>
-                          <span>·</span>
-                          <strong>{Math.round(roadRoute.durationSeconds / 60)} min</strong>
-                          <span className="text-xs">· ordre de la tournée respecté</span>
-                        </>
-                      ) : roadRouteError ? (
-                        <>
-                          <span>{roadRouteError}</span>
-                          <button
-                            type="button"
-                            onClick={() => setRoadRouteRetry((value) => value + 1)}
-                            className="font-semibold underline underline-offset-2"
-                          >
-                            Réessayer
-                          </button>
-                        </>
-                      ) : !campaignMap.origin ? (
-                        <span>
-                          Définissez votre position de départ pour tracer la route. L’ordre des
-                          étapes restera celui de votre tournée.
-                        </span>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {!campaignMap ? (
-                    <div
-                      role="status"
-                      className="flex h-[70dvh] min-h-[440px] items-center justify-center gap-3 rounded-lg bg-stone-100 text-sm text-stone-500"
-                    >
-                      <Loader2 size={19} className="animate-spin" />
-                      Chargement des secteurs…
-                    </div>
-                  ) : (
-                    <OpenStreetMap
-                      locations={mapLocations}
-                      origin={campaignMap.missionActive ? campaignMap.origin : null}
-                      originLabel="Départ de votre tournée"
-                      favoritePlaceIds={favoritePlaceIds}
-                      draftPlaceIds={previewPlaceIds ?? campaignMap.draftPlaceIds}
-                      routePlaceIds={
-                        previewPlaceIds ??
-                        (campaignMap.runningRoute ? campaignMap.routePlaceIds : [])
-                      }
-                      assignmentStatuses={campaignMap.assignmentStatuses}
-                      campaignMode
-                      previewMode={previewPlaceIds !== null && previewPlaceIds !== undefined}
-                      missionMode={missionMode}
-                      campaignJoined={campaignMap.joined && !previewPlaceIds}
-                      onAddToRoute={(placeId) => mapPlaceAdder.current?.(placeId)}
-                      routeGeometry={
-                        previewPlaceIds
-                          ? previewGeometry
-                          : campaignMap.runningRoute
-                            ? roadRoute?.geometry
-                            : []
-                      }
-                      showHouseholdCounts={showStatistics}
-                      selectedPlace={
-                        (previewPlaceIds !== null && previewPlaceIds !== undefined) ||
-                        !mapLocations.some((place) => place.id === selectedPlace?.id)
-                          ? null
-                          : selectedPlace
-                      }
-                      onSelectPlace={setSelectedPlace}
-                    />
-                  )}
-                  <div
-                    className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-stone-600"
-                    aria-label="Légende de la carte"
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <span
-                        className={`size-3 rounded-full border-2 ${previewPlaceIds ? "border-orange-800 bg-orange-400" : "border-blue-800 bg-blue-400"}`}
-                      />
-                      {previewPlaceIds
-                        ? "Étapes prévues"
-                        : campaignMap?.runningRoute
-                          ? "Ma tournée"
-                          : "Disponible"}
-                    </span>
-                    {!previewPlaceIds && Boolean(campaignMap?.draftPlaceIds.length) && (
-                      <span className="inline-flex items-center gap-2">
-                        <span className="size-3 rounded-full border-2 border-orange-800 bg-orange-400" />
-                        Sélectionné
-                      </span>
-                    )}
-                    {!previewPlaceIds && (
-                      <>
-                        <span className="inline-flex items-center gap-2">
-                          <span className="size-3 rounded-full border-2 border-stone-600 bg-stone-300" />
-                          Pris
-                        </span>
-                        <span className="inline-flex items-center gap-2">
-                          <span className="size-3 rounded-full border-2 border-emerald-700 bg-emerald-400" />
-                          Terminé
-                        </span>
-                        {favoritePlaceIds.length > 0 && (
-                          <span className="inline-flex items-center gap-2">
-                            <span className="size-3 rounded-full border-2 border-rose-800 bg-rose-300" />
-                            Favori
+                {!editingCampaign && (
+                  <section id="places-map-section" className="scroll-mt-3 space-y-3">
+                    {previewPlaceIds ? (
+                      <p
+                        className="border-l-4 border-blue-700 bg-blue-50 px-3 py-2 text-sm text-blue-950"
+                        role="status"
+                      >
+                        Aperçu : {previewPlaceIds.length} secteur(s) choisis, dans l’ordre indiqué
+                        sur la carte.
+                      </p>
+                    ) : campaignMap?.runningRoute && campaignMap.routePlaceIds.length ? (
+                      <div
+                        className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-blue-700 bg-blue-50 px-3 py-2 text-sm text-blue-950"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        {roadRouteLoading ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                            Calcul de l’itinéraire dans l’ordre de votre tournée…
+                          </>
+                        ) : roadRoute ? (
+                          <>
+                            <MapPinned size={16} aria-hidden="true" />
+                            <strong>
+                              {(roadRoute.distanceMeters / 1000).toLocaleString("fr-FR", {
+                                maximumFractionDigits: 1,
+                              })}{" "}
+                              km
+                            </strong>
+                            <span>·</span>
+                            <strong>{Math.round(roadRoute.durationSeconds / 60)} min</strong>
+                            <span className="text-xs">· ordre de la tournée respecté</span>
+                          </>
+                        ) : roadRouteError ? (
+                          <>
+                            <span>{roadRouteError}</span>
+                            <button
+                              type="button"
+                              onClick={() => setRoadRouteRetry((value) => value + 1)}
+                              className="font-semibold underline underline-offset-2"
+                            >
+                              Réessayer
+                            </button>
+                          </>
+                        ) : !campaignMap.origin ? (
+                          <span>
+                            Définissez votre position de départ pour tracer la route. L’ordre des
+                            étapes restera celui de votre tournée.
                           </span>
-                        )}
-                      </>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {!campaignMap ? (
+                      <div
+                        role="status"
+                        className="flex h-[70dvh] min-h-[440px] items-center justify-center gap-3 rounded-lg bg-stone-100 text-sm text-stone-500"
+                      >
+                        <Loader2 size={19} className="animate-spin" />
+                        Chargement des secteurs…
+                      </div>
+                    ) : (
+                      <OpenStreetMap
+                        locations={mapLocations}
+                        origin={campaignMap.missionActive ? campaignMap.origin : null}
+                        originLabel="Départ de votre tournée"
+                        favoritePlaceIds={favoritePlaceIds}
+                        draftPlaceIds={previewPlaceIds ?? campaignMap.draftPlaceIds}
+                        routePlaceIds={
+                          previewPlaceIds ??
+                          (campaignMap.runningRoute ? campaignMap.routePlaceIds : [])
+                        }
+                        assignmentStatuses={campaignMap.assignmentStatuses}
+                        campaignMode
+                        previewMode={previewPlaceIds !== null && previewPlaceIds !== undefined}
+                        missionMode={missionMode}
+                        campaignJoined={campaignMap.joined && !previewPlaceIds}
+                        onAddToRoute={(placeId) => mapPlaceAdder.current?.(placeId)}
+                        routeGeometry={
+                          previewPlaceIds
+                            ? previewGeometry
+                            : campaignMap.runningRoute
+                              ? roadRoute?.geometry
+                              : []
+                        }
+                        showHouseholdCounts={showStatistics}
+                        selectedPlace={
+                          (previewPlaceIds !== null && previewPlaceIds !== undefined) ||
+                          !mapLocations.some((place) => place.id === selectedPlace?.id)
+                            ? null
+                            : selectedPlace
+                        }
+                        onSelectPlace={setSelectedPlace}
+                      />
                     )}
-                  </div>
-                </section>
+                    <div
+                      className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-stone-600"
+                      aria-label="Légende de la carte"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className={`size-3 rounded-full border-2 ${previewPlaceIds ? "border-orange-800 bg-orange-400" : "border-blue-800 bg-blue-400"}`}
+                        />
+                        {previewPlaceIds
+                          ? "Étapes prévues"
+                          : campaignMap?.runningRoute
+                            ? "Ma tournée"
+                            : "Disponible"}
+                      </span>
+                      {!previewPlaceIds && Boolean(campaignMap?.draftPlaceIds.length) && (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="size-3 rounded-full border-2 border-orange-800 bg-orange-400" />
+                          Sélectionné
+                        </span>
+                      )}
+                      {!previewPlaceIds && (
+                        <>
+                          <span className="inline-flex items-center gap-2">
+                            <span className="size-3 rounded-full border-2 border-stone-600 bg-stone-300" />
+                            Pris
+                          </span>
+                          <span className="inline-flex items-center gap-2">
+                            <span className="size-3 rounded-full border-2 border-emerald-700 bg-emerald-400" />
+                            Terminé
+                          </span>
+                          {favoritePlaceIds.length > 0 && (
+                            <span className="inline-flex items-center gap-2">
+                              <span className="size-3 rounded-full border-2 border-rose-800 bg-rose-300" />
+                              Favori
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </section>
+                )}
                 <TractationPanel
                   favoritePlaceIds={favoritePlaceIds}
                   suggestionOrigin={addressOrigin}
@@ -854,7 +883,9 @@ export default function TourneesPage() {
                   onCampaignMapChange={handleCampaignMapChange}
                   selectedMapPlace={selectedPlace}
                   selectedCampaignId={selectedCampaignId}
-                  showCampaignDetails={false}
+                  showCampaignDetails={editingCampaign}
+                  editCampaignRequested={editingCampaign}
+                  onCampaignEditClose={() => setEditingCampaign(false)}
                   onMissionModeChange={setMissionMode}
                   onFirstTourGuideEvent={handleFirstTourGuideEvent}
                   onCampaignSelect={openCampaign}
