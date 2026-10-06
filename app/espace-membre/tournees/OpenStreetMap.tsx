@@ -14,8 +14,10 @@ interface OpenStreetMapProps {
   favoritePlaceIds?: string[];
   onToggleFavorite?: (placeId: string) => void;
   routePlaceIds?: string[];
+  draftPlaceIds?: string[];
   assignmentStatuses?: Record<string, { status: "claimed" | "completed"; memberName?: string }>;
   campaignMode?: boolean;
+  previewMode?: boolean;
   missionMode?: boolean;
   showHouseholdCounts?: boolean;
   selectedPlace?: TourLieuDit | null;
@@ -28,7 +30,7 @@ interface OpenStreetMapProps {
 function FitMapBounds({ bounds }: { bounds: LatLngBoundsExpression | null }) {
   const map = useMap();
   useEffect(() => {
-    if (bounds) map.fitBounds(bounds, { padding: [28, 28], maxZoom: 14 });
+    if (bounds) map.fitBounds(bounds, { padding: [36, 36], maxZoom: 12 });
   }, [bounds, map]);
   return null;
 }
@@ -114,8 +116,10 @@ export default function OpenStreetMap({
   favoritePlaceIds = [],
   onToggleFavorite,
   routePlaceIds = [],
+  draftPlaceIds = [],
   assignmentStatuses = {},
   campaignMode = false,
+  previewMode = false,
   missionMode = false,
   campaignJoined = false,
   routeGeometry = [],
@@ -132,6 +136,7 @@ export default function OpenStreetMap({
     [locations],
   );
   const favorites = useMemo(() => new Set(favoritePlaceIds), [favoritePlaceIds]);
+  const draftPlaces = useMemo(() => new Set(draftPlaceIds), [draftPlaceIds]);
   const routeOrder = useMemo(
     () => new Map(routePlaceIds.map((id, index) => [id, index + 1])),
     [routePlaceIds],
@@ -142,10 +147,12 @@ export default function OpenStreetMap({
   );
   const bounds = useMemo<LatLngBoundsExpression | null>(() => {
     const points: LatLngExpression[] = located.map((location) => [location.lat, location.lon]);
-    if (origin) points.push([origin.lat, origin.lon]);
-    points.push(...routeGeometry);
+    if (!previewMode) {
+      if (origin) points.push([origin.lat, origin.lon]);
+      points.push(...routeGeometry);
+    }
     return points.length ? (points as LatLngBoundsExpression) : null;
-  }, [located, origin, routeGeometry]);
+  }, [located, origin, routeGeometry, previewMode]);
 
   return (
     <div
@@ -165,7 +172,7 @@ export default function OpenStreetMap({
         />
         <MapSizeObserver />
         <FitMapBounds bounds={bounds} />
-        <FocusPlace place={selectedPlace} />
+        <FocusPlace place={previewMode ? null : selectedPlace} />
         {routeGeometry.length > 1 && (
           <Polyline
             positions={routeGeometry}
@@ -175,18 +182,20 @@ export default function OpenStreetMap({
               opacity: 0.86,
               lineCap: "round",
               lineJoin: "round",
+              dashArray: previewMode ? "7 9" : undefined,
             }}
           />
         )}
         {located.map((location) => {
           const zeroHouseholds = location.foyers === 0;
           const isFavorite = favorites.has(location.id);
+          const isDraft = draftPlaces.has(location.id);
           const routeStep = routeOrder.get(location.id);
           const assignment = assignments.get(location.id);
           const assignmentStatus = assignment?.status;
           const radius =
             (zeroHouseholds ? 6 : Math.min(15, 6 + Math.sqrt(location.foyers))) +
-            (isFavorite || routeStep ? 2 : 0);
+            (isFavorite || isDraft || routeStep ? 2 : 0);
           return (
             <CircleMarker
               key={location.id}
@@ -198,29 +207,33 @@ export default function OpenStreetMap({
                     ? "#047857"
                     : campaignMode && assignmentStatus === "claimed"
                       ? "#78716c"
-                      : campaignMode
-                        ? "#1d4ed8"
-                        : routeStep
+                      : isDraft
+                        ? "#9a3412"
+                        : routeStep && !campaignMode
                           ? "#1e40af"
                           : isFavorite
-                            ? "#92400e"
-                            : zeroHouseholds
-                              ? "#57534e"
-                              : "#065f46",
+                            ? "#9f1239"
+                            : campaignMode
+                              ? "#1d4ed8"
+                              : zeroHouseholds
+                                ? "#57534e"
+                                : "#065f46",
                 fillColor:
                   assignmentStatus === "completed"
                     ? "#34d399"
                     : campaignMode && assignmentStatus === "claimed"
                       ? "#d6d3d1"
-                      : campaignMode
-                        ? "#60a5fa"
-                        : routeStep
+                      : isDraft
+                        ? "#fb923c"
+                        : routeStep && !campaignMode
                           ? "#60a5fa"
                           : isFavorite
-                            ? "#fbbf24"
-                            : zeroHouseholds
-                              ? "#a8a29e"
-                              : "#10b981",
+                            ? "#fda4af"
+                            : campaignMode
+                              ? "#60a5fa"
+                              : zeroHouseholds
+                                ? "#a8a29e"
+                                : "#10b981",
                 fillOpacity: 0.82,
                 weight: 2,
               }}
@@ -230,14 +243,16 @@ export default function OpenStreetMap({
                 <div className="min-w-40 space-y-1 text-sm">
                   <strong className="flex items-center gap-1.5 text-stone-900">
                     {routeStep && (
-                      <span className="grid size-5 place-items-center rounded-full bg-blue-800 text-[10px] text-white">
+                      <span
+                        className={`grid size-5 place-items-center rounded-full text-[10px] text-white ${isDraft ? "bg-orange-800" : "bg-blue-800"}`}
+                      >
                         {routeStep}
                       </span>
                     )}
                     {isFavorite && (
                       <Heart
                         size={14}
-                        className="fill-amber-300 text-amber-800"
+                        className="fill-rose-300 text-rose-800"
                         aria-label="Lieu favori"
                       />
                     )}
@@ -245,15 +260,19 @@ export default function OpenStreetMap({
                   </strong>
                   {campaignMode && (
                     <span
-                      className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold ${assignmentStatus === "completed" ? "bg-emerald-100 text-emerald-900" : assignmentStatus === "claimed" ? "bg-stone-100 text-stone-800" : "bg-blue-100 text-blue-900"}`}
+                      className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold ${assignmentStatus === "completed" ? "bg-emerald-100 text-emerald-900" : assignmentStatus === "claimed" ? "bg-stone-100 text-stone-800" : isDraft ? "bg-orange-100 text-orange-900" : "bg-blue-100 text-blue-900"}`}
                     >
-                      {assignmentStatus === "completed"
-                        ? `Fait par ${assignment?.memberName || "un membre"}`
-                        : assignmentStatus === "claimed"
-                          ? routeStep
-                            ? "Dans votre tournée"
-                            : `Pris par ${assignment?.memberName || "un membre"}`
-                          : "Disponible"}
+                      {previewMode
+                        ? `Étape ${routeStep} à démarrer`
+                        : assignmentStatus === "completed"
+                          ? `Fait par ${assignment?.memberName || "un membre"}`
+                          : assignmentStatus === "claimed"
+                            ? routeStep
+                              ? "Dans votre tournée"
+                              : `Pris par ${assignment?.memberName || "un membre"}`
+                            : isDraft
+                              ? "Sélectionné pour ma tournée"
+                              : "Disponible"}
                     </span>
                   )}
                   {!showHouseholdCounts ? null : zeroHouseholds ? (
@@ -263,7 +282,7 @@ export default function OpenStreetMap({
                   ) : (
                     <p>{location.foyers} foyers recensés</p>
                   )}
-                  {campaignMode ? (
+                  {campaignMode && !previewMode ? (
                     <button
                       type="button"
                       onClick={() => onAddToRoute?.(location.id)}
@@ -271,21 +290,24 @@ export default function OpenStreetMap({
                         !campaignJoined ||
                         assignmentStatus === "claimed" ||
                         assignmentStatus === "completed" ||
+                        isDraft ||
                         Boolean(routeStep)
                       }
                       className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-blue-800 px-3 py-2 text-sm font-bold text-white disabled:bg-stone-300 disabled:text-stone-700"
                     >
                       {routeStep
                         ? "Déjà dans ma tournée"
-                        : assignmentStatus === "completed"
-                          ? "Secteur terminé"
-                          : assignmentStatus === "claimed"
-                            ? `Pris par ${assignment?.memberName || "un membre"}`
-                            : campaignJoined
-                              ? "Ajouter à ma tournée"
-                              : "Rejoindre pour ajouter"}
+                        : isDraft
+                          ? "Sélectionné pour ma tournée"
+                          : assignmentStatus === "completed"
+                            ? "Secteur terminé"
+                            : assignmentStatus === "claimed"
+                              ? `Pris par ${assignment?.memberName || "un membre"}`
+                              : campaignJoined
+                                ? "Ajouter à ma tournée"
+                                : "Rejoindre pour ajouter"}
                     </button>
-                  ) : (
+                  ) : !campaignMode ? (
                     onToggleFavorite && (
                       <button
                         type="button"
@@ -300,7 +322,7 @@ export default function OpenStreetMap({
                         {isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
                       </button>
                     )
-                  )}
+                  ) : null}
                   {origin && !campaignMode && (
                     <a
                       className="block pt-1 font-semibold text-emerald-800 underline"

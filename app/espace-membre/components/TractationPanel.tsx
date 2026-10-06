@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { buildTourRouteSegments, type GeoPoint } from "@/lib/tourneeGeo";
+import { sortCampaignPlaces } from "@/lib/campaignPlaceSorting";
+import { suggestRouteOrder } from "@/lib/routeOrder";
 
 type Place = {
   id: string;
@@ -67,6 +69,10 @@ export type CampaignMapState = {
   attachment: Campaign["attachment"];
   assignmentStatuses: Record<string, { status: "claimed" | "completed"; memberName?: string }>;
   routePlaceIds: string[];
+  previewPlaceIds: string[] | null;
+  draftPlaceIds: string[];
+  runningRoute: boolean;
+  missionActive: boolean;
   origin: GeoPoint | null;
 };
 
@@ -77,7 +83,15 @@ interface TractationPanelProps {
   onStatisticsVisibleChange?: (visible: boolean) => void;
   onCampaignMapChange?: (campaign: CampaignMapState | null) => void;
   onMissionModeChange?: (active: boolean) => void;
-  onFirstTourGuideEvent?: (event: "select-sectors" | "resume-tour" | "tour-reserved") => void;
+  onFirstTourGuideEvent?: (
+    event:
+      | "select-sectors"
+      | "preview-route"
+      | "resume-tour"
+      | "tour-reserved"
+      | "tour-finished"
+      | "tour-cancelled",
+  ) => void;
   selectedMapPlace?: Pick<Place, "id" | "nom" | "foyers"> | null;
   selectedCampaignId?: string | null;
   showCampaignDetails?: boolean;
@@ -148,10 +162,12 @@ export default function TractationPanel({
   const [routeOrigins, setRouteOrigins] = useState<Record<string, GeoPoint | null>>({});
   const [locatingCampaign, setLocatingCampaign] = useState<string | null>(null);
   const [claimingRoute, setClaimingRoute] = useState<string | null>(null);
+  const [cancellingRoute, setCancellingRoute] = useState<string | null>(null);
+  const [routeToCancel, setRouteToCancel] = useState<Campaign | null>(null);
+  const cancelDialogRef = useRef<HTMLDialogElement>(null);
   const [mapCampaignId, setMapCampaignId] = useState<string | null>(null);
   const [missionCampaignId, setMissionCampaignId] = useState<string | null>(null);
-  const [missionSheet, setMissionSheet] = useState<"select" | "run">("select");
-  const [missionSearch, setMissionSearch] = useState("");
+  const [missionSheet, setMissionSheet] = useState<"select" | "preview" | "run">("select");
   const [missionPlaceFilter, setMissionPlaceFilter] = useState<"all" | "favorites">("all");
   const [showRouteDetails, setShowRouteDetails] = useState(false);
   const routeDetailsTouchStart = useRef<{
@@ -159,12 +175,17 @@ export default function TractationPanel({
     scrollTop: number;
   } | null>(null);
   const missionSheetDragStart = useRef<number | null>(null);
+  const locationRequestId = useRef(0);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editMessage, setEditMessage] = useState("");
   const [editPlaceIds, setEditPlaceIds] = useState<string[]>([]);
   const [editPlaceSearch, setEditPlaceSearch] = useState("");
   const [savingCampaign, setSavingCampaign] = useState(false);
+
+  useEffect(() => {
+    if (routeToCancel && !cancelDialogRef.current?.open) cancelDialogRef.current?.showModal();
+  }, [routeToCancel]);
 
   const load = useCallback(
     async (currentUser: User, cursor?: string | null) => {
@@ -178,6 +199,23 @@ export default function TractationPanel({
       onStatisticsVisibleChange?.(data.showStatistics === true);
     },
     [onCanCreateChange, onStatisticsVisibleChange],
+  );
+
+  const getRouteDraft = useCallback(
+    (campaign: Campaign) => routeDrafts[campaign.id] ?? [],
+    [routeDrafts],
+  );
+
+  const getRouteOrigin = useCallback(
+    (campaignId: string) => routeOrigins[campaignId] || suggestionOrigin,
+    [routeOrigins, suggestionOrigin],
+  );
+
+  useEffect(
+    () => () => {
+      locationRequestId.current += 1;
+    },
+    [],
   );
 
   useEffect(() => {
@@ -226,9 +264,34 @@ export default function TractationPanel({
       attachment: campaign.attachment,
       assignmentStatuses,
       routePlaceIds: campaign.myRoutePlaceIds || [],
+      previewPlaceIds:
+        missionCampaignId === campaign.id && missionSheet === "preview"
+          ? getRouteDraft(campaign)
+          : null,
+      draftPlaceIds:
+        campaign.joined &&
+        !campaign.myRoutePlaceIds.some(
+          (id) => campaign.assignedPlaces?.[id]?.status === "claimed",
+        ) &&
+        (missionCampaignId !== campaign.id || missionSheet === "select")
+          ? getRouteDraft(campaign)
+          : [],
+      runningRoute:
+        missionCampaignId === campaign.id &&
+        missionSheet === "run" &&
+        campaign.myRoutePlaceIds.some((id) => campaign.assignedPlaces?.[id]?.status === "claimed"),
+      missionActive: missionCampaignId === campaign.id,
       origin: getRouteOrigin(campaign.id),
     });
-  }, [mapCampaignId, campaigns, routeOrigins, suggestionOrigin, onCampaignMapChange]);
+  }, [
+    mapCampaignId,
+    campaigns,
+    onCampaignMapChange,
+    missionCampaignId,
+    missionSheet,
+    getRouteDraft,
+    getRouteOrigin,
+  ]);
 
   useEffect(() => {
     onRegisterMapPlaceAdder?.((placeId) => {
@@ -243,6 +306,7 @@ export default function TractationPanel({
       setMissionSheet("select");
       setShowRouteDetails(false);
       setError("");
+      if (missionCampaignId !== campaign.id) locateCampaign(campaign.id);
       setRouteDrafts((current) => {
         const currentIds = current[campaign.id] ?? getRouteDraft(campaign);
         if (currentIds.includes(placeId) || currentIds.length >= 200) return current;
@@ -253,26 +317,20 @@ export default function TractationPanel({
   }, [
     campaigns,
     selectedCampaignId,
+    missionCampaignId,
     onRegisterMapPlaceAdder,
     onMissionModeChange,
     onFirstTourGuideEvent,
-    favoritePlaceIds,
+    getRouteDraft,
   ]);
 
   useEffect(() => {
     setMapCampaignId(selectedCampaignId);
   }, [selectedCampaignId]);
 
-  const getRouteDraft = (campaign: Campaign) =>
-    routeDrafts[campaign.id] ??
-    favoritePlaceIds.filter(
-      (id) =>
-        campaign.lieuDits.some(
-          (place) => place.id === id && place.foyers > 0 && place.hasCoordinates,
-        ) && !campaign.assignedPlaces?.[id],
-    );
-
-  const getRouteOrigin = (campaignId: string) => routeOrigins[campaignId] || suggestionOrigin;
+  useEffect(() => {
+    setRouteOrigins({});
+  }, [suggestionOrigin]);
 
   const getRouteSegments = (campaign: Campaign) => {
     const origin = getRouteOrigin(campaign.id);
@@ -308,13 +366,15 @@ export default function TractationPanel({
     : undefined;
   const missionSelectedPlace =
     missionCampaign?.lieuDits.find((place) => place.id === selectedMapPlace?.id) || null;
-  const missionPlaceQuery = missionSearch.trim().toLocaleLowerCase("fr");
-  const missionPlaces =
-    missionCampaign?.lieuDits.filter(
-      (place) =>
-        (missionPlaceFilter === "all" || favoritePlaceIds.includes(place.id)) &&
-        (!missionPlaceQuery || place.nom.toLocaleLowerCase("fr").includes(missionPlaceQuery)),
-    ) || [];
+  const missionPlaces = missionCampaign
+    ? sortCampaignPlaces(
+        missionCampaign.lieuDits.filter(
+          (place) => missionPlaceFilter === "all" || favoritePlaceIds.includes(place.id),
+        ),
+        missionCampaign.assignedPlaces,
+        getRouteOrigin(missionCampaign.id),
+      )
+    : [];
 
   useEffect(() => {
     if (!showRouteDetails || !missionCampaignId) return;
@@ -352,18 +412,23 @@ export default function TractationPanel({
     };
   }, [showRouteDetails, missionCampaignId]);
 
-  const openMission = (campaign: Campaign) => {
+  const openMission = (campaign: Campaign, preview = false) => {
     setMissionCampaignId(campaign.id);
     setMapCampaignId(campaign.id);
-    onMissionModeChange?.(true);
+    onMissionModeChange?.(!preview);
     const routeInProgress = campaign.myRoutePlaceIds.some(
       (id) => campaign.assignedPlaces?.[id]?.status !== "completed",
     );
-    setMissionSheet(routeInProgress ? "run" : "select");
-    onFirstTourGuideEvent?.(routeInProgress ? "resume-tour" : "select-sectors");
+    setMissionSheet(routeInProgress ? "run" : preview ? "preview" : "select");
+    locateCampaign(
+      campaign.id,
+      preview && !routeInProgress ? (origin) => optimizeRouteDraft(campaign, origin) : undefined,
+    );
+    onFirstTourGuideEvent?.(
+      routeInProgress ? "resume-tour" : preview ? "preview-route" : "select-sectors",
+    );
     setMissionPlaceFilter("all");
     setShowRouteDetails(false);
-    setError("");
     window.setTimeout(
       () =>
         document
@@ -371,6 +436,15 @@ export default function TractationPanel({
           ?.scrollIntoView({ behavior: "smooth", block: "start" }),
       0,
     );
+  };
+
+  const closeMission = () => {
+    locationRequestId.current += 1;
+    setLocatingCampaign(null);
+    setMissionCampaignId(null);
+    setShowRouteDetails(false);
+    missionSheetDragStart.current = null;
+    onMissionModeChange?.(false);
   };
 
   const beginCampaignEdit = (campaign: Campaign) => {
@@ -454,40 +528,67 @@ export default function TractationPanel({
     });
   };
 
-  const locateCampaign = (campaignId: string) => {
+  const optimizeRouteDraft = (campaign: Campaign, origin = getRouteOrigin(campaign.id)) => {
+    setRouteDrafts((current) => {
+      const draft = current[campaign.id] ?? getRouteDraft(campaign);
+      const places = draft.flatMap((id) => {
+        const place = campaign.lieuDits.find((item) => item.id === id);
+        return place && place.lat !== null && place.lon !== null
+          ? [{ id, lat: place.lat, lon: place.lon }]
+          : [];
+      });
+      return { ...current, [campaign.id]: suggestRouteOrder(places, origin) };
+    });
+  };
+
+  const locateCampaign = (campaignId: string, onLocated?: (origin: GeoPoint | null) => void) => {
+    const requestId = ++locationRequestId.current;
     setError("");
     setRouteOrigins((current) => ({ ...current, [campaignId]: null }));
     if (!navigator.geolocation) {
-      setError("La géolocalisation n’est pas disponible dans ce navigateur.");
+      setError(
+        "La géolocalisation n’est pas disponible dans ce navigateur. L’ordre reste modifiable.",
+      );
+      onLocated?.(suggestionOrigin);
       return;
     }
     setLocatingCampaign(campaignId);
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        if (requestId !== locationRequestId.current) return;
+        const origin = { lat: position.coords.latitude, lon: position.coords.longitude };
         setRouteOrigins((current) => ({
           ...current,
-          [campaignId]: {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          },
+          [campaignId]: origin,
         }));
         setLocatingCampaign(null);
+        onLocated?.(origin);
       },
       (geoError) => {
+        if (requestId !== locationRequestId.current) return;
         setError(
           geoError.code === geoError.PERMISSION_DENIED
-            ? "Autorisez la géolocalisation dans le navigateur pour démarrer la tournée."
-            : "Impossible d’obtenir votre position. Réessayez.",
+            ? "Autorisez la géolocalisation pour classer les secteurs depuis votre position."
+            : "Impossible d’obtenir votre position. L’ordre reste modifiable.",
         );
         setLocatingCampaign(null);
+        onLocated?.(suggestionOrigin);
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
     );
   };
 
+  const openPreview = (campaign: Campaign) => {
+    if (locatingCampaign === campaign.id) return;
+    optimizeRouteDraft(campaign);
+    setShowRouteDetails(false);
+    setMissionSheet("preview");
+    onFirstTourGuideEvent?.("preview-route");
+  };
+
   // [SPEC-TRACTATION-05] A member takes every selected campaign stop in one atomic request.
   const claimRoute = async (campaign: Campaign) => {
-    if (!user) return;
+    if (!user || missionSheet !== "preview") return;
     const routePlaceIds = getRouteDraft(campaign);
     if (!routePlaceIds.length) return;
     setClaimingRoute(campaign.id);
@@ -514,6 +615,7 @@ export default function TractationPanel({
           ...current,
           [campaign.id]: getRouteDraft(campaign).filter((id) => id !== routeError.placeId),
         }));
+        setMissionSheet("select");
         setError(
           `${routeError.message} Le secteur concerné a été retiré; vous pouvez valider le reste de votre tournée.`,
         );
@@ -525,6 +627,25 @@ export default function TractationPanel({
       await load(user).catch(() => undefined);
     } finally {
       setClaimingRoute(null);
+    }
+  };
+
+  const cancelRoute = async (campaign: Campaign) => {
+    if (!user) return;
+    setCancellingRoute(campaign.id);
+    setError("");
+    try {
+      await request(user, `/api/tractation/${campaign.id}/route`, { method: "DELETE" });
+      setRouteDrafts((current) => ({ ...current, [campaign.id]: [] }));
+      closeMission();
+      await load(user);
+      onFirstTourGuideEvent?.("tour-cancelled");
+    } catch (cancelError) {
+      setError(
+        cancelError instanceof Error ? cancelError.message : "Impossible d’annuler cette tournée.",
+      );
+    } finally {
+      setCancellingRoute(null);
     }
   };
 
@@ -596,7 +717,16 @@ export default function TractationPanel({
       );
       if (action === "complete" && typeof navigator !== "undefined" && "vibrate" in navigator)
         navigator.vibrate([18, 35, 18]);
-      if (action === "release") setMissionSheet("select");
+      if (
+        action === "complete" &&
+        result.status === "completed" &&
+        campaign.myRoutePlaceIds.includes(place.id) &&
+        campaign.myRoutePlaceIds.every(
+          (id) => id === place.id || campaign.assignedPlaces?.[id]?.status === "completed",
+        )
+      ) {
+        onFirstTourGuideEvent?.("tour-finished");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de réserver ce lieu.");
       if (user) await load(user).catch(() => undefined);
@@ -712,6 +842,11 @@ export default function TractationPanel({
               const myRoutePlaceIds = campaign.myRoutePlaceIds || [];
               const routeDraft = getRouteDraft(campaign);
               const routeSegments = getRouteSegments(campaign);
+              const orderedCampaignPlaces = sortCampaignPlaces(
+                campaign.lieuDits,
+                campaign.assignedPlaces,
+                getRouteOrigin(campaign.id),
+              );
               if (!selectedCampaignId)
                 return (
                   <article
@@ -992,7 +1127,7 @@ export default function TractationPanel({
                         Lieux de la campagne
                       </legend>
                       <div className="grid gap-1 sm:grid-cols-2">
-                        {campaign.lieuDits.map((place) => {
+                        {orderedCampaignPlaces.map((place) => {
                           const assignment = campaign.assignedPlaces?.[place.id];
                           const isBusy = busy === `${campaign.id}:${place.id}`;
                           const routeStep = myRoutePlaceIds.indexOf(place.id);
@@ -1009,6 +1144,7 @@ export default function TractationPanel({
                                     type="checkbox"
                                     checked={routeDraft.includes(place.id)}
                                     disabled={
+                                      claimingRoute === campaign.id ||
                                       !place.hasCoordinates ||
                                       (routeDraft.length >= 200 && !routeDraft.includes(place.id))
                                     }
@@ -1109,6 +1245,111 @@ export default function TractationPanel({
                         })}
                       </div>
                     </fieldset>
+                    {missionCampaignId === campaign.id && missionSheet === "preview" && (
+                      <section
+                        className="hidden space-y-3 border-t border-stone-200 pt-4 lg:block"
+                        aria-label="Aperçu de ma tournée"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h3 className="text-base font-bold text-stone-900">
+                            Aperçu de ma tournée
+                          </h3>
+                          <button
+                            type="button"
+                            onClick={closeMission}
+                            className="btn-secondary min-h-10 px-3 text-sm"
+                          >
+                            Retour aux secteurs
+                          </button>
+                        </div>
+                        <ol
+                          className="divide-y divide-stone-200 border-y border-stone-200"
+                          aria-label="Ordre des étapes de la tournée"
+                        >
+                          {routeDraft.map((placeId, index) => {
+                            const place = campaign.lieuDits.find((item) => item.id === placeId);
+                            if (!place) return null;
+                            return (
+                              <li key={placeId} className="flex min-h-12 items-center gap-2 py-1">
+                                <span className="grid size-7 place-items-center rounded-full bg-blue-800 text-xs font-bold text-white">
+                                  {index + 1}
+                                </span>
+                                <span className="min-w-0 flex-1 text-sm font-semibold">
+                                  {place.nom}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => moveRouteDraftPlace(campaign, index, -1)}
+                                  disabled={
+                                    index === 0 ||
+                                    claimingRoute === campaign.id ||
+                                    locatingCampaign === campaign.id
+                                  }
+                                  aria-label={`Monter ${place.nom}`}
+                                  className="grid size-10 place-items-center disabled:opacity-30"
+                                >
+                                  <ArrowUp size={17} aria-hidden="true" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => moveRouteDraftPlace(campaign, index, 1)}
+                                  disabled={
+                                    index === routeDraft.length - 1 ||
+                                    claimingRoute === campaign.id ||
+                                    locatingCampaign === campaign.id
+                                  }
+                                  aria-label={`Descendre ${place.nom}`}
+                                  className="grid size-10 place-items-center disabled:opacity-30"
+                                >
+                                  <ArrowDown size={17} aria-hidden="true" />
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ol>
+                        {locatingCampaign === campaign.id && (
+                          <p role="status" className="text-sm text-stone-600">
+                            Mise à jour de votre position…
+                          </p>
+                        )}
+                        {error && (
+                          <p role="alert" className="text-sm text-amber-900">
+                            {error}
+                          </p>
+                        )}
+                        <footer className="flex flex-col items-start gap-2">
+                          <button
+                            type="button"
+                            onClick={() => optimizeRouteDraft(campaign)}
+                            disabled={
+                              routeDraft.length < 2 ||
+                              claimingRoute === campaign.id ||
+                              locatingCampaign === campaign.id
+                            }
+                            className="btn-secondary min-h-10 px-3 text-sm disabled:opacity-50"
+                          >
+                            <Compass size={17} aria-hidden="true" /> Proposer un ordre plus court
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void claimRoute(campaign)}
+                            disabled={
+                              !routeDraft.length ||
+                              claimingRoute === campaign.id ||
+                              locatingCampaign === campaign.id
+                            }
+                            className="btn-primary min-h-12 px-5 disabled:opacity-50"
+                          >
+                            {claimingRoute === campaign.id ? (
+                              <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                            ) : (
+                              <Navigation size={18} aria-hidden="true" />
+                            )}
+                            {claimingRoute === campaign.id ? "Démarrage…" : "Démarrer"}
+                          </button>
+                        </footer>
+                      </section>
+                    )}
                     {myRoutePlaceIds.length > 0 && (
                       <section
                         className="hidden space-y-2 border-t border-stone-200 pt-3 lg:block"
@@ -1206,7 +1447,12 @@ export default function TractationPanel({
 
       {selectedCampaignId && selectedCampaignId !== editingCampaignId && selectedCampaign && (
         <footer className="fixed inset-x-0 bottom-0 z-[900] border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(28,25,23,0.14)] backdrop-blur md:left-64">
-          <div className="mx-auto flex w-full max-w-7xl items-center gap-3">
+          {error && (
+            <p role="alert" className="mx-auto mb-2 max-w-7xl text-sm text-amber-900">
+              {error}
+            </p>
+          )}
+          <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3">
             {selectedCampaign.joined ? (
               <>
                 <p className="hidden min-w-0 flex-1 text-sm text-stone-600 sm:block">
@@ -1217,15 +1463,50 @@ export default function TractationPanel({
                 <button
                   type="button"
                   onClick={() => openMission(selectedCampaign)}
-                  className="btn-primary min-h-12 w-full justify-center px-4 text-base sm:w-auto sm:min-w-64"
+                  disabled={locatingCampaign === selectedCampaign.id}
+                  className={`btn-primary min-h-12 w-full justify-center px-4 text-base sm:w-auto sm:min-w-64 ${resumableRouteInProgress ? "" : "lg:hidden"}`}
                 >
-                  <Navigation size={18} aria-hidden="true" />
-                  {selectedCampaign.myRoutePlaceIds.length
-                    ? resumableRouteInProgress
-                      ? "Reprendre ma tournée"
-                      : "Préparer une nouvelle tournée"
-                    : "Préparer ma tournée"}
+                  {locatingCampaign === selectedCampaign.id ? (
+                    <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Navigation size={18} aria-hidden="true" />
+                  )}
+                  {locatingCampaign === selectedCampaign.id
+                    ? "Localisation…"
+                    : selectedCampaign.myRoutePlaceIds.length
+                      ? resumableRouteInProgress
+                        ? "Reprendre ma tournée"
+                        : "Préparer une nouvelle tournée"
+                      : "Préparer ma tournée"}
                 </button>
+                {resumableRouteInProgress && (
+                  <button
+                    type="button"
+                    onClick={() => setRouteToCancel(selectedCampaign)}
+                    disabled={cancellingRoute === selectedCampaign.id}
+                    className="btn-secondary min-h-12 w-full justify-center border-rose-300 text-rose-800 disabled:opacity-50 sm:w-auto"
+                  >
+                    {cancellingRoute === selectedCampaign.id ? (
+                      <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <X size={18} aria-hidden="true" />
+                    )}
+                    {cancellingRoute === selectedCampaign.id ? "Annulation…" : "Annuler ma tournée"}
+                  </button>
+                )}
+                {!resumableRouteInProgress && (
+                  <button
+                    type="button"
+                    onClick={() => openMission(selectedCampaign, true)}
+                    disabled={
+                      !getRouteDraft(selectedCampaign).length ||
+                      locatingCampaign === selectedCampaign.id
+                    }
+                    className="btn-primary hidden min-h-12 px-5 text-base disabled:opacity-50 lg:inline-flex"
+                  >
+                    <Navigation size={18} aria-hidden="true" /> Prévisualiser ma tournée
+                  </button>
+                )}
               </>
             ) : (
               <>
@@ -1251,6 +1532,44 @@ export default function TractationPanel({
         </footer>
       )}
 
+      {routeToCancel && (
+        <dialog
+          ref={cancelDialogRef}
+          onClose={() => setRouteToCancel(null)}
+          aria-labelledby="cancel-route-title"
+          aria-describedby="cancel-route-description"
+          className="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg border border-stone-200 bg-white p-5 text-stone-900 shadow-xl backdrop:bg-stone-950/60 sm:p-6"
+        >
+          <h2 id="cancel-route-title" className="text-lg font-bold">
+            Annuler ma tournée ?
+          </h2>
+          <p id="cancel-route-description" className="mt-3 text-sm leading-6 text-stone-700">
+            Les secteurs déjà terminés resteront marqués comme terminés. Les secteurs non terminés
+            seront libérés et pourront être repris par d’autres membres.
+          </p>
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => cancelDialogRef.current?.close()}
+              className="btn-secondary min-h-11 justify-center px-4"
+            >
+              Garder ma tournée
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                cancelDialogRef.current?.close();
+                void cancelRoute(routeToCancel);
+              }}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-rose-700 px-4 text-sm font-semibold text-white hover:bg-rose-800"
+            >
+              Confirmer l’annulation
+            </button>
+          </div>
+        </dialog>
+      )}
+
       {/* [SPEC-TRACTATION-06] Keep the complete mobile mission flow in a thumb-reachable sheet. */}
       {showRouteDetails && missionCampaign && (
         <div className="fixed inset-0 z-[950] bg-stone-950/20 lg:hidden" aria-hidden="true" />
@@ -1260,92 +1579,48 @@ export default function TractationPanel({
           className="fixed inset-x-0 bottom-0 z-[1000] flex h-[50dvh] max-h-[50dvh] flex-col rounded-t-2xl border border-stone-300 bg-white shadow-[0_-12px_36px_rgba(28,25,23,0.2)] lg:hidden"
           aria-label={`Mission ${missionCampaign.title}`}
         >
-          <div
-            className="flex h-9 shrink-0 touch-none cursor-grab items-center justify-center active:cursor-grabbing"
-            role="group"
-            aria-label="Poignée du panneau de tournée : glissez vers le bas pour fermer, vers le haut pour les détails"
-            onPointerDown={(event) => {
-              if (event.pointerType === "mouse" && event.button !== 0) return;
-              missionSheetDragStart.current = event.clientY;
-            }}
-            onPointerUp={(event) => {
-              const startY = missionSheetDragStart.current;
-              missionSheetDragStart.current = null;
-              if (startY === null) return;
-              const deltaY = event.clientY - startY;
-              if (deltaY > 72) {
-                setMissionCampaignId(null);
-                setMapCampaignId(null);
-                setShowRouteDetails(false);
-                onMissionModeChange?.(false);
-              } else if (deltaY < -56 && missionSheet === "select") {
-                setShowRouteDetails(true);
-              }
-            }}
-            onPointerCancel={() => {
-              missionSheetDragStart.current = null;
-            }}
-          >
-            <span className="h-1.5 w-12 rounded-full bg-stone-300" aria-hidden="true" />
-          </div>
-          <header className="flex items-center gap-3 border-b border-stone-200 px-4 py-3">
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-bold text-stone-900">
-                {missionCampaign.title}
-              </span>
-              <span className="block text-xs text-stone-500">
-                {missionSheet === "select"
-                  ? `${missionDraft.length} secteur(s) sélectionné(s)`
-                  : `${missionRoute.filter((id) => missionCampaign.assignedPlaces?.[id]?.status === "completed").length}/${missionRoute.length} secteurs terminés`}
-              </span>
+          <header className="flex h-11 shrink-0 items-center gap-2 border-b border-stone-200 px-3">
+            <div
+              className="flex min-h-10 min-w-0 flex-1 touch-none cursor-grab items-center justify-center active:cursor-grabbing"
+              role="group"
+              aria-label="Poignée du panneau de tournée : glissez vers le bas pour fermer, vers le haut pour les détails"
+              onPointerDown={(event) => {
+                if (event.pointerType === "mouse" && event.button !== 0) return;
+                missionSheetDragStart.current = event.clientY;
+              }}
+              onPointerUp={(event) => {
+                const startY = missionSheetDragStart.current;
+                missionSheetDragStart.current = null;
+                if (startY === null) return;
+                const deltaY = event.clientY - startY;
+                if (deltaY > 72) {
+                  closeMission();
+                } else if (deltaY < -56 && missionSheet === "select") {
+                  setShowRouteDetails(true);
+                }
+              }}
+              onPointerCancel={() => {
+                missionSheetDragStart.current = null;
+              }}
+            >
+              <span className="h-1.5 w-10 rounded-full bg-stone-300" aria-hidden="true" />
+            </div>
+            <span className="max-w-[45%] truncate text-xs font-semibold text-stone-600">
+              {missionCampaign.title}
             </span>
             <button
               type="button"
-              onClick={() => {
-                setMissionCampaignId(null);
-                setMapCampaignId(null);
-                onMissionModeChange?.(false);
-              }}
+              onClick={closeMission}
               aria-label="Fermer le mode mission"
-              className="grid size-11 shrink-0 place-items-center rounded-full text-stone-600 hover:bg-stone-100"
+              className="grid size-10 shrink-0 place-items-center rounded-full text-stone-600 hover:bg-stone-100"
             >
-              <X size={19} aria-hidden="true" />
+              <X size={18} aria-hidden="true" />
             </button>
           </header>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-3">
             {missionSheet === "select" && (
               <div className="space-y-3">
-                <div className="flex gap-2">
-                  <label className="relative min-w-0 flex-1">
-                    <span className="sr-only">Rechercher un secteur dans la campagne</span>
-                    <MapPinned
-                      size={17}
-                      aria-hidden="true"
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
-                    />
-                    <input
-                      type="search"
-                      value={missionSearch}
-                      onChange={(event) => setMissionSearch(event.currentTarget.value)}
-                      placeholder="Chercher un secteur"
-                      className="input-base min-h-12 pl-9"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => locateCampaign(missionCampaign.id)}
-                    disabled={locatingCampaign === missionCampaign.id}
-                    aria-label="Me localiser"
-                    className="grid size-12 shrink-0 place-items-center rounded-lg border border-stone-300 bg-white text-emerald-900 disabled:opacity-50"
-                  >
-                    {locatingCampaign === missionCampaign.id ? (
-                      <Loader2 size={20} className="animate-spin" aria-hidden="true" />
-                    ) : (
-                      <Compass size={21} aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
                 <div
                   role="tablist"
                   aria-label="Filtrer les secteurs"
@@ -1375,6 +1650,12 @@ export default function TractationPanel({
                     }
                     )
                   </button>
+                  {locatingCampaign === missionCampaign.id && (
+                    <p role="status" className="flex items-center gap-2 text-sm text-stone-600">
+                      <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                      Mise à jour de votre position…
+                    </p>
+                  )}
                 </div>
                 {error && (
                   <p
@@ -1544,6 +1825,67 @@ export default function TractationPanel({
               </div>
             )}
 
+            {missionSheet === "preview" && (
+              <div className="space-y-3 pb-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold text-stone-900">Aperçu de ma tournée</h2>
+                  <button
+                    type="button"
+                    onClick={() => setMissionSheet("select")}
+                    className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-blue-800"
+                  >
+                    <ArrowUp size={17} className="-rotate-90" aria-hidden="true" />
+                    Modifier les secteurs
+                  </button>
+                </div>
+                <ol
+                  className="divide-y divide-stone-200 border-y border-stone-200"
+                  aria-label="Ordre des étapes de la tournée"
+                >
+                  {missionDraft.map((placeId, index) => {
+                    const place = missionCampaign.lieuDits.find((item) => item.id === placeId);
+                    if (!place) return null;
+                    return (
+                      <li key={placeId} className="flex min-h-14 items-center gap-2 py-1">
+                        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-blue-800 text-xs font-bold text-white">
+                          {index + 1}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-900">
+                          {place.nom}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => moveRouteDraftPlace(missionCampaign, index, -1)}
+                          disabled={
+                            index === 0 ||
+                            claimingRoute === missionCampaign.id ||
+                            locatingCampaign === missionCampaign.id
+                          }
+                          aria-label={`Monter ${place.nom}`}
+                          className="grid size-11 shrink-0 place-items-center rounded-md text-stone-700 disabled:opacity-30"
+                        >
+                          <ArrowUp size={17} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveRouteDraftPlace(missionCampaign, index, 1)}
+                          disabled={
+                            index === missionDraft.length - 1 ||
+                            claimingRoute === missionCampaign.id ||
+                            locatingCampaign === missionCampaign.id
+                          }
+                          aria-label={`Descendre ${place.nom}`}
+                          className="grid size-11 shrink-0 place-items-center rounded-md text-stone-700 disabled:opacity-30"
+                        >
+                          <ArrowDown size={17} aria-hidden="true" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            )}
+
             {missionSheet === "run" && (
               <div className="space-y-3">
                 {missionNextPlace &&
@@ -1611,59 +1953,13 @@ export default function TractationPanel({
                               : "Me localiser pour l’itinéraire"}
                           </button>
                         )}
-                        {currentAssignment?.status === "completed" ? (
-                          <div className="space-y-2">
-                            <p
-                              role="status"
-                              className="rounded-lg bg-emerald-50 px-3 py-2 text-center text-sm font-semibold text-emerald-900"
-                            >
-                              Secteur marqué comme fait
-                            </p>
-                            {canCorrectCurrent && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  place && void updateAssignment(missionCampaign, place, "reopen")
-                                }
-                                disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
-                                className="min-h-12 w-full rounded-lg border border-amber-300 px-3 text-sm font-semibold text-amber-900 hover:bg-amber-50 disabled:opacity-50"
-                              >
-                                {busy === `${missionCampaign.id}:${place?.id}`
-                                  ? "Mise à jour…"
-                                  : "Marquer non fait"}
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              place && void updateAssignment(missionCampaign, place, "complete")
-                            }
-                            disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
-                            className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 text-base font-bold text-white disabled:opacity-50"
+                        {currentAssignment?.status === "completed" && (
+                          <p
+                            role="status"
+                            className="rounded-lg bg-emerald-50 px-3 py-2 text-center text-sm font-semibold text-emerald-900"
                           >
-                            {busy === `${missionCampaign.id}:${place?.id}` ? (
-                              <Loader2 size={20} className="animate-spin" aria-hidden="true" />
-                            ) : (
-                              <Check size={20} aria-hidden="true" />
-                            )}
-                            Secteur terminé
-                          </button>
-                        )}
-                        {canCorrectCurrent && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              place && void updateAssignment(missionCampaign, place, "release")
-                            }
-                            disabled={!place || busy === `${missionCampaign.id}:${place.id}`}
-                            className="min-h-11 w-full text-sm font-semibold text-stone-600 underline underline-offset-2 disabled:opacity-50"
-                          >
-                            {currentAssignment?.isMine
-                              ? "Mince, je libère ce secteur"
-                              : "Désattribuer ce secteur"}
-                          </button>
+                            Secteur marqué comme fait
+                          </p>
                         )}
                       </>
                     );
@@ -1673,10 +1969,21 @@ export default function TractationPanel({
                     <span className="mx-auto grid size-14 place-items-center rounded-full bg-emerald-100 text-emerald-800">
                       <Check size={28} aria-hidden="true" />
                     </span>
-                    <p className="text-lg font-bold text-stone-900">Tournée terminée</p>
-                    <p className="text-sm text-stone-600">
-                      Tous les secteurs de cette tournée sont marqués comme faits.
+                    <p className="text-lg font-bold text-stone-900">
+                      {missionRoute.length ? "Tournée terminée" : "Aucun secteur restant"}
                     </p>
+                    <p className="text-sm text-stone-600">
+                      {missionRoute.length
+                        ? "Tous les secteurs de cette tournée sont marqués comme faits."
+                        : "Les secteurs libérés sont de nouveau disponibles pour les autres membres."}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={closeMission}
+                      className="btn-primary mx-auto min-h-11 justify-center px-4"
+                    >
+                      Retour à la campagne
+                    </button>
                   </div>
                 )}
                 {error && (
@@ -1778,7 +2085,7 @@ export default function TractationPanel({
                   {error}
                 </p>
               )}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <details className="relative shrink-0">
                   <summary
                     aria-label="Actions de la tournée"
@@ -1806,20 +2113,133 @@ export default function TractationPanel({
                     </p>
                   </div>
                 </details>
+                <span
+                  className="min-w-14 text-center text-xs font-semibold text-stone-600"
+                  aria-live="polite"
+                >
+                  {missionDraft.length} secteur(s)
+                </span>
                 <button
                   type="button"
-                  onClick={() => void claimRoute(missionCampaign)}
-                  disabled={!missionDraft.length || claimingRoute === missionCampaign.id}
-                  className="inline-flex min-h-14 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 text-sm font-bold text-white disabled:bg-stone-300 sm:px-5"
+                  onClick={() => openPreview(missionCampaign)}
+                  disabled={!missionDraft.length || locatingCampaign === missionCampaign.id}
+                  className="inline-flex min-h-12 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-800 px-2 text-xs font-bold text-white disabled:bg-stone-300 sm:min-h-14 sm:flex-none sm:gap-2 sm:px-5 sm:text-sm"
                 >
-                  {claimingRoute === missionCampaign.id ? (
-                    <Loader2 size={19} className="animate-spin" aria-hidden="true" />
-                  ) : (
-                    <Check size={19} aria-hidden="true" />
-                  )}
-                  {claimingRoute === missionCampaign.id ? "Réservation…" : "Prendre ma tournée"}
+                  <Navigation size={19} aria-hidden="true" />
+                  Prévisualiser ma tournée
                 </button>
               </div>
+            </footer>
+          )}
+          {missionSheet === "preview" && (
+            <footer className="shrink-0 border-t border-stone-200 bg-white px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(28,25,23,0.08)]">
+              {error && (
+                <p role="alert" className="mb-2 text-sm text-amber-900">
+                  {error}
+                </p>
+              )}
+              {locatingCampaign === missionCampaign.id && (
+                <p role="status" className="mb-2 text-sm text-stone-600">
+                  Mise à jour de votre position…
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => optimizeRouteDraft(missionCampaign)}
+                disabled={
+                  missionDraft.length < 2 ||
+                  claimingRoute === missionCampaign.id ||
+                  locatingCampaign === missionCampaign.id
+                }
+                className="btn-secondary mb-2 min-h-11 w-full justify-center px-3 text-sm disabled:opacity-50"
+              >
+                <Compass size={17} aria-hidden="true" /> Proposer un ordre plus court
+              </button>
+              <button
+                type="button"
+                onClick={() => void claimRoute(missionCampaign)}
+                disabled={
+                  !missionDraft.length ||
+                  claimingRoute === missionCampaign.id ||
+                  locatingCampaign === missionCampaign.id
+                }
+                className="btn-primary min-h-12 w-full justify-center disabled:opacity-50"
+              >
+                {claimingRoute === missionCampaign.id ? (
+                  <Loader2 size={19} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Navigation size={19} aria-hidden="true" />
+                )}
+                {claimingRoute === missionCampaign.id ? "Démarrage…" : "Démarrer"}
+              </button>
+            </footer>
+          )}
+          {missionSheet === "run" && missionNextPlace && (
+            <footer className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] gap-2 border-t border-stone-200 bg-white px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(28,25,23,0.08)] sm:px-4">
+              {(() => {
+                const place = missionCampaign.lieuDits.find((item) => item.id === missionNextPlace);
+                const currentAssignment = place
+                  ? missionCampaign.assignedPlaces?.[place.id]
+                  : undefined;
+                const canCorrectCurrent = Boolean(
+                  currentAssignment &&
+                  (canCreate || (missionCampaign.joined && currentAssignment.isMine)),
+                );
+                const isBusy = !place || busy === `${missionCampaign.id}:${place.id}`;
+
+                return (
+                  <>
+                    {currentAssignment?.status === "completed" ? (
+                      canCorrectCurrent ? (
+                        <button
+                          type="button"
+                          onClick={() => void updateAssignment(missionCampaign, place!, "reopen")}
+                          disabled={isBusy}
+                          className="min-h-11 min-w-0 rounded-lg border border-amber-300 px-2 text-xs font-semibold text-amber-900 disabled:opacity-50 sm:px-3 sm:text-sm"
+                        >
+                          {isBusy ? "Mise à jour…" : "Marquer non fait"}
+                        </button>
+                      ) : (
+                        <span className="flex min-h-11 items-center justify-center text-xs font-semibold text-emerald-900">
+                          Secteur terminé
+                        </span>
+                      )
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => void updateAssignment(missionCampaign, place!, "complete")}
+                        disabled={isBusy}
+                        className="inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-700 px-2 text-xs font-bold text-white disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-sm"
+                      >
+                        {isBusy ? (
+                          <Loader2 size={17} className="animate-spin" aria-hidden="true" />
+                        ) : (
+                          <Check size={17} aria-hidden="true" />
+                        )}
+                        Secteur terminé
+                      </button>
+                    )}
+                    {canCorrectCurrent && (
+                      <button
+                        type="button"
+                        onClick={() => void updateAssignment(missionCampaign, place!, "release")}
+                        disabled={isBusy}
+                        aria-label={
+                          currentAssignment?.isMine
+                            ? "Mince, je libère ce secteur"
+                            : "Désattribuer ce secteur"
+                        }
+                        className="min-h-11 rounded-lg border border-stone-300 px-2 text-xs font-semibold text-stone-700 disabled:opacity-50 sm:px-3 sm:text-sm"
+                      >
+                        <span className="sm:hidden">Libérer</span>
+                        <span className="hidden sm:inline">
+                          {currentAssignment?.isMine ? "Libérer ce secteur" : "Désattribuer"}
+                        </span>
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </footer>
           )}
         </section>

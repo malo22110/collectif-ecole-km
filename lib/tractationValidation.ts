@@ -38,6 +38,19 @@ export function canStartAnotherRoute(assignmentStatuses: unknown[]) {
   return assignmentStatuses.every((status) => status === "completed");
 }
 
+// [SPEC-TRACTATION-13] Cancelling a route releases unfinished stops, never completed visits.
+export function cancellableRoutePlaceIds(
+  assignments: Array<{ id: string; status: unknown; claimedByUid: unknown } | null>,
+  memberUid: string,
+): string[] | null {
+  if (assignments.some((assignment) => assignment && assignment.claimedByUid !== memberUid)) {
+    return null;
+  }
+  return assignments.flatMap((assignment) =>
+    assignment?.status === "claimed" ? [assignment.id] : [],
+  );
+}
+
 export const visitInputSchema = z.object({ visited: z.boolean() }).strict();
 
 // [SPEC-TRACTATION-04] Shared place claims transition through an explicit bounded action set.

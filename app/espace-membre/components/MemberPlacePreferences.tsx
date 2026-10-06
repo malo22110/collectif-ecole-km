@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { Heart, Loader2, MapPin, Search, ShieldCheck, X } from "lucide-react";
 import { auth } from "@/lib/firebase";
+import type { GeoPoint } from "@/lib/tourneeGeo";
 
 type PlaceOption = { id: string; nom: string };
 type SuggestedPlace = PlaceOption & { distanceKm: number };
@@ -20,6 +21,7 @@ interface MemberPlacePreferencesProps {
   favoritePlaceIds?: string[];
   onboarding?: boolean;
   onSetupComplete?: () => void;
+  onOriginChange?: (origin: GeoPoint | null) => void;
 }
 
 async function authorizedFetch(user: User, url: string, init: RequestInit = {}) {
@@ -37,6 +39,7 @@ export default function MemberPlacePreferences({
   favoritePlaceIds: externalFavoritePlaceIds,
   onboarding = false,
   onSetupComplete,
+  onOriginChange,
 }: MemberPlacePreferencesProps) {
   const [user, setUser] = useState<User | null>(null);
   const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>([]);
@@ -130,6 +133,18 @@ export default function MemberPlacePreferences({
       setMatchedAddress(data.matchedAddress);
       setConfirmedAddress(data.matchedAddress);
       setSuggestedPlaces(data.nearest);
+      const origin = data.origin;
+      if (
+        origin &&
+        Number.isFinite(origin.lat) &&
+        Number.isFinite(origin.lon) &&
+        origin.lat >= -90 &&
+        origin.lat <= 90 &&
+        origin.lon >= -180 &&
+        origin.lon <= 180
+      ) {
+        onOriginChange?.({ lat: origin.lat, lon: origin.lon });
+      }
       if (data.nearest.length === 0)
         setNotice(
           "Aucun lieu géolocalisé n'a été trouvé à proximité. Vous pouvez choisir vos favoris manuellement.",
@@ -265,6 +280,7 @@ export default function MemberPlacePreferences({
                     setMatchedAddress("");
                     setConfirmedAddress("");
                     setSuggestedPlaces([]);
+                    onOriginChange?.(null);
                   }}
                   placeholder="Adresse et commune"
                   className="input-base mt-1 min-h-12"
@@ -495,6 +511,7 @@ export default function MemberPlacePreferences({
                   setAddress(event.target.value);
                   setMatchedAddress("");
                   setConfirmedAddress("");
+                  onOriginChange?.(null);
                 }}
                 placeholder="Adresse et commune"
                 className="input-base mt-1"

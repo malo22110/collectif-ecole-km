@@ -2,6 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import {
   campaignIdSchema,
   campaignRouteInputSchema,
+  cancellableRoutePlaceIds,
   canStartAnotherRoute,
   hasEligibleHouseholds,
 } from "@/lib/tractationValidation";
@@ -199,5 +200,93 @@ export async function POST(request: Request, context: { params: Promise<{ campai
       );
     }
     return errorResponse(error, "Impossible de réserver cette tournée.");
+  }
+}
+
+// [SPEC-TRACTATION-13] Cancel only the caller's unfinished stops in one transaction; keep completed visits.
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ campaignId: string }> },
+) {
+  const authorization = await authorizeTractationMember(request);
+  if (!authorization.member) return authorization.response;
+
+  const { campaignId } = await context.params;
+  if (!campaignIdSchema.safeParse(campaignId).success) {
+    return Response.json({ error: "Identifiant de campagne invalide." }, { status: 400 });
+  }
+
+  try {
+    const campaignRef = tractationDb.collection("tractationCampaigns").doc(campaignId);
+    const participantRef = campaignRef.collection("participants").doc(authorization.member.uid);
+    await tractationDb.runTransaction(async (transaction) => {
+      const [campaign, participant] = await Promise.all([
+        transaction.get(campaignRef),
+        transaction.get(participantRef),
+      ]);
+      if (!campaign.exists) throw new CampaignRouteError(404, "Campagne introuvable.");
+      if (campaign.get("status") !== "active") {
+        throw new CampaignRouteError(409, "Cette campagne n'est plus ouverte.");
+      }
+      if (!participant.exists)
+        throw new CampaignRouteError(403, "Vous ne participez pas à cette campagne.");
+
+      const routeIds = participant.get("routePlaceIds");
+      if (
+        !Array.isArray(routeIds) ||
+        !routeIds.length ||
+        routeIds.length > 200 ||
+        routeIds.some(
+          (id: unknown) => typeof id !== "string" || !campaignIdSchema.safeParse(id).success,
+        ) ||
+        new Set(routeIds).size !== routeIds.length
+      ) {
+        throw new CampaignRouteError(409, "Aucune tournée active à annuler.");
+      }
+      const assignmentRefs = routeIds.map((id: string) =>
+        campaignRef.collection("placeAssignments").doc(id),
+      );
+      const assignments = await Promise.all(
+        assignmentRefs.map((reference) => transaction.get(reference)),
+      );
+      const releasableIds = cancellableRoutePlaceIds(
+        assignments.map((assignment) =>
+          assignment.exists
+            ? {
+                id: assignment.id,
+                status: assignment.get("status"),
+                claimedByUid: assignment.get("claimedByUid"),
+              }
+            : null,
+        ),
+        authorization.member.uid,
+      );
+      if (releasableIds === null) {
+        throw new CampaignRouteError(
+          409,
+          "La tournée a changé. Rechargez la campagne avant de l'annuler.",
+        );
+      }
+      if (!releasableIds.length) {
+        throw new CampaignRouteError(409, "Cette tournée est déjà terminée.");
+      }
+      for (const id of releasableIds) {
+        transaction.delete(campaignRef.collection("placeAssignments").doc(id));
+      }
+      transaction.update(participantRef, {
+        routePlaceIds: [],
+        routeUpdatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+
+    return Response.json(
+      { routePlaceIds: [] },
+      { headers: { "Cache-Control": "private, no-store, max-age=0" } },
+    );
+  } catch (error) {
+    if (error instanceof CampaignRouteError) {
+      return Response.json({ error: error.message }, { status: error.status });
+    }
+    return errorResponse(error, "Impossible d'annuler cette tournée.");
   }
 }

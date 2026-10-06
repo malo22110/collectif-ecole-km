@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import type { TourLieuDit } from "@/lib/tourneeGeo";
+import type { GeoPoint, TourLieuDit } from "@/lib/tourneeGeo";
+import { visibleCampaignPlaceIds } from "@/lib/campaignPlaceSorting";
 import MemberPlacePreferences from "@/app/espace-membre/components/MemberPlacePreferences";
 import TractationPanel, {
   type CampaignMapState,
@@ -33,7 +34,15 @@ const OpenStreetMap = dynamic(() => import("./OpenStreetMap"), {
 
 type HubView = "loading" | "setup" | "campaigns" | "campaign" | "campaignInfo" | "preferences";
 type FirstTourGuideStep =
-  "welcome" | "favorites" | "campaigns" | "join" | "select-sectors" | "done" | null;
+  | "welcome"
+  | "favorites"
+  | "campaigns"
+  | "join"
+  | "select-sectors"
+  | "preview"
+  | "run"
+  | "done"
+  | null;
 type PrivatePreferences = {
   favoritePlaceIds: string[];
   setupComplete: boolean;
@@ -49,6 +58,7 @@ export default function TourneesPage() {
   const [campaignMap, setCampaignMap] = useState<CampaignMapState | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<TourLieuDit | null>(null);
   const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>([]);
+  const [addressOrigin, setAddressOrigin] = useState<GeoPoint | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [view, setView] = useState<HubView>("loading");
   const [firstTourGuideStep, setFirstTourGuideStep] = useState<FirstTourGuideStep>(null);
@@ -128,14 +138,33 @@ export default function TourneesPage() {
 
   const mapLocations = useMemo(() => {
     if (!campaignMap) return [];
-    const includedIds = new Set(campaignMap.placeIds);
+    const includedIds = new Set(visibleCampaignPlaceIds(campaignMap));
     return locations.filter((place) => includedIds.has(place.id));
   }, [campaignMap, locations]);
   const favoriteSet = useMemo(() => new Set(favoritePlaceIds), [favoritePlaceIds]);
   const routePlaceKey = campaignMap?.routePlaceIds.join("|") || "";
+  const previewPlaceIds = campaignMap?.previewPlaceIds;
+  const previewGeometry = useMemo(() => {
+    if (!previewPlaceIds) return [];
+    const placesById = new Map(mapLocations.map((place) => [place.id, place]));
+    const points: Array<[number, number]> = campaignMap?.origin
+      ? [[campaignMap.origin.lat, campaignMap.origin.lon]]
+      : [];
+    for (const id of previewPlaceIds) {
+      const place = placesById.get(id);
+      if (place) points.push([place.lat, place.lon]);
+    }
+    return points;
+  }, [previewPlaceIds, campaignMap?.origin, mapLocations]);
 
   useEffect(() => {
-    if (view !== "campaign" || !currentUser || !campaignMap?.origin || !routePlaceKey) {
+    if (
+      view !== "campaign" ||
+      !currentUser ||
+      !campaignMap?.runningRoute ||
+      !campaignMap?.origin ||
+      !routePlaceKey
+    ) {
       setRoadRoute(null);
       setRoadRouteError("");
       setRoadRouteLoading(false);
@@ -205,6 +234,8 @@ export default function TourneesPage() {
     campaignMap?.origin?.lat,
     campaignMap?.origin?.lon,
     routePlaceKey,
+    previewPlaceIds,
+    campaignMap?.runningRoute,
     roadRouteRetry,
   ]);
 
@@ -283,14 +314,27 @@ export default function TourneesPage() {
   }, []);
 
   const handleFirstTourGuideEvent = useCallback(
-    (event: "select-sectors" | "resume-tour" | "tour-reserved") => {
+    (
+      event:
+        | "select-sectors"
+        | "preview-route"
+        | "resume-tour"
+        | "tour-reserved"
+        | "tour-finished"
+        | "tour-cancelled",
+    ) => {
       setFirstTourGuideStep((step) => {
         if (step === null) return null;
         if (event === "select-sectors" && (step === "join" || step === "campaigns")) {
           return "select-sectors";
         }
-        if (event === "resume-tour" && step === "join") return "done";
-        if (event === "tour-reserved" && step === "select-sectors") return "done";
+        if (event === "preview-route" && (step === "select-sectors" || step === "join"))
+          return "preview";
+        if (event === "resume-tour" && (step === "join" || step === "select-sectors")) return "run";
+        if (event === "tour-reserved" && (step === "preview" || step === "select-sectors"))
+          return "run";
+        if (event === "tour-finished" && step === "run") return "done";
+        if (event === "tour-cancelled" && step === "run") return "select-sectors";
         return step;
       });
     },
@@ -352,7 +396,7 @@ export default function TourneesPage() {
 
   return (
     <main
-      className={`min-h-full bg-stone-50 p-4 sm:p-5 md:p-8 ${view === "campaign" ? "pb-[calc(7rem+env(safe-area-inset-bottom))]" : "pb-[max(2rem,env(safe-area-inset-bottom))]"}`}
+      className={`min-h-full bg-stone-50 p-4 sm:p-5 md:p-8 ${view === "campaign" ? "pb-[calc(10rem+env(safe-area-inset-bottom))]" : "pb-[max(2rem,env(safe-area-inset-bottom))]"}`}
     >
       <div
         className={`mx-auto w-full ${view === "campaign" ? "max-w-7xl space-y-4" : "max-w-4xl space-y-5"}`}
@@ -370,6 +414,7 @@ export default function TourneesPage() {
             places={locations.map(({ id, nom }) => ({ id, nom }))}
             favoritePlaceIds={favoritePlaceIds}
             onFavoritesChange={handleFavoritesChange}
+            onOriginChange={setAddressOrigin}
             onboarding
             onSetupComplete={completeSetup}
           />
@@ -411,6 +456,16 @@ export default function TourneesPage() {
                       : "Choisissez une action près de chez vous"}
                 </p>
               </div>
+              {view === "campaigns" && canCreateCampaign && (
+                <Link
+                  href="/espace-membre/tournees/lieux"
+                  aria-label="Gérer les lieux-dits"
+                  title="Gérer les lieux-dits"
+                  className="grid size-11 shrink-0 place-items-center rounded-lg border border-stone-200 bg-white text-emerald-900"
+                >
+                  <MapPinned size={20} aria-hidden="true" />
+                </Link>
+              )}
               {view === "campaigns" && canCreateCampaign && (
                 <Link
                   href="/espace-membre/tournees/nouvelle-campagne"
@@ -456,7 +511,7 @@ export default function TourneesPage() {
               <aside
                 aria-live="polite"
                 aria-label="Guide de première tournée"
-                className={`z-[800] border border-emerald-200 bg-white p-4 shadow-lg ${missionMode ? "fixed inset-x-3 top-[4.5rem] mx-auto max-w-xl rounded-xl" : "rounded-lg"}`}
+                className={`z-[800] border border-emerald-200 bg-white p-4 shadow-lg ${missionMode || (view === "campaign" && (firstTourGuideStep === "preview" || firstTourGuideStep === "run")) ? "fixed inset-x-3 top-[4.5rem] mx-auto max-w-xl rounded-xl" : "rounded-lg"}`}
               >
                 <div className="flex items-start gap-3">
                   <span className="grid size-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-black text-emerald-900">
@@ -468,6 +523,10 @@ export default function TourneesPage() {
                       "3"
                     ) : firstTourGuideStep === "select-sectors" ? (
                       "4"
+                    ) : firstTourGuideStep === "preview" ? (
+                      "5"
+                    ) : firstTourGuideStep === "run" ? (
+                      "6"
                     ) : (
                       <Check size={17} aria-hidden="true" />
                     )}
@@ -479,6 +538,8 @@ export default function TourneesPage() {
                       {firstTourGuideStep === "campaigns" && "Ouvrez une campagne"}
                       {firstTourGuideStep === "join" && "Rejoignez la campagne"}
                       {firstTourGuideStep === "select-sectors" && "Composez votre tournée"}
+                      {firstTourGuideStep === "preview" && "Vérifiez votre parcours"}
+                      {firstTourGuideStep === "run" && "Suivez votre tournée"}
                       {firstTourGuideStep === "done" && "C’est prêt !"}
                     </h2>
                     <p className="mt-1 text-sm leading-5 text-stone-600">
@@ -489,11 +550,15 @@ export default function TourneesPage() {
                       {firstTourGuideStep === "campaigns" &&
                         "Choisissez une campagne disponible pour voir ses secteurs sur la carte."}
                       {firstTourGuideStep === "join" &&
-                        "Utilisez le bouton fixe en bas pour rejoindre la campagne ou préparer votre tournée."}
+                        "Rejoignez la campagne, puis utilisez « Préparer ma tournée ». Votre position sera actualisée pour classer les secteurs proches."}
                       {firstTourGuideStep === "select-sectors" &&
-                        "Touchez les points de la carte ou choisissez les secteurs dans la liste, puis prenez la tournée."}
+                        "Choisissez des secteurs disponibles sur la carte ou dans la liste, puis touchez « Prévisualiser ma tournée »."}
+                      {firstTourGuideStep === "preview" &&
+                        "Vérifiez tous vos secteurs sur la carte, changez leur ordre ou demandez une proposition d’ordre plus court, puis touchez « Démarrer »."}
+                      {firstTourGuideStep === "run" &&
+                        "Marquez chaque secteur terminé pour passer au suivant. « Libérer » retire seulement le secteur courant."}
                       {firstTourGuideStep === "done" &&
-                        "Votre tournée est réservée. Vous pouvez la reprendre depuis le bouton fixe en bas."}
+                        "Tous vos secteurs sont terminés. Vous pourrez préparer une nouvelle tournée depuis la campagne."}
                     </p>
                     <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                       {firstTourGuideStep !== "done" && (
@@ -567,6 +632,7 @@ export default function TourneesPage() {
                 </div>
                 <TractationPanel
                   favoritePlaceIds={favoritePlaceIds}
+                  suggestionOrigin={addressOrigin}
                   onCanCreateChange={handleCanCreateChange}
                   onStatisticsVisibleChange={handleStatisticsVisibleChange}
                   onCampaignSelect={openCampaign}
@@ -640,13 +706,22 @@ export default function TourneesPage() {
                 places={locations.map(({ id, nom }) => ({ id, nom }))}
                 favoritePlaceIds={favoritePlaceIds}
                 onFavoritesChange={handleFavoritesChange}
+                onOriginChange={setAddressOrigin}
               />
             )}
 
             {view === "campaign" && (
               <>
                 <section id="places-map-section" className="scroll-mt-3 space-y-3">
-                  {campaignMap?.routePlaceIds.length ? (
+                  {previewPlaceIds ? (
+                    <p
+                      className="border-l-4 border-blue-700 bg-blue-50 px-3 py-2 text-sm text-blue-950"
+                      role="status"
+                    >
+                      Aperçu : {previewPlaceIds.length} secteur(s) choisis, dans l’ordre indiqué sur
+                      la carte.
+                    </p>
+                  ) : campaignMap?.runningRoute && campaignMap.routePlaceIds.length ? (
                     <div
                       className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-blue-700 bg-blue-50 px-3 py-2 text-sm text-blue-950"
                       role="status"
@@ -700,18 +775,34 @@ export default function TourneesPage() {
                   ) : (
                     <OpenStreetMap
                       locations={mapLocations}
-                      origin={campaignMap.origin}
+                      origin={campaignMap.missionActive ? campaignMap.origin : null}
                       originLabel="Départ de votre tournée"
                       favoritePlaceIds={favoritePlaceIds}
-                      routePlaceIds={campaignMap.routePlaceIds}
+                      draftPlaceIds={previewPlaceIds ?? campaignMap.draftPlaceIds}
+                      routePlaceIds={
+                        previewPlaceIds ??
+                        (campaignMap.runningRoute ? campaignMap.routePlaceIds : [])
+                      }
                       assignmentStatuses={campaignMap.assignmentStatuses}
                       campaignMode
+                      previewMode={previewPlaceIds !== null && previewPlaceIds !== undefined}
                       missionMode={missionMode}
-                      campaignJoined={campaignMap.joined}
+                      campaignJoined={campaignMap.joined && !previewPlaceIds}
                       onAddToRoute={(placeId) => mapPlaceAdder.current?.(placeId)}
-                      routeGeometry={roadRoute?.geometry}
+                      routeGeometry={
+                        previewPlaceIds
+                          ? previewGeometry
+                          : campaignMap.runningRoute
+                            ? roadRoute?.geometry
+                            : []
+                      }
                       showHouseholdCounts={showStatistics}
-                      selectedPlace={selectedPlace}
+                      selectedPlace={
+                        (previewPlaceIds !== null && previewPlaceIds !== undefined) ||
+                        !mapLocations.some((place) => place.id === selectedPlace?.id)
+                          ? null
+                          : selectedPlace
+                      }
                       onSelectPlace={setSelectedPlace}
                     />
                   )}
@@ -720,27 +811,44 @@ export default function TourneesPage() {
                     aria-label="Légende de la carte"
                   >
                     <span className="inline-flex items-center gap-2">
-                      <span className="size-3 rounded-full border-2 border-blue-800 bg-blue-400" />
-                      Disponible
+                      <span
+                        className={`size-3 rounded-full border-2 ${previewPlaceIds ? "border-orange-800 bg-orange-400" : "border-blue-800 bg-blue-400"}`}
+                      />
+                      {previewPlaceIds
+                        ? "Étapes prévues"
+                        : campaignMap?.runningRoute
+                          ? "Ma tournée"
+                          : "Disponible"}
                     </span>
-                    <span className="inline-flex items-center gap-2">
-                      <span className="size-3 rounded-full border-2 border-stone-600 bg-stone-300" />
-                      Pris
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <span className="size-3 rounded-full border-2 border-emerald-700 bg-emerald-400" />
-                      Terminé
-                    </span>
-                    {showStatistics && (
+                    {!previewPlaceIds && Boolean(campaignMap?.draftPlaceIds.length) && (
                       <span className="inline-flex items-center gap-2">
-                        <span className="size-3 rounded-full border-2 border-amber-800 bg-amber-300" />
-                        Favori
+                        <span className="size-3 rounded-full border-2 border-orange-800 bg-orange-400" />
+                        Sélectionné
                       </span>
+                    )}
+                    {!previewPlaceIds && (
+                      <>
+                        <span className="inline-flex items-center gap-2">
+                          <span className="size-3 rounded-full border-2 border-stone-600 bg-stone-300" />
+                          Pris
+                        </span>
+                        <span className="inline-flex items-center gap-2">
+                          <span className="size-3 rounded-full border-2 border-emerald-700 bg-emerald-400" />
+                          Terminé
+                        </span>
+                        {favoritePlaceIds.length > 0 && (
+                          <span className="inline-flex items-center gap-2">
+                            <span className="size-3 rounded-full border-2 border-rose-800 bg-rose-300" />
+                            Favori
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 </section>
                 <TractationPanel
                   favoritePlaceIds={favoritePlaceIds}
+                  suggestionOrigin={addressOrigin}
                   onCanCreateChange={handleCanCreateChange}
                   onStatisticsVisibleChange={handleStatisticsVisibleChange}
                   onCampaignMapChange={handleCampaignMapChange}
