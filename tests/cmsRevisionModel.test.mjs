@@ -4,6 +4,7 @@ import {
   buildCmsRevisionSnapshot,
   buildVersionedCmsPageData,
   buildVersionedHomeActionPlanData,
+  isCurrentCmsDraftVersion,
 } from "../lib/cmsRevisionModel.ts";
 
 // [SPEC-CMS-HISTORY-01] Each publication archives the previous document and the client cannot select its version.
@@ -30,6 +31,13 @@ test("une page historique sans version démarre à la version 1", () => {
     header: { title: "Page" },
     version: 1,
   });
+});
+
+// [SPEC-CMS-HISTORY-01] A full-page draft cannot overwrite a newer published page.
+test("refuse la publication d’un brouillon basé sur une ancienne version", () => {
+  assert.equal(isCurrentCmsDraftVersion({ version: 8 }, 8), true);
+  assert.equal(isCurrentCmsDraftVersion({ version: 9 }, 8), false);
+  assert.equal(isCurrentCmsDraftVersion({ version: 9 }), true);
 });
 
 // [SPEC-HOME-ACTION-PLAN-01] Approval of a plan draft must preserve newer unrelated CMS content.

@@ -26,10 +26,16 @@ export async function publishCmsPageRevision(
   data: CmsPageData,
   origin: "visual" | "expert" | "draft",
   scope?: "homeActionPlan",
+  baseVersion?: number,
 ): Promise<{ version: number }> {
   return requestCmsRevisions(API_PATH, {
     method: "POST",
-    body: JSON.stringify({ data, origin, ...(scope ? { scope } : {}) }),
+    body: JSON.stringify({
+      data,
+      origin,
+      ...(scope ? { scope } : {}),
+      ...(baseVersion !== undefined ? { baseVersion } : {}),
+    }),
   });
 }
 

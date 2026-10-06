@@ -6,6 +6,7 @@ import {
   buildCmsRevisionSnapshot,
   buildVersionedCmsPageData,
   buildVersionedHomeActionPlanData,
+  isCurrentCmsDraftVersion,
   type CmsPageData,
 } from "@/lib/cmsRevisionModel";
 import { homeActionPlanDraftSchema } from "@/lib/homeActionPlanSchema";
@@ -26,6 +27,7 @@ const publishSchema = z
     data: z.record(z.string(), z.unknown()),
     origin: z.enum(["visual", "expert", "draft"]),
     scope: z.literal("homeActionPlan").optional(),
+    baseVersion: z.number().int().nonnegative().optional(),
   })
   .strict();
 const restoreSchema = z
@@ -224,6 +226,12 @@ export async function POST(request: Request) {
         throw new RevisionOperationError("Document fiscal introuvable.", 404);
 
       const currentData = currentSnapshot.data() as CmsPageData;
+      if (!isCurrentCmsDraftVersion(currentData, parsed.data.baseVersion)) {
+        throw new RevisionOperationError(
+          "La page a changé depuis la création du brouillon. Revoyez la proposition avant de publier.",
+          409,
+        );
+      }
       const nextData = scopedPlan
         ? buildVersionedHomeActionPlanData(currentData, scopedPlan)
         : buildVersionedCmsPageData(currentData, parsed.data.data);

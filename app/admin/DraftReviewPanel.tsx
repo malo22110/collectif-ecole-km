@@ -37,6 +37,8 @@ interface Draft {
   id: string;
   pageId: string;
   scope?: "homeActionPlan";
+  baseVersion?: number;
+  reviewNote?: string;
   status: "pending" | "approved" | "rejected";
   submittedBy: string;
   submittedAt: Timestamp;
@@ -79,7 +81,7 @@ export default function DraftReviewPanel() {
     setProcessingId(draft.id);
     try {
       // [SPEC-CMS-HISTORY-01] Toute publication approuvée archive aussi la version précédente.
-      await publishCmsPageRevision(draft.data, "draft", draft.scope);
+      await publishCmsPageRevision(draft.data, "draft", draft.scope, draft.baseVersion);
       // Supprime le draft après publication
       await deleteDoc(doc(db, "cms_drafts", draft.id));
       setFeedback({
@@ -153,6 +155,9 @@ export default function DraftReviewPanel() {
                     {draft.scope !== "homeActionPlan" && (
                       <span className="font-mono text-amber-700">{draft.pageId}</span>
                     )}
+                    {draft.baseVersion !== undefined && (
+                      <span className="ml-2 text-amber-800">v{draft.baseVersion + 1} proposée</span>
+                    )}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-stone-500 mt-0.5">
                     <User size={11} />
@@ -199,6 +204,14 @@ export default function DraftReviewPanel() {
             {/* Zone de diff + actions */}
             {isExpanded && (
               <div className="p-5 space-y-5">
+                {draft.reviewNote && (
+                  <p
+                    className="rounded-md border-l-4 border-amber-600 bg-amber-50 px-3 py-2 text-sm text-amber-950"
+                    role="note"
+                  >
+                    {draft.reviewNote}
+                  </p>
+                )}
                 {/* Toggle résumé/détails pour le diff */}
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-medium text-stone-500">Mode aperçu :</span>

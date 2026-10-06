@@ -1,5 +1,9 @@
 export type CmsPageData = Record<string, unknown>;
 
+export function isCurrentCmsDraftVersion(currentData: CmsPageData, baseVersion?: number): boolean {
+  return baseVersion === undefined || currentData.version === baseVersion;
+}
+
 export function buildCmsRevisionSnapshot(
   currentData: CmsPageData,
   changedBy: string,

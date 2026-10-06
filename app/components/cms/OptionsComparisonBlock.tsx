@@ -27,8 +27,8 @@ export default function OptionsComparisonBlock({ data, context }: any) {
             Option 1 : L'ajustement (550 000 €)
           </h3>
           <p className="text-sm text-stone-600 mb-6 flex-grow">
-            L'avenant de 2 170 € permet d'intégrer les modifications techniques visant à ramener le
-            coût des travaux au budget de 550 000 € HT déposé en Préfecture.
+            {data?.opt1Desc ||
+              "L'avenant de 2 170 € permet d'intégrer les modifications techniques visant à ramener le coût des travaux au budget de 550 000 € HT déposé en Préfecture."}
           </p>
           {!isSimplified && (
             <div className="space-y-3 mb-6">
@@ -53,14 +53,20 @@ export default function OptionsComparisonBlock({ data, context }: any) {
                 <span className="font-bold text-emerald-600">159 855 €</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-stone-600">DETR État</span>
-                <span className="font-bold text-emerald-600">180 145 €</span>
+                <span className="text-stone-600">{data?.opt1StateAidLabel || "DETR État"}</span>
+                <span
+                  className={`font-bold ${data?.opt1StateAidLabel ? "text-amber-700" : "text-emerald-600"}`}
+                >
+                  180 145 €
+                </span>
               </div>
             </div>
           )}
-          <div className="pt-4 border-t border-emerald-200 flex items-center justify-between bg-emerald-50 -mx-6 md:-mx-8 -mb-6 md:-mb-8 p-6 md:p-8 mt-2">
-            <span className="text-lg font-black text-emerald-900">Reste à charge</span>
-            <span className="text-2xl font-black text-emerald-700">212 170 € HT</span>
+          <div className="pt-4 border-t border-emerald-200 flex flex-wrap items-center justify-between gap-2 bg-emerald-50 -mx-6 md:-mx-8 -mb-6 md:-mb-8 p-6 md:p-8 mt-2">
+            <span className="text-base font-black text-emerald-900 sm:text-lg">
+              {data?.opt1ChargeLabel || "Reste à charge"}
+            </span>
+            <span className="text-xl font-black text-emerald-700 sm:text-2xl">212 170 € HT</span>
           </div>
         </div>
 
