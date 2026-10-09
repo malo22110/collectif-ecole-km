@@ -1,11 +1,24 @@
 import React from "react";
 import { TrendingDown, AlertCircle, CheckCircle, BookOpen } from "lucide-react";
 import CommentBadge from "./CommentBadge";
+import {
+  completedFinancialServices,
+  completedFinancialServicesCutoff,
+  completedFinancialServicesTotal,
+  getCompletedFinancialServicesCategoryTotal,
+} from "@/lib/completedFinancialServices";
+
+const euroFormatter = new Intl.NumberFormat("fr-FR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const formatEuro = (amount: number) => `${euroFormatter.format(amount)} €`;
 
 // Valeurs par défaut (fallback si rien dans data)
 const DEFAULTS = {
   zoomTitle:
-    "🔎 Zoom Financier : Comprendre les 127 110 € d'études et le risque de perte réelle (plus de 70 000 €)",
+    "🔎 Zoom Financier : Comprendre les 127 110 € provisionnés et les 69 894 € de prestations réalisées",
   zoomIntro:
     "Il est crucial de clarifier les chiffres liés aux études d'ingénierie pour sortir des approximations. Trois montants différents existent, ils sont tous justes mais ne correspondent pas à la même chose :",
   point1:
@@ -13,7 +26,7 @@ const DEFAULTS = {
   point2:
     "133 533 € HT (Le détail réel jusqu'à la fin du chantier) : C'est le coût total exhaustif de toutes les études si le projet va à son terme. L'analyse des devis montre que cette somme, bien qu'impressionnante (24 % des travaux), est incontournable.",
   point3:
-    "plus de 70 000 € HT (Le risque de perte sèche immédiate) : C'est le montant des prestations effectivement réalisées à ce jour (stade APD). Si la mairie annule le projet demain, elle ne paiera pas 133 000 €, mais elle devra obligatoirement payer ces 70 000 € au titre du \"service fait\" (diagnostics achevés, AMO, honoraires d'architectes dus à l'étape APD s'élevant à environ 19 438 €). C'est cet argent qui sera jeté par les fenêtres en cas d'abandon.",
+    `69 894,00 € HT au 31 mars 2026 : montant strict des prestations réalisées (service fait), détaillées ci-dessous. Ce total n'inclut pas d'éventuelles indemnités légales de résiliation.`,
   subventionsTitle: "Subventions actées ou déposées : 340 000 €",
   subventionsIntro:
     "Le plan de financement repose sur trois leviers exigeant une rénovation globale (baisse de 40 % de la consommation d'énergie) :",
@@ -24,9 +37,9 @@ const DEFAULTS = {
   evolutionText:
     "Alors que la commande initiale visait un projet à 550 000 € HT, les chiffrages successifs de l'Avant-Projet Définitif (APD) ont atteint 735 489 € HT (615 278 € pour la Phase 1 et 120 210 € pour la Phase 2), nécessitant le recadrage budgétaire actuel.",
   simplifiedRisk:
-    "C'est le coût des études (diagnostics, architectes) déjà réalisées à ce jour. Si on abandonne l'école, la mairie devra quand même payer cette somme (règle légale du \"service fait\"). Au moins 70 000 € d'argent public seront perdus dans le vide.",
+    "C'est le montant strict des prestations réalisées et arrêtées au 31 mars 2026. En cas d'abandon, ces prestations restent dues au titre du service fait. Les éventuelles indemnités légales de résiliation ne sont pas incluses.",
   simplifiedSolution:
-    "Continuer le projet d'ajustement permet de rentabiliser ces plus de 70 000 € d'études et de sécuriser 340 000 € de subventions, ramenant le reste à charge des travaux à environ 212 000 €, ce qui est largement dans la capacité de la commune.",
+    "Continuer le projet d'ajustement permet de valoriser les 69 894 € HT de prestations déjà réalisées et de sécuriser 340 000 € de subventions, ramenant le reste à charge des travaux à environ 212 000 €.",
 };
 
 export default function FinancialOverviewBlock({ data, context }: any) {
@@ -34,6 +47,13 @@ export default function FinancialOverviewBlock({ data, context }: any) {
   const setActiveTopic = context?.setActiveTopic || (() => {});
   const commentCounts = context?.commentCounts || {};
   const d = { ...DEFAULTS, ...(data || {}) };
+  const zoomTitle = String(d.zoomTitle).includes("plus de 70 000 €")
+    ? DEFAULTS.zoomTitle
+    : d.zoomTitle;
+  const simplifiedSolution = String(d.simplifiedSolution).replaceAll(
+    "plus de 70 000 €",
+    "69 894 € HT arrêtés au 31 mars 2026",
+  );
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-stone-200 text-left mx-4 md:mx-auto max-w-3xl p-6 md:p-8 mb-8">
@@ -49,7 +69,7 @@ export default function FinancialOverviewBlock({ data, context }: any) {
                 <AlertCircle size={18} />
               </div>
               <div>
-                <strong className="text-stone-900 block text-lg mb-2">{d.zoomTitle}</strong>
+                <strong className="text-stone-900 block text-lg mb-2">{zoomTitle}</strong>
                 <p className="text-stone-600 text-sm mb-3">{d.zoomIntro}</p>
                 <ul className="space-y-3 text-sm text-stone-600 list-none pl-0">
                   <li className="flex gap-2">
@@ -62,11 +82,67 @@ export default function FinancialOverviewBlock({ data, context }: any) {
                   </li>
                   <li className="flex gap-2">
                     <span className="text-emerald-600 font-bold">3.</span>
-                    <div>{d.point3}</div>
+                    <div>
+                      {`69 894,00 € HT au ${completedFinancialServicesCutoff} : montant strict des prestations réalisées (service fait), détaillées ci-dessous. Ce total n'inclut pas d'éventuelles indemnités légales de résiliation.`}
+                    </div>
                   </li>
                 </ul>
               </div>
             </div>
+
+            <section
+              aria-labelledby="completed-expenses-title"
+              className="border-t border-stone-100 pt-6"
+            >
+              <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+                <div>
+                  <h3 id="completed-expenses-title" className="text-lg font-bold text-stone-900">
+                    Dépenses réalisées (service fait)
+                  </h3>
+                  <p className="text-sm text-stone-500">Situation arrêtée au {completedFinancialServicesCutoff} · Montants HT</p>
+                </div>
+                <p className="text-lg font-bold tabular-nums text-stone-900">
+                  {formatEuro(completedFinancialServicesTotal)}
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {completedFinancialServices.map((category) => (
+                  <section key={category.title} aria-label={category.title}>
+                    <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 border-b border-stone-200 pb-2">
+                      <div>
+                        <h4 className="font-semibold text-stone-800">{category.title}</h4>
+                        <p className="text-xs text-stone-500">{category.description}</p>
+                      </div>
+                      <p className="shrink-0 text-sm font-semibold tabular-nums text-stone-700">
+                        Sous-total : {formatEuro(getCompletedFinancialServicesCategoryTotal(category))}
+                      </p>
+                    </div>
+                    <ul className="divide-y divide-stone-100">
+                      {category.items.map((item, itemIndex) => (
+                        <li
+                          key={`${item.date}-${item.provider}-${itemIndex}`}
+                          className="grid grid-cols-[1fr_auto] gap-x-3 py-2 text-sm"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-xs text-stone-500">{item.date}</p>
+                            <p className="font-medium text-stone-800">{item.provider}</p>
+                            <p className="text-stone-600">{item.service}</p>
+                          </div>
+                          <p className="whitespace-nowrap pt-4 text-right tabular-nums text-stone-800">
+                            {formatEuro(item.amount)}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+
+              <p className="mt-5 border-t border-stone-200 pt-3 text-sm text-stone-600">
+                Ce total correspond aux prestations listées et réalisées. D’éventuelles indemnités légales de résiliation des contrats publics s’y ajouteraient.
+              </p>
+            </section>
 
             <div className="flex items-start gap-3 border-t border-stone-100 pt-6">
               <div className="mt-1 bg-emerald-100 p-1.5 rounded-lg text-emerald-700 shrink-0">
@@ -102,16 +178,18 @@ export default function FinancialOverviewBlock({ data, context }: any) {
         ) : (
           <div className="space-y-4">
             <div className="bg-rose-50 text-rose-800 p-4 md:p-6 rounded-xl border border-rose-200">
-              <strong className="block mb-2 flex items-center gap-2 text-rose-900">
-                <AlertCircle size={20} /> Le risque immédiat : plus de 70 000 €
+              <strong className="mb-2 flex items-center gap-2 text-rose-900">
+                <AlertCircle size={20} /> Le risque immédiat : {formatEuro(completedFinancialServicesTotal)} HT
               </strong>
-              <p className="text-sm">{d.simplifiedRisk}</p>
+              <p className="text-sm">
+                {`Prestations réalisées au ${completedFinancialServicesCutoff} et dues au titre du service fait. Les éventuelles indemnités légales de résiliation ne sont pas incluses.`}
+              </p>
             </div>
             <div className="bg-emerald-50 text-emerald-800 p-4 md:p-6 rounded-xl border border-emerald-200">
-              <strong className="block mb-2 flex items-center gap-2 text-emerald-900">
+              <strong className="mb-2 flex items-center gap-2 text-emerald-900">
                 <CheckCircle size={20} /> La solution (Option 1)
               </strong>
-              <p className="text-sm">{d.simplifiedSolution}</p>
+              <p className="text-sm">{simplifiedSolution}</p>
             </div>
           </div>
         )}
