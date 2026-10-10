@@ -10,6 +10,7 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
+  BookOpen,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -50,6 +51,7 @@ const REVEAL_CONTAINER_CLASSES = [
   styles.contentSlide,
   styles.collectiveCover,
   styles.charterGrid,
+  styles.lexiconGrid,
   styles.timeline,
   styles.budgetHistory,
   styles.phases,
@@ -67,12 +69,25 @@ const REVEAL_CONTAINER_CLASSES = [
 ];
 
 function collectRevealItems(root: HTMLElement) {
-  const items: HTMLElement[] = [];
+  const items: HTMLElement[][] = [];
+  const groupedItems = new Map<string, HTMLElement[]>();
   const visit = (element: Element) => {
     if (REVEAL_CONTAINER_CLASSES.some((className) => element.classList.contains(className))) {
       Array.from(element.children).forEach(visit);
     } else if (element instanceof HTMLElement && element.getAttribute("aria-hidden") !== "true") {
-      items.push(element);
+      const groupName = element.dataset.revealGroup;
+      if (groupName) {
+        const existingGroup = groupedItems.get(groupName);
+        if (existingGroup) {
+          existingGroup.push(element);
+        } else {
+          const group = [element];
+          groupedItems.set(groupName, group);
+          items.push(group);
+        }
+      } else {
+        items.push([element]);
+      }
     }
   };
   Array.from(root.children).forEach(visit);
@@ -83,6 +98,7 @@ const slides = [
   { id: "accueil", label: "Accueil", countsAsContent: false },
   { id: "charte", label: "Rappel de la charte" },
   { id: "calendrier", label: "Le calendrier" },
+  { id: "lexique", label: "Petit lexique" },
   { id: "phase-1", label: "Phase 1" },
   { id: "phase-2", label: "Phase 2" },
   { id: "total-travaux", label: "Total des travaux" },
@@ -150,8 +166,10 @@ export default function PresentationDeck() {
     if (!slide) return;
     const revealItems = collectRevealItems(slide);
     const visibleCount = Math.min(revealedBySlide[activeSlide] ?? 0, revealItems.length);
-    revealItems.forEach((item, index) => {
-      item.dataset.deckRevealHidden = index < visibleCount ? "false" : "true";
+    revealItems.forEach((group, index) => {
+      group.forEach((item) => {
+        item.dataset.deckRevealHidden = index < visibleCount ? "false" : "true";
+      });
     });
     setRevealTotals((current) =>
       current[activeSlide] === revealItems.length
@@ -268,7 +286,7 @@ export default function PresentationDeck() {
       <section
         key={slides[activeSlide].id}
         ref={slideRef}
-        className={`${styles.slide} ${isFirst ? styles.coverSlide : ""} ${isCollectiveCover ? styles.collectiveCoverSlide : ""} ${activeSlide === 1 ? styles.charterSlide : ""} ${activeSlide === 3 ? styles.projectSlide : ""}`}
+        className={`${styles.slide} ${isFirst ? styles.coverSlide : ""} ${isCollectiveCover ? styles.collectiveCoverSlide : ""} ${activeSlide === 1 ? styles.charterSlide : ""} ${activeSlide === 4 ? styles.projectSlide : ""}`}
         aria-roledescription="diapositive"
         aria-label={
           isFirst
@@ -346,6 +364,59 @@ export default function PresentationDeck() {
                 <span>Recherche de fonds</span>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeSlide === 3 && (
+          <div className={styles.contentSlide}>
+            <div className={styles.slideHeading}>
+              <p className={styles.eyebrow}>
+                <span /> 03 / Petit lexique
+              </p>
+              <h2>
+                Quelques mots
+                <br />
+                <em>pour suivre le projet.</em>
+              </h2>
+              <p className={styles.slideLead}>
+                Les sigles et repères financiers utilisés dans cette présentation.
+              </p>
+            </div>
+            <div className={styles.lexiconGrid}>
+              <article className={styles.lexiconCard}>
+                <BookOpen size={23} aria-hidden="true" />
+                <h3>APS</h3>
+                <p><strong>Avant-projet sommaire</strong> : première étape d’étude qui compare les grandes options et en donne une estimation.</p>
+              </article>
+              <article className={styles.lexiconCard}>
+                <BookOpen size={23} aria-hidden="true" />
+                <h3>APD</h3>
+                <p><strong>Avant-projet définitif</strong> : études et plans plus détaillés, qui précisent le projet et son coût prévisionnel.</p>
+              </article>
+              <article className={styles.lexiconCard}>
+                <Landmark size={23} aria-hidden="true" />
+                <h3>HT / TTC</h3>
+                <p><strong>Hors taxes</strong> / <strong>toutes taxes comprises</strong>. Les aides et les coûts de travaux sont généralement comparés en HT.</p>
+              </article>
+              <article className={styles.lexiconCard}>
+                <Landmark size={23} aria-hidden="true" />
+                <h3>FCTVA</h3>
+                <p><strong>Fonds de compensation pour la TVA</strong> : compensation d’une part de TVA sur certaines dépenses d’investissement éligibles.</p>
+              </article>
+              <article className={styles.lexiconCard}>
+                <PiggyBank size={23} aria-hidden="true" />
+                <h3>DETR / DSIL</h3>
+                <p><strong>Aides de l’État</strong> aux investissements locaux. Une aide demandée n’est pas acquise tant qu’elle n’est pas attribuée.</p>
+              </article>
+              <article className={styles.lexiconCard}>
+                <Leaf size={23} aria-hidden="true" />
+                <h3>BDB</h3>
+                <p><strong>Bâtiment Durable Breton</strong> : démarche régionale de qualité environnementale associée au projet.</p>
+              </article>
+            </div>
+            <p className={styles.lexiconNote}>
+              Le reste à charge est une estimation du coût après déduction des aides retenues; il dépend des dépenses éligibles et des subventions effectivement accordées.
+            </p>
           </div>
         )}
 
@@ -492,11 +563,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 3 && (
+        {activeSlide === 4 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 03 / Travaux · Phase 1
+                <span /> 04 / Travaux · Phase 1
               </p>
               <h2>
                 550 000 € HT.
@@ -542,11 +613,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 4 && (
+        {activeSlide === 5 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 04 / Travaux · Phase 2
+                <span /> 05 / Travaux · Phase 2
               </p>
               <h2>
                 La motricité,
@@ -581,11 +652,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 5 && (
+        {activeSlide === 6 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 05 / Total des travaux · projection
+                <span /> 06 / Total des travaux · projection
               </p>
               <h2>
                 Un total proche
@@ -606,13 +677,13 @@ export default function PresentationDeck() {
                 +
               </span>
               <article>
-                <span>Phase 2 · APD 2025</span>
+                <span>Phase 2 · APD 2025*</span>
                 <strong>120 210,96 € HT</strong>
               </article>
               <span className={styles.projectTotalOperator} aria-hidden="true">
                 =
               </span>
-              <article className={styles.projectTotalResult}>
+              <article className={styles.projectTotalResult} data-reveal-group="phase-two-total">
                 <span>Total travaux simulé</span>
                 <strong>670 210,96 € HT</strong>
               </article>
@@ -624,14 +695,25 @@ export default function PresentationDeck() {
                 de la Préfecture.
               </p>
             </div>
+            <aside className={styles.phaseTwoReviewNote} data-reveal-group="phase-two-total" aria-labelledby="phase-two-review-title">
+              <span className={styles.phaseTwoReviewMark} aria-hidden="true">*</span>
+              <div>
+                <h3 id="phase-two-review-title">Un chiffrage à retravailler</h3>
+                <p>
+                  Le montant de la Phase 2 est celui de l’APD 2025. Il devra lui aussi être
+                  réexaminé pour rechercher un projet maîtrisé, adapté aux besoins et financièrement
+                  rationnel. Ce montant n’est donc pas un devis actualisé.
+                </p>
+              </div>
+            </aside>
           </div>
         )}
 
-        {activeSlide === 6 && (
+        {activeSlide === 7 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 06 / Financement · Phase 1
+                <span /> 07 / Financement · Phase 1
               </p>
               <h2>
                 Les aides pour
@@ -706,11 +788,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 7 && (
+        {activeSlide === 8 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 07 / Financement · Phase 1
+                <span /> 08 / Financement · Phase 1
               </p>
               <h2>
                 Quel reste à charge
@@ -802,11 +884,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 8 && (
+        {activeSlide === 9 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 08 / Les études déjà réalisées
+                <span /> 09 / Les études déjà réalisées
               </p>
               <h2>
                 69 894 € HT
@@ -867,11 +949,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 10 && (
+        {activeSlide === 11 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 09 / Le collectif
+                <span /> 10 / Le collectif
               </p>
               <h2>
                 Quatre façons d’aider.
@@ -947,11 +1029,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 11 && (
+        {activeSlide === 12 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 10 / À quoi servirait la commission ?
+                <span /> 11 / À quoi servirait la commission ?
               </p>
               <h2>
                 Des bonnes volontés.
@@ -1054,11 +1136,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 12 && (
+        {activeSlide === 13 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 11 / L’espace membre
+                <span /> 12 / L’espace membre
               </p>
               <h2>
                 Le collectif,
@@ -1090,11 +1172,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 13 && (
+        {activeSlide === 14 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 12 / Des outils pour agir
+                <span /> 13 / Des outils pour agir
               </p>
               <h2>
                 Des idées aux actions,
@@ -1131,7 +1213,7 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 14 && (
+        {activeSlide === 15 && (
           <div className={styles.thanksSlide}>
             <div className={styles.thanksPhoto}>
               <Image
@@ -1144,7 +1226,7 @@ export default function PresentationDeck() {
             </div>
             <div className={styles.thanksCopy}>
               <p className={styles.eyebrow}>
-                <span /> 13 / Mot de clôture
+                <span /> 14 / Mot de clôture
               </p>
               <h1>Merci.</h1>
               <p>Pour votre écoute, vos questions et votre engagement pour l’école.</p>

@@ -51,8 +51,8 @@ test("expose trois bascules accessibles et une annonce dynamique du résultat", 
   assert.match(presentation, /dépenses d’investissement éligibles/);
   assert.match(presentation, /Le TTC\s+peut compter pour la trésorerie à avancer/);
   const simulationSlide = presentation
-    .split("{activeSlide === 7 && (")[1]
-    ?.split("{activeSlide === 8 && (")[0];
+    .split("{activeSlide === 8 && (")[1]
+    ?.split("{activeSlide === 9 && (")[0];
   assert.ok(simulationSlide);
   assert.ok(
     simulationSlide.indexOf("<aside className={styles.phaseOneVatNote}") >
@@ -71,33 +71,56 @@ test("place la simulation sur la slide 07, distincte du chiffrage Phase 1", asyn
     "utf8",
   );
   const phaseOneSlide = presentation
-    .split("{activeSlide === 3 && (")[1]
-    ?.split("{activeSlide === 4 && (")[0];
+    .split("{activeSlide === 4 && (")[1]
+    ?.split("{activeSlide === 5 && (")[0];
   const charterSlide = presentation
     .split("{activeSlide === 1 && (")[1]
     ?.split("{activeSlide === 2 && (")[0];
   const simulationSlide = presentation
-    .split("{activeSlide === 7 && (")[1]
-    ?.split("{activeSlide === 8 && (")[0];
+    .split("{activeSlide === 8 && (")[1]
+    ?.split("{activeSlide === 9 && (")[0];
 
   assert.match(presentation, /id: "financement", label: "Le financement" \},\s*\{ id: "reste-a-charge", label: "Reste à charge" \},\s*\{ id: "depenses", label: "Dépenses réalisées" \}/);
   assert.ok(phaseOneSlide);
   assert.doesNotMatch(phaseOneSlide, /phaseOneFunding/);
   assert.ok(simulationSlide);
-  assert.match(simulationSlide, /07 \/ Financement · Phase 1/);
-  assert.match(presentation, /\{activeSlide === 8 && \([\s\S]*?08 \/ Les études déjà réalisées/);
+  assert.match(simulationSlide, /08 \/ Financement · Phase 1/);
+  assert.match(presentation, /\{activeSlide === 9 && \([\s\S]*?09 \/ Les études déjà réalisées/);
+  assert.match(presentation, /\{activeSlide === 1 && \([\s\S]*?01 \/ Rappel de la charte/);
+  assert.match(presentation, /\{activeSlide === 2 && \([\s\S]*?02 \/ Le calendrier/);
+  assert.match(presentation, /\{activeSlide === 3 && \([\s\S]*?03 \/ Petit lexique[\s\S]*?<h3>APS<\/h3>/);
+  assert.match(presentation, /<h3>APS<\/h3>[\s\S]*?<h3>APD<\/h3>[\s\S]*?<h3>HT \/ TTC<\/h3>[\s\S]*?<h3>FCTVA<\/h3>[\s\S]*?<h3>DETR \/ DSIL<\/h3>[\s\S]*?<h3>BDB<\/h3>/);
   assert.match(presentation, /id: "collectif-cover", label: "Ouverture · Le collectif", countsAsContent: false/);
-  assert.match(presentation, /\{activeSlide === 10 && \([\s\S]*?09 \/ Le collectif/);
-  assert.match(presentation, /\{activeSlide === 11 && \([\s\S]*?10 \/ À quoi servirait la commission/);
-  assert.match(presentation, /\{activeSlide === 12 && \([\s\S]*?11 \/ L’espace membre[\s\S]*?Le tableau de bord/);
-  assert.match(presentation, /\{activeSlide === 13 && \([\s\S]*?12 \/ Des outils pour agir[\s\S]*?Propositions & actions[\s\S]*?Agenda & comptes rendus/);
-  assert.match(presentation, /\{activeSlide === 14 && \([\s\S]*?13 \/ Mot de clôture/);
-  assert.match(presentation, /activeSlide === 10 && \([\s\S]*?<div className=\{styles\.contentSlide\}>[\s\S]*?09 \/ Le collectif/);
+  assert.match(presentation, /\{activeSlide === 11 && \([\s\S]*?10 \/ Le collectif/);
+  assert.match(presentation, /\{activeSlide === 12 && \([\s\S]*?11 \/ À quoi servirait la commission/);
+  assert.match(presentation, /\{activeSlide === 13 && \([\s\S]*?12 \/ L’espace membre[\s\S]*?Le tableau de bord/);
+  assert.match(presentation, /\{activeSlide === 14 && \([\s\S]*?13 \/ Des outils pour agir[\s\S]*?Propositions & actions[\s\S]*?Agenda & comptes rendus/);
+  assert.match(presentation, /\{activeSlide === 15 && \([\s\S]*?14 \/ Mot de clôture/);
+  assert.match(presentation, /activeSlide === 11 && \([\s\S]*?<div className=\{styles\.contentSlide\}>[\s\S]*?10 \/ Le collectif/);
   assert.ok(charterSlide);
-  assert.doesNotMatch(charterSlide, /memberFeatureGrid|L’espace membre|Des outils pour agir/);
+  assert.doesNotMatch(charterSlide, /memberFeatureGrid|L’espace membre|Des outils pour agir|Petit lexique/);
   assert.match(presentationStyles, /\.actionGrid \{[\s\S]*?grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.doesNotMatch(presentationStyles, /collectiveContentSlide/);
-  assert.doesNotMatch(presentation, /\{activeSlide === 9 && \([\s\S]*?Quatre façons d’aider/);
+  assert.doesNotMatch(presentation, /\{activeSlide === 10 && \([\s\S]*?Quatre façons d’aider/);
+});
+
+// [SPEC-PRESENTATION-FUNDING-02] Phase 2 remains a dated estimate and is explicitly marked for future cost review.
+test("signale que le montant Phase 2 est à réexaminer", async () => {
+  const presentation = await readFile(
+    new URL("../app/presentation/PresentationDeck.tsx", import.meta.url),
+    "utf8",
+  );
+  const totalSlide = presentation
+    .split("{activeSlide === 6 && (")[1]
+    ?.split("{activeSlide === 7 && (")[0];
+
+  assert.ok(totalSlide);
+  assert.match(totalSlide, /Phase 2 · APD 2025\*/);
+  assert.match(totalSlide, /className=\{styles\.projectTotalResult\} data-reveal-group="phase-two-total"/);
+  assert.match(totalSlide, /className=\{styles\.phaseTwoReviewNote\} data-reveal-group="phase-two-total"/);
+  assert.match(totalSlide, /phaseTwoReviewNote/);
+  assert.match(totalSlide, /réexaminé pour rechercher un projet maîtrisé/);
+  assert.match(totalSlide, /n’est donc pas un devis actualisé/);
 });
 
 // [SPEC-PRESENTATION-REVEAL-01] Slides reveal in sequence, can be completed at once, and expose completion state.
@@ -117,7 +140,10 @@ test("la présentation révèle les blocs au clic et permet de terminer une slid
   assert.match(presentation, /Slide complète/);
   assert.match(presentation, /revealedCount < revealTotal/);
   assert.match(presentation, /REVEAL_CONTAINER_CLASSES\.some\(\(className\) => element\.classList\.contains\(className\)\)/);
+  assert.match(presentation, /const groupName = element\.dataset\.revealGroup/);
+  assert.match(presentation, /existingGroup\.push\(element\)/);
   assert.match(presentation, /styles\.charterGrid/);
+  assert.match(presentation, /styles\.lexiconGrid/);
   assert.match(presentationStyles, /data-deck-reveal-hidden="true"/);
   assert.match(presentationStyles, /prefers-reduced-motion: reduce[\s\S]*?data-deck-reveal-hidden/);
   assert.match(presentationStyles, /\.skipRevealButton \{ position: absolute/);

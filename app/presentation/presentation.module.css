@@ -446,6 +446,10 @@
 .prefectureComparison > div > strong { color: #57471e; font-size: 32px; }
 .prefectureComparison > p { margin: 10px 0 0; color: #514b3a; font-family: Arial, Helvetica, sans-serif; font-size: 18px; line-height: 1.45; }
 .prefectureComparison > p strong { white-space: nowrap; }
+.phaseTwoReviewNote { display: flex; align-items: flex-start; gap: 12px; margin-top: 12px; padding: 13px 17px; border-left: 4px solid var(--green); border-radius: 0 10px 10px 0; background: #ecfdf5; }
+.phaseTwoReviewMark { color: var(--green); font-size: 26px; font-weight: 800; line-height: 1; }
+.phaseTwoReviewNote h3 { margin: 0; color: #14532d; font-size: 17px; font-weight: 800; }
+.phaseTwoReviewNote p { margin: 4px 0 0; color: #3f5a49; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.45; }
 
 .metricLabel,
 .metricNote,
@@ -1007,6 +1011,13 @@
 .memberFeatureCard h3 { margin: 10px 0 5px; color: var(--ink); font-size: 19px; font-weight: 700; line-height: 1.2; }
 .memberFeatureCard p { margin: 0; color: #586b5f; font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.45; }
 .memberFeatureNote { margin: 14px 0 0; padding: 11px 14px; border-left: 4px solid var(--gold); background: #f0eadb; color: #514b3a; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; }
+.lexiconGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.lexiconCard { min-width: 0; padding: 13px 15px; border-top: 3px solid #96ae82; background: #fffefa; }
+.lexiconCard > svg { color: var(--green); }
+.lexiconCard h3 { margin: 4px 0; color: var(--green); font-size: 18px; font-weight: 800; }
+.lexiconCard p { margin: 0; color: #586b5f; font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.4; }
+.lexiconCard p strong { color: #292524; }
+.lexiconNote { margin: 10px 0 0; padding: 9px 12px; border-left: 3px solid var(--gold); background: #f0eadb; color: #514b3a; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.4; }
 
 .controls {
   position: relative;
@@ -1208,6 +1219,10 @@
   .prefectureComparison > div > span { font-size: 14px; }
   .prefectureComparison > div > strong { font-size: 24px; }
   .prefectureComparison > p { margin-top: 7px; font-size: 14px; }
+  .phaseTwoReviewNote { gap: 9px; margin-top: 8px; padding: 11px 12px; }
+  .phaseTwoReviewMark { font-size: 22px; }
+  .phaseTwoReviewNote h3 { font-size: 15px; }
+  .phaseTwoReviewNote p { font-size: 13px; }
   .budgetTarget > strong { font-size: clamp(34px, 9vw, 43px); }
   .budgetComparison { padding: 14px 0 0; border-top: 1px solid #ffffff38; border-left: 0; }
   .phases { grid-template-columns: 1fr; gap: 9px; margin-top: 10px; }
@@ -1416,6 +1431,11 @@
   .deck .memberFeatureCard h3 { margin: 6px 0 3px; font-size: 16px; }
   .deck .memberFeatureCard p { font-size: 14px; }
   .deck .memberFeatureNote { margin-top: 9px; font-size: 13px; }
+  .deck .lexiconGrid { grid-template-columns: 1fr; gap: 7px; }
+  .deck .lexiconCard { padding: 10px 12px; }
+  .deck .lexiconCard h3 { margin: 3px 0; font-size: 16px; }
+  .deck .lexiconCard p { font-size: 13px; }
+  .deck .lexiconNote { margin-top: 8px; font-size: 12px; }
   .skipRevealButton { min-width: 34px; padding: 5px; }
   .skipRevealButton span { display: none; }
   .revealBadge { max-width: 72px; overflow: hidden; padding: 3px 5px; font-size: 9px; text-overflow: ellipsis; }
@@ -1515,6 +1535,10 @@
   .deck .memberFeatureCard h3 { margin: 9px 0 5px; font-size: 27px; }
   .deck .memberFeatureCard p { font-size: 22px; }
   .deck .memberFeatureNote { margin-top: 15px; padding: 13px 16px; font-size: 20px; }
+  .deck .lexiconCard { padding: 17px 19px; }
+  .deck .lexiconCard h3 { margin: 5px 0; font-size: 27px; }
+  .deck .lexiconCard p { font-size: 19px; line-height: 1.4; }
+  .deck .lexiconNote { margin-top: 13px; padding: 12px 15px; font-size: 17px; }
   .deck .slideCounter { font-size: 21px; }
   .deck .collectiveCoverCopy h1 { font-size: 100px; }
   .deck .collectiveCoverLead { font-size: 28px; }
