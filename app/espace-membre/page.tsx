@@ -2,7 +2,7 @@
 
 // [SPEC-DASHBOARD-01] Keep the member dashboard focused on the main hubs.
 import Link from "next/link";
-import { ArrowRight, BookOpen, ClipboardList, UserRoundCog, Newspaper, MapPinned } from "lucide-react";
+import { ArrowRight, BookOpen, ClipboardList, UserRoundCog, Newspaper, MapPinned, Users } from "lucide-react";
 
 export default function EspaceMembreDashboard() {
   return (
@@ -95,6 +95,31 @@ export default function EspaceMembreDashboard() {
           className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto"
         >
           Voir les équipes et choisir mes rôles <ArrowRight size={17} aria-hidden="true" />
+        </Link>
+      </section>
+
+      <section
+        className="flex flex-col gap-4 border-b border-stone-200 py-5 sm:flex-row sm:items-center sm:justify-between"
+        aria-labelledby="skills-entry-title"
+      >
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-900">
+            <Users size={20} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 id="skills-entry-title" className="font-bold text-stone-900">
+              Annuaire de compétences
+            </h2>
+            <p className="mt-1 text-sm text-stone-600">
+              Trouvez des volontaires et indiquez les savoir-faire que vous souhaitez partager.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/espace-membre/competences"
+          className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto"
+        >
+          Ouvrir l’annuaire <ArrowRight size={17} aria-hidden="true" />
         </Link>
       </section>
 
