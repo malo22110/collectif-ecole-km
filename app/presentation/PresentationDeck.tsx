@@ -13,15 +13,19 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  CalendarDays,
   Expand,
   ExternalLink,
   HandHeart,
   HeartHandshake,
   Landmark,
   Leaf,
+  LayoutDashboard,
+  MapPinned,
   Megaphone,
   PiggyBank,
   Play,
+  ReceiptText,
   Scale,
   Search,
   School,
@@ -54,6 +58,8 @@ const slides = [
   { id: "collectif-cover", label: "Ouverture · Le collectif", countsAsContent: false },
   { id: "collectif", label: "Le collectif" },
   { id: "commission", label: "Rôle de la commission" },
+  { id: "espace-membre", label: "L’espace membre" },
+  { id: "outils-membres", label: "Des outils pour agir" },
   { id: "merci", label: "Merci" },
 ];
 
@@ -954,6 +960,83 @@ export default function PresentationDeck() {
         )}
 
         {activeSlide === 12 && (
+          <div className={styles.contentSlide}>
+            <div className={styles.slideHeading}>
+              <p className={styles.eyebrow}>
+                <span /> 11 / L’espace membre
+              </p>
+              <h2>
+                Le collectif,
+                <br />
+                <em>au même endroit.</em>
+              </h2>
+              <p className={styles.slideLead}>
+                Un tableau de bord pour suivre ce qui se passe et trouver comment contribuer.
+              </p>
+            </div>
+            <div className={styles.memberFeatureGrid}>
+              <article className={styles.memberFeatureCard}>
+                <LayoutDashboard size={27} aria-hidden="true" />
+                <h3>Le tableau de bord</h3>
+                <p>Prochaine réunion, campagnes actives, demandes de frais en attente et propositions à suivre.</p>
+              </article>
+              <article className={styles.memberFeatureCard}>
+                <Users size={27} aria-hidden="true" />
+                <h3>Les équipes</h3>
+                <p>Choisir un rôle, rejoindre une équipe et voir où les bonnes volontés sont déjà mobilisées.</p>
+              </article>
+              <article className={styles.memberFeatureCard}>
+                <HeartHandshake size={27} aria-hidden="true" />
+                <h3>Les compétences</h3>
+                <p>Partager ses savoir-faire et ses disponibilités dans l’annuaire, selon ses envies.</p>
+              </article>
+            </div>
+            <p className={styles.memberFeatureNote}>Chacun peut contribuer à son rythme, dans un cadre commun et transparent.</p>
+          </div>
+        )}
+
+        {activeSlide === 13 && (
+          <div className={styles.contentSlide}>
+            <div className={styles.slideHeading}>
+              <p className={styles.eyebrow}>
+                <span /> 12 / Des outils pour agir
+              </p>
+              <h2>
+                Des idées aux actions,
+                <br />
+                <em>ensemble.</em>
+              </h2>
+              <p className={styles.slideLead}>
+                Des outils de coordination pour préparer les échanges et organiser les contributions.
+              </p>
+            </div>
+            <div className={`${styles.memberFeatureGrid} ${styles.memberToolsGrid}`}>
+              <article className={styles.memberFeatureCard}>
+                <Wrench size={27} aria-hidden="true" />
+                <h3>Propositions & actions</h3>
+                <p>Déposer une idée, suivre son avancement et la relier à une réunion.</p>
+              </article>
+              <article className={styles.memberFeatureCard}>
+                <CalendarDays size={27} aria-hidden="true" />
+                <h3>Agenda & comptes rendus</h3>
+                <p>Consulter les rendez-vous, suggérer un point et retrouver les notes du collectif.</p>
+              </article>
+              <article className={styles.memberFeatureCard}>
+                <MapPinned size={27} aria-hidden="true" />
+                <h3>Campagnes de tractation</h3>
+                <p>Voir les secteurs, rejoindre une campagne et préparer une tournée; les campagnes terminées restent consultables.</p>
+              </article>
+              <article className={styles.memberFeatureCard}>
+                <ReceiptText size={27} aria-hidden="true" />
+                <h3>Frais & remboursements</h3>
+                <p>Transmettre un justificatif, suivre sa demande et l’annuler tant qu’elle est en attente.</p>
+              </article>
+            </div>
+            <p className={styles.memberFeatureNote}>Ces outils facilitent le travail collectif; les décisions officielles restent du ressort de la commune.</p>
+          </div>
+        )}
+
+        {activeSlide === 14 && (
           <div className={styles.thanksSlide}>
             <div className={styles.thanksPhoto}>
               <Image
@@ -966,7 +1049,7 @@ export default function PresentationDeck() {
             </div>
             <div className={styles.thanksCopy}>
               <p className={styles.eyebrow}>
-                <span /> 11 / Mot de clôture
+                <span /> 13 / Mot de clôture
               </p>
               <h1>Merci.</h1>
               <p>Pour votre écoute, vos questions et votre engagement pour l’école.</p>

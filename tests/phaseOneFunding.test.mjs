@@ -73,6 +73,9 @@ test("place la simulation sur la slide 07, distincte du chiffrage Phase 1", asyn
   const phaseOneSlide = presentation
     .split("{activeSlide === 3 && (")[1]
     ?.split("{activeSlide === 4 && (")[0];
+  const charterSlide = presentation
+    .split("{activeSlide === 1 && (")[1]
+    ?.split("{activeSlide === 2 && (")[0];
   const simulationSlide = presentation
     .split("{activeSlide === 7 && (")[1]
     ?.split("{activeSlide === 8 && (")[0];
@@ -86,8 +89,12 @@ test("place la simulation sur la slide 07, distincte du chiffrage Phase 1", asyn
   assert.match(presentation, /id: "collectif-cover", label: "Ouverture · Le collectif", countsAsContent: false/);
   assert.match(presentation, /\{activeSlide === 10 && \([\s\S]*?09 \/ Le collectif/);
   assert.match(presentation, /\{activeSlide === 11 && \([\s\S]*?10 \/ À quoi servirait la commission/);
-  assert.match(presentation, /\{activeSlide === 12 && \([\s\S]*?11 \/ Mot de clôture/);
+  assert.match(presentation, /\{activeSlide === 12 && \([\s\S]*?11 \/ L’espace membre[\s\S]*?Le tableau de bord/);
+  assert.match(presentation, /\{activeSlide === 13 && \([\s\S]*?12 \/ Des outils pour agir[\s\S]*?Propositions & actions[\s\S]*?Agenda & comptes rendus/);
+  assert.match(presentation, /\{activeSlide === 14 && \([\s\S]*?13 \/ Mot de clôture/);
   assert.match(presentation, /activeSlide === 10 && \([\s\S]*?<div className=\{styles\.contentSlide\}>[\s\S]*?09 \/ Le collectif/);
+  assert.ok(charterSlide);
+  assert.doesNotMatch(charterSlide, /memberFeatureGrid|L’espace membre|Des outils pour agir/);
   assert.match(presentationStyles, /\.actionGrid \{[\s\S]*?grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.doesNotMatch(presentationStyles, /collectiveContentSlide/);
   assert.doesNotMatch(presentation, /\{activeSlide === 9 && \([\s\S]*?Quatre façons d’aider/);

@@ -992,6 +992,14 @@
 .closingLine p { margin: 0; color: #435b4d; font-size: 14px; font-style: italic; line-height: 1.4; }
 .closingName { color: #718076; font-family: Arial, Helvetica, sans-serif; font-size: 12px; text-align: right; }
 
+.memberFeatureGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.memberToolsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.memberFeatureCard { min-width: 0; padding: 19px 20px; border-top: 3px solid #96ae82; background: #fffefaad; }
+.memberFeatureCard > svg { color: var(--green); }
+.memberFeatureCard h3 { margin: 10px 0 5px; color: var(--ink); font-size: 19px; font-weight: 700; line-height: 1.2; }
+.memberFeatureCard p { margin: 0; color: #586b5f; font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.45; }
+.memberFeatureNote { margin: 14px 0 0; padding: 11px 14px; border-left: 4px solid var(--gold); background: #f0eadb; color: #514b3a; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; }
+
 .controls {
   z-index: 2;
   display: flex;
@@ -1388,6 +1396,11 @@
   .deck .actionItem p { font-size: 14px; }
   .deck .closingLine p { font-size: 15px; }
   .deck .closingName { font-size: 13px; }
+  .deck .memberFeatureGrid, .deck .memberToolsGrid { grid-template-columns: 1fr; gap: 8px; }
+  .deck .memberFeatureCard { padding: 13px 15px; }
+  .deck .memberFeatureCard h3 { margin: 6px 0 3px; font-size: 16px; }
+  .deck .memberFeatureCard p { font-size: 14px; }
+  .deck .memberFeatureNote { margin-top: 9px; font-size: 13px; }
 }
 
 @media (max-width: 390px) {
@@ -1480,6 +1493,10 @@
   .deck .actionItem p { font-size: 26px; }
   .deck .closingLine p { font-size: 29px; }
   .deck .closingName { font-size: 24px; }
+  .deck .memberFeatureCard { padding: 22px 24px; }
+  .deck .memberFeatureCard h3 { margin: 9px 0 5px; font-size: 27px; }
+  .deck .memberFeatureCard p { font-size: 22px; }
+  .deck .memberFeatureNote { margin-top: 15px; padding: 13px 16px; font-size: 20px; }
   .deck .slideCounter { font-size: 21px; }
   .deck .collectiveCoverCopy h1 { font-size: 100px; }
   .deck .collectiveCoverLead { font-size: 28px; }
