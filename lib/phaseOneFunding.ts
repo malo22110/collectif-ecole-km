@@ -1,4 +1,14 @@
 export const PHASE_ONE_TOTAL_EUROS = 552_170;
+export const PHASE_ONE_WORKS_TARGET_EUROS = 550_000;
+export const PHASE_ONE_STUDIES_PROVISION_EUROS = 127_110;
+export const PHASE_ONE_OPERATION_TOTAL_HT_EUROS =
+  PHASE_ONE_WORKS_TARGET_EUROS + PHASE_ONE_STUDIES_PROVISION_EUROS;
+export const PHASE_ONE_OPERATION_VAT_RATE = 0.2;
+export const PREFECTURE_OPERATION_CEILING_TTC_EUROS = 800_000;
+
+export function estimateOperationTtc(totalHtEuros: number) {
+  return Math.round(totalHtEuros * (1 + PHASE_ONE_OPERATION_VAT_RATE));
+}
 
 export const PHASE_ONE_AIDS = [
   { key: "department", amount: 99_405 },

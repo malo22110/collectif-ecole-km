@@ -3,8 +3,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
   calculatePhaseOneRemainder,
+  estimateOperationTtc,
   PHASE_ONE_AIDS,
+  PHASE_ONE_OPERATION_TOTAL_HT_EUROS,
+  PHASE_ONE_STUDIES_PROVISION_EUROS,
   PHASE_ONE_TOTAL_EUROS,
+  PHASE_ONE_WORKS_TARGET_EUROS,
+  PREFECTURE_OPERATION_CEILING_TTC_EUROS,
 } from "../lib/phaseOneFunding.ts";
 
 // [SPEC-PRESENTATION-FUNDING-01] Remainder scenarios subtract only the selected aids from historical Phase 1 costs.
@@ -32,6 +37,18 @@ test("reproduit le reste à charge historique et recalcule chaque combinaison d�
   assert.equal(
     calculatePhaseOneRemainder({ department: false, region: false, detr: false }),
     552_170,
+  );
+});
+
+// [SPEC-PRESENTATION-OPERATION-01] Phase 1 operation cost includes its initial studies provision.
+test("calcule l’opération Phase 1 complète et l’écart indicatif au repère préfectoral", () => {
+  assert.equal(PHASE_ONE_WORKS_TARGET_EUROS, 550_000);
+  assert.equal(PHASE_ONE_STUDIES_PROVISION_EUROS, 127_110);
+  assert.equal(PHASE_ONE_OPERATION_TOTAL_HT_EUROS, 677_110);
+  assert.equal(estimateOperationTtc(PHASE_ONE_OPERATION_TOTAL_HT_EUROS), 812_532);
+  assert.equal(
+    estimateOperationTtc(PHASE_ONE_OPERATION_TOTAL_HT_EUROS) - PREFECTURE_OPERATION_CEILING_TTC_EUROS,
+    12_532,
   );
 });
 
@@ -113,14 +130,20 @@ test("signale que le montant Phase 2 est à réexaminer", async () => {
   const totalSlide = presentation
     .split("{activeSlide === 6 && (")[1]
     ?.split("{activeSlide === 7 && (")[0];
+  const phaseTwoSlide = presentation
+    .split("{activeSlide === 5 && (")[1]
+    ?.split("{activeSlide === 6 && (")[0];
 
   assert.ok(totalSlide);
-  assert.match(totalSlide, /Phase 2 · APD 2025\*/);
-  assert.match(totalSlide, /className=\{styles\.projectTotalResult\} data-reveal-group="phase-two-total"/);
-  assert.match(totalSlide, /className=\{styles\.phaseTwoReviewNote\} data-reveal-group="phase-two-total"/);
-  assert.match(totalSlide, /phaseTwoReviewNote/);
-  assert.match(totalSlide, /réexaminé pour rechercher un projet maîtrisé/);
-  assert.match(totalSlide, /n’est donc pas un devis actualisé/);
+  assert.ok(phaseTwoSlide);
+  assert.match(phaseTwoSlide, /120 210,96 € <span>HT<\/span>/);
+  assert.match(totalSlide, /Travaux \+ études :/);
+  assert.match(totalSlide, /PHASE_ONE_OPERATION_TOTAL_HT_EUROS\)\} € HT/);
+  assert.match(totalSlide, /EURO_FORMAT\.format\(phaseOneOperationTtc\)\} € TTC/);
+  assert.match(totalSlide, /dépasse le repère de 800 000 € TTC d’environ \{EURO_FORMAT\.format\(phaseOneCeilingGap\)\} €/);
+  assert.match(totalSlide, /Phase 2 · salle de motricité/);
+  assert.match(totalSlide, /montage financier\s+indépendant/);
+  assert.match(totalSlide, /son montant devra être réétudié/);
 });
 
 // [SPEC-PRESENTATION-REVEAL-01] Slides reveal in sequence, can be completed at once, and expose completion state.

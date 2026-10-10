@@ -38,9 +38,14 @@ import {
 import styles from "./presentation.module.css";
 import {
   calculatePhaseOneRemainder,
+  estimateOperationTtc,
   PHASE_ONE_AIDS,
+  PHASE_ONE_OPERATION_TOTAL_HT_EUROS,
+  PHASE_ONE_STUDIES_PROVISION_EUROS,
   type PhaseOneAidKey,
   type PhaseOneAidSelection,
+  PHASE_ONE_WORKS_TARGET_EUROS,
+  PREFECTURE_OPERATION_CEILING_TTC_EUROS,
 } from "@/lib/phaseOneFunding";
 
 const EURO_FORMAT = new Intl.NumberFormat("fr-FR", {
@@ -124,6 +129,8 @@ export default function PresentationDeck() {
     detr: true,
   });
   const phaseOneRemainder = calculatePhaseOneRemainder(phaseOneAidSelection);
+  const phaseOneOperationTtc = estimateOperationTtc(PHASE_ONE_OPERATION_TOTAL_HT_EUROS);
+  const phaseOneCeilingGap = phaseOneOperationTtc - PREFECTURE_OPERATION_CEILING_TTC_EUROS;
   const revealTotal = revealTotals[activeSlide] ?? 0;
   const revealedCount = Math.min(revealedBySlide[activeSlide] ?? 0, revealTotal);
   const slideIsComplete = revealedCount >= revealTotal;
@@ -656,53 +663,51 @@ export default function PresentationDeck() {
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 06 / Total des travaux · projection
+                <span /> 06 / L’opération globale
               </p>
               <h2>
-                Un total proche
+                Travaux + études :
                 <br />
-                <em>du repère préfectoral.</em>
+                <em>la Phase 1 complète.</em>
               </h2>
               <p className={styles.slideLead}>
-                Simulation si la Phase 1 est ramenée à 550 000 € HT et si la Phase 2 reste au
-                montant de l’APD 2025.
+                Le cadrage global comprend les travaux et les études. Voici le calcul de la Phase 1.
               </p>
             </div>
-            <div className={styles.projectTotalEquation}>
+            <div className={styles.projectTotalEquation} aria-label="Calcul de l’opération globale de Phase 1">
               <article>
-                <span>Phase 1 · cible</span>
-                <strong>550 000 € HT</strong>
+                <span>Travaux Phase 1 · cible</span>
+                <strong>{EURO_FORMAT.format(PHASE_ONE_WORKS_TARGET_EUROS)} € HT</strong>
               </article>
               <span className={styles.projectTotalOperator} aria-hidden="true">
                 +
               </span>
               <article>
-                <span>Phase 2 · APD 2025*</span>
-                <strong>120 210,96 € HT</strong>
+                <span>Études · provision initiale</span>
+                <strong>{EURO_FORMAT.format(PHASE_ONE_STUDIES_PROVISION_EUROS)} € HT</strong>
               </article>
               <span className={styles.projectTotalOperator} aria-hidden="true">
                 =
               </span>
-              <article className={styles.projectTotalResult} data-reveal-group="phase-two-total">
-                <span>Total travaux simulé</span>
-                <strong>670 210,96 € HT</strong>
+              <article className={styles.projectTotalResult}>
+                <span>Total opération Phase 1</span>
+                <strong>{EURO_FORMAT.format(PHASE_ONE_OPERATION_TOTAL_HT_EUROS)} € HT</strong>
               </article>
             </div>
-            <div className={styles.prefectureComparison}>
+            <aside className={styles.phaseOneCeilingNote} aria-labelledby="phase-one-ceiling-title">
+              <span className={styles.phaseOneCeilingLabel}>Repère préfectoral · 800 000 € TTC</span>
+              <h3 id="phase-one-ceiling-title">Environ {EURO_FORMAT.format(phaseOneOperationTtc)} € TTC à 20 % de TVA</h3>
               <p>
-                Une trajectoire financière nettement inférieure à l’estimation initiale globale qui
-                dépassait les 800 000 € TTC (soit environ 666 667 € HT), répondant ainsi aux alertes
-                de la Préfecture.
+                À ce stade, cette estimation dépasse le repère de 800 000 € TTC d’environ {EURO_FORMAT.format(phaseOneCeilingGap)} €. Le respect du cadrage reste à établir après actualisation du chiffrage et confirmation du taux et de l’assiette de TVA applicables.
               </p>
-            </div>
-            <aside className={styles.phaseTwoReviewNote} data-reveal-group="phase-two-total" aria-labelledby="phase-two-review-title">
+            </aside>
+            <aside className={styles.phaseTwoReviewNote} aria-labelledby="phase-two-review-title">
               <span className={styles.phaseTwoReviewMark} aria-hidden="true">*</span>
               <div>
-                <h3 id="phase-two-review-title">Un chiffrage à retravailler</h3>
+                <h3 id="phase-two-review-title">Et la Phase 2 · salle de motricité ?</h3>
                 <p>
-                  Le montant de la Phase 2 est celui de l’APD 2025. Il devra lui aussi être
-                  réexaminé pour rechercher un projet maîtrisé, adapté aux besoins et financièrement
-                  rationnel. Ce montant n’est donc pas un devis actualisé.
+                  Le lot estimé à 120 210,96 € HT est décalé. Il fera l’objet d’un montage financier
+                  indépendant sur le prochain exercice budgétaire et son montant devra être réétudié.
                 </p>
               </div>
             </aside>

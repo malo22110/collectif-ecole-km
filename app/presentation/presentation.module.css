@@ -446,6 +446,10 @@
 .prefectureComparison > div > strong { color: #57471e; font-size: 32px; }
 .prefectureComparison > p { margin: 10px 0 0; color: #514b3a; font-family: Arial, Helvetica, sans-serif; font-size: 18px; line-height: 1.45; }
 .prefectureComparison > p strong { white-space: nowrap; }
+.phaseOneCeilingNote { margin-top: 12px; padding: 14px 18px; border-left: 5px solid var(--gold); border-radius: 0 12px 12px 0; background: #fffbeb; }
+.phaseOneCeilingLabel { color: #84651f; font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 800; text-transform: uppercase; }
+.phaseOneCeilingNote h3 { margin: 4px 0 0; color: #57471e; font-size: 23px; font-weight: 800; }
+.phaseOneCeilingNote p { margin: 6px 0 0; color: #514b3a; font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.45; }
 .phaseTwoReviewNote { display: flex; align-items: flex-start; gap: 12px; margin-top: 12px; padding: 13px 17px; border-left: 4px solid var(--green); border-radius: 0 10px 10px 0; background: #ecfdf5; }
 .phaseTwoReviewMark { color: var(--green); font-size: 26px; font-weight: 800; line-height: 1; }
 .phaseTwoReviewNote h3 { margin: 0; color: #14532d; font-size: 17px; font-weight: 800; }
@@ -1223,6 +1227,10 @@
   .phaseTwoReviewMark { font-size: 22px; }
   .phaseTwoReviewNote h3 { font-size: 15px; }
   .phaseTwoReviewNote p { font-size: 13px; }
+  .phaseOneCeilingNote { margin-top: 8px; padding: 11px 13px; }
+  .phaseOneCeilingLabel { font-size: 11px; }
+  .phaseOneCeilingNote h3 { font-size: 19px; }
+  .phaseOneCeilingNote p { margin-top: 5px; font-size: 13px; }
   .budgetTarget > strong { font-size: clamp(34px, 9vw, 43px); }
   .budgetComparison { padding: 14px 0 0; border-top: 1px solid #ffffff38; border-left: 0; }
   .phases { grid-template-columns: 1fr; gap: 9px; margin-top: 10px; }
