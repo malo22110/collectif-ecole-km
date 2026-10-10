@@ -16,6 +16,7 @@
     "test:tractation": "node --experimental-strip-types --test tests/tractation.test.mjs",
     "test:treasury": "node --experimental-strip-types --test tests/treasuryModel.test.mjs",
     "test:member-dashboard": "node --experimental-strip-types --test tests/memberDashboard.test.mjs",
+    "test:phase-one-funding": "node --experimental-strip-types --test tests/phaseOneFunding.test.mjs",
     "test:member-skills": "node --experimental-strip-types --test tests/memberSkills.test.mjs",
     "test:action-board": "node --experimental-strip-types --test tests/actionBoard.test.mjs",
     "test:member-meetings": "node --experimental-strip-types --test tests/memberMeetings.test.mjs"

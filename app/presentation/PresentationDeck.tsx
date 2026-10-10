@@ -30,6 +30,16 @@ import {
   MessageSquare,
 } from "lucide-react";
 import styles from "./presentation.module.css";
+import {
+  calculatePhaseOneRemainder,
+  PHASE_ONE_AIDS,
+  type PhaseOneAidKey,
+  type PhaseOneAidSelection,
+} from "@/lib/phaseOneFunding";
+
+const EURO_FORMAT = new Intl.NumberFormat("fr-FR", {
+  maximumFractionDigits: 0,
+});
 
 const slides = [
   { id: "accueil", label: "Accueil", countsAsContent: false },
@@ -39,6 +49,7 @@ const slides = [
   { id: "phase-2", label: "Phase 2" },
   { id: "total-travaux", label: "Total des travaux" },
   { id: "financement", label: "Le financement" },
+  { id: "reste-a-charge", label: "Reste à charge" },
   { id: "depenses", label: "Dépenses réalisées" },
   { id: "collectif-cover", label: "Ouverture · Le collectif", countsAsContent: false },
   { id: "collectif", label: "Le collectif" },
@@ -48,6 +59,12 @@ const slides = [
 
 export default function PresentationDeck() {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [phaseOneAidSelection, setPhaseOneAidSelection] = useState<PhaseOneAidSelection>({
+    department: true,
+    region: true,
+    detr: true,
+  });
+  const phaseOneRemainder = calculatePhaseOneRemainder(phaseOneAidSelection);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -592,7 +609,103 @@ export default function PresentationDeck() {
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 07 / Les études déjà réalisées
+                <span /> 07 / Financement · Phase 1
+              </p>
+              <h2>
+                Quel reste à charge
+                <br />
+                <em>selon les aides retenues ?</em>
+              </h2>
+              <p className={styles.slideLead}>
+                Activez ou désactivez chaque aide pour comparer les scénarios de financement.
+              </p>
+            </div>
+            <section className={styles.phaseOneFunding} aria-labelledby="phase-one-funding-title">
+              <div className={styles.phaseOneFundingHeading}>
+                <div>
+                  <h3 id="phase-one-funding-title">Simulation du reste à charge</h3>
+                  <p>La sélection des aides recalcule le montant immédiatement.</p>
+                </div>
+                <div className={styles.phaseOneRemainder} role="status" aria-live="polite" aria-atomic="true">
+                  <span>Reste à charge estimé</span>
+                  <strong>{EURO_FORMAT.format(phaseOneRemainder)} € HT</strong>
+                </div>
+              </div>
+              <p className={styles.phaseOneCostBasis}>
+                Base historique : 550 000 € HT de travaux + 2 170 € HT d’avenant technique, soit 552 170 € HT.
+              </p>
+              <div className={styles.phaseOneAidControls}>
+                {PHASE_ONE_AIDS.map((aid) => {
+                  const aidLabels: Record<PhaseOneAidKey, { label: string; status: string }> = {
+                    department: {
+                      label: "Département des Côtes-d’Armor",
+                      status: "99 405 € · aide attribuée",
+                    },
+                    region: {
+                      label: "Région Bretagne",
+                      status: "60 450 € · sous condition de maintien du BDB",
+                    },
+                    detr: {
+                      label: "État · DETR / DSIL",
+                      status: "180 145 € · demandé, dossier à actualiser",
+                    },
+                  };
+                  const inputId = `phase-one-aid-${aid.key}`;
+                  return (
+                    <label key={aid.key} className={styles.phaseOneAidToggle} htmlFor={inputId}>
+                      <span className={styles.phaseOneAidCopy}>
+                        <strong>{aidLabels[aid.key].label}</strong>
+                        <small>{aidLabels[aid.key].status}</small>
+                      </span>
+                      <span className={styles.phaseOneSwitchControl}>
+                        <input
+                          id={inputId}
+                          type="checkbox"
+                          role="switch"
+                          checked={phaseOneAidSelection[aid.key]}
+                          onChange={(event) => {
+                            const isEnabled = event.currentTarget.checked;
+                            setPhaseOneAidSelection((current) => ({
+                              ...current,
+                              [aid.key]: isEnabled,
+                            }));
+                          }}
+                        />
+                        <span className={styles.phaseOneSwitchTrack} aria-hidden="true" />
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className={styles.phaseOneFundingDisclaimer}>
+                Simulation indicative : le Département est attribué, l’aide régionale est conditionnelle et la DETR/DSIL n’est pas encore accordée. Le plan de financement et le coût définitifs restent à confirmer.
+              </p>
+            </section>
+            <aside className={styles.phaseOneVatNote} aria-labelledby="phase-one-vat-title">
+              <div className={styles.phaseOneVatHeading}>
+                <Landmark size={20} aria-hidden="true" />
+                <h3 id="phase-one-vat-title">Pourquoi raisonner en HT ?</h3>
+              </div>
+              <p>
+                Pour les dépenses d’investissement éligibles, le FCTVA compense une large part de
+                la TVA selon un taux et un calendrier fixés par les règles en vigueur. Le montant
+                TTC peut donc inclure une TVA qui ne constitue pas le coût net définitif pour la
+                commune.
+              </p>
+              <p>
+                Dans cette simulation, les aides publiques sont rapportées au montant HT. Le TTC
+                peut compter pour la trésorerie à avancer, mais il ne décrit pas à lui seul le
+                reste à charge final.
+              </p>
+            </aside>
+          </div>
+        )}
+
+        {activeSlide === 8 && (
+          <div className={styles.contentSlide}>
+            <div className={styles.slideHeading}>
+              <p className={styles.eyebrow}>
+                <span /> 08 / Les études déjà réalisées
               </p>
               <h2>
                 69 894 € HT
@@ -653,11 +766,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 9 && (
+        {activeSlide === 10 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 08 / Le collectif
+                <span /> 09 / Le collectif
               </p>
               <h2>
                 Quatre façons d’aider.
@@ -733,11 +846,11 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 10 && (
+        {activeSlide === 11 && (
           <div className={styles.contentSlide}>
             <div className={styles.slideHeading}>
               <p className={styles.eyebrow}>
-                <span /> 09 / À quoi servirait la commission ?
+                <span /> 10 / À quoi servirait la commission ?
               </p>
               <h2>
                 Des bonnes volontés.
@@ -840,7 +953,7 @@ export default function PresentationDeck() {
           </div>
         )}
 
-        {activeSlide === 11 && (
+        {activeSlide === 12 && (
           <div className={styles.thanksSlide}>
             <div className={styles.thanksPhoto}>
               <Image
@@ -853,7 +966,7 @@ export default function PresentationDeck() {
             </div>
             <div className={styles.thanksCopy}>
               <p className={styles.eyebrow}>
-                <span /> 10 / Mot de clôture
+                <span /> 11 / Mot de clôture
               </p>
               <h1>Merci.</h1>
               <p>Pour votre écoute, vos questions et votre engagement pour l’école.</p>
