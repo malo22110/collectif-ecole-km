@@ -2,7 +2,7 @@
 
 // [SPEC-DASHBOARD-01] Keep the member dashboard focused on the main hubs.
 import Link from "next/link";
-import { ArrowRight, BookOpen, ClipboardList, UserRoundCog, Newspaper, MapPinned, Users, Wrench } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarDays, ClipboardList, UserRoundCog, Newspaper, MapPinned, Users, Wrench } from "lucide-react";
 
 export default function EspaceMembreDashboard() {
   return (
@@ -138,6 +138,24 @@ export default function EspaceMembreDashboard() {
         </div>
         <Link href="/espace-membre/actions" className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto">
           Ouvrir le tableau <ArrowRight size={17} aria-hidden="true" />
+        </Link>
+      </section>
+
+      <section
+        className="flex flex-col gap-4 border-b border-stone-200 py-5 sm:flex-row sm:items-center sm:justify-between"
+        aria-labelledby="meetings-entry-title"
+      >
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-sky-100 text-sky-900">
+            <CalendarDays size={20} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 id="meetings-entry-title" className="font-bold text-stone-900">Agenda & comptes rendus</h2>
+            <p className="mt-1 text-sm text-stone-600">Préparez les réunions, proposez des sujets et retrouvez les notes partagées.</p>
+          </div>
+        </div>
+        <Link href="/espace-membre/reunions" className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto">
+          Ouvrir l’agenda <ArrowRight size={17} aria-hidden="true" />
         </Link>
       </section>
 
