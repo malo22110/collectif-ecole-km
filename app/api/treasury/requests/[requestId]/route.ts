@@ -2,6 +2,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import {
   canApplyReimbursementAction,
   canAdminProcessReimbursement,
+  canCancelReimbursement,
   nextTreasuryTotals,
   reimbursementDecisionSchema,
   treasuryBalanceCents,
@@ -27,9 +28,6 @@ export async function PATCH(
 ) {
   const authorization = await authorizeTreasuryMember(request);
   if (!authorization.member) return authorization.response;
-  if (!authorization.member.canManageTreasury) {
-    return Response.json({ error: "Action réservée au trésorier ou aux administrateurs." }, { status: 403 });
-  }
 
   const { requestId } = await context.params;
   if (!/^[A-Za-z0-9_-]{20,50}$/.test(requestId)) {
@@ -42,6 +40,9 @@ export async function PATCH(
       throw new TreasuryRouteError(400, "L’action et les informations associées sont invalides.");
     }
     const { action, paidOn, rejectionReason } = parsed.data;
+    if (action !== "cancel" && !authorization.member.canManageTreasury) {
+      throw new TreasuryRouteError(403, "Action réservée au trésorier ou aux administrateurs.");
+    }
     const requestRef = reimbursementRequestsRef.doc(requestId);
     const entryRef = treasuryEntriesRef.doc();
 
@@ -50,6 +51,21 @@ export async function PATCH(
       if (!requestSnapshot.exists) throw new TreasuryRouteError(404, "Demande introuvable.");
       const reimbursement = requestSnapshot.data()!;
       const currentStatus = reimbursement.status as ReimbursementStatus;
+      if (action === "cancel") {
+        if (reimbursement.submittedByUid !== authorization.member.uid) {
+          throw new TreasuryRouteError(403, "Seul l’auteur peut annuler cette demande.");
+        }
+        if (!canCancelReimbursement(currentStatus, reimbursement.submittedByUid, authorization.member.uid)) {
+          throw new TreasuryRouteError(409, "Seule une demande encore à examiner peut être annulée.");
+        }
+        transaction.update(requestRef, {
+          status: "cancelled",
+          cancelledByUid: authorization.member.uid,
+          cancelledAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return;
+      }
       if (!canApplyReimbursementAction(currentStatus, action)) {
         throw new TreasuryRouteError(409, "Cette action n’est pas possible pour l’état actuel.");
       }

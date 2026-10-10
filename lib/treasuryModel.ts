@@ -50,7 +50,7 @@ export const openingBalanceInputSchema = z
 
 export const reimbursementDecisionSchema = z
   .object({
-    action: z.enum(["approve", "reject", "pay"]),
+    action: z.enum(["approve", "reject", "pay", "cancel"]),
     rejectionReason: z.string().trim().min(5).max(300).optional(),
     paidOn: dateSchema.optional(),
   })
@@ -73,8 +73,8 @@ export const reimbursementDecisionSchema = z
   });
 
 export type TreasuryEntryKind = "opening" | "contribution" | "expense";
-export type ReimbursementStatus = "draft" | "pending" | "approved" | "rejected" | "paid";
-export type ReimbursementAction = "approve" | "reject" | "pay";
+export type ReimbursementStatus = "draft" | "pending" | "approved" | "rejected" | "paid" | "cancelled";
+export type ReimbursementAction = "approve" | "reject" | "pay" | "cancel";
 
 export type TreasuryTotals = {
   initialized: boolean;
@@ -122,6 +122,14 @@ export function canApplyReimbursementAction(
     (status === "pending" && (action === "approve" || action === "reject")) ||
     (status === "approved" && action === "pay")
   );
+}
+
+export function canCancelReimbursement(
+  status: ReimbursementStatus,
+  submittedByUid: string,
+  actorUid: string,
+) {
+  return status === "pending" && submittedByUid === actorUid;
 }
 
 export function canAdminProcessReimbursement(

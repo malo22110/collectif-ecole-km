@@ -11,7 +11,7 @@ PayPal n’est pas connecté au site. Un administrateur rapproche les fonds rée
 1. Attribuer le rôle **Trésorier** : le membre le demande dans **Espace membre > L’équipe**, puis un gestionnaire des rôles ou un administrateur approuve la demande dans **Demandes de rôles**. L’entrée **Trésorerie** apparaît ensuite dans son menu membre.
 2. Saisir le total réel des fonds disponibles (PayPal et espèces) et la date du rapprochement initial. Cette opération est unique.
 3. Enregistrer manuellement les contributions PayPal, espèces ou autres, avec leur date. Les notes éventuellement saisies restent internes.
-4. Un membre validé soumet une avance avec montant, date, détail privé, catégorie publique et justificatif PDF/JPEG/PNG/WebP de 10 Mio maximum.
+4. Un membre validé soumet une avance avec montant, date, détail privé, catégorie publique et justificatif PDF/JPEG/PNG/WebP de 10 Mio maximum. Tant qu’elle est encore à examiner, son auteur peut annuler sa demande depuis la liste de ses demandes; cette action est définitive.
 5. Un trésorier ou administrateur consulte le justificatif, approuve ou refuse la demande avec motif. Après le virement réel, un autre trésorier ou administrateur indique la date effective et marque la demande remboursée. Le demandeur ne peut pas approuver ou payer sa propre demande.
 6. L’inscription de la dépense et la mise à jour des totaux sont transactionnelles et idempotentes : une demande payée ne peut pas être comptabilisée une seconde fois.
 

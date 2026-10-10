@@ -26,7 +26,8 @@ type Reimbursement = {
   publicLabel: string;
   description: string;
   occurredOn: string;
-  status: "pending" | "approved" | "rejected" | "paid";
+  status: "pending" | "approved" | "rejected" | "paid" | "cancelled";
+  canCancel: boolean;
   rejectionReason: string | null;
   paidOn: string | null;
   createdAtMillis: number | null;
@@ -93,6 +94,7 @@ function statusText(status: Reimbursement["status"]) {
   if (status === "pending") return "À examiner";
   if (status === "approved") return "Validée, à rembourser";
   if (status === "paid") return "Remboursée";
+  if (status === "cancelled") return "Annulée";
   return "Refusée";
 }
 
@@ -242,9 +244,13 @@ export default function TreasuryDashboard() {
 
   const handleDecision = async (
     request: Reimbursement,
-    action: "approve" | "reject" | "pay",
+    action: "approve" | "reject" | "pay" | "cancel",
   ) => {
     if (!user) return;
+    if (
+      action === "cancel" &&
+      !window.confirm("Annuler cette demande de frais ? Cette action est définitive.")
+    ) return;
     const reason = rejectionReasons[request.id]?.trim() || "";
     if (action === "reject" && reason.length < 5) {
       setError("Ajoutez un motif de refus d’au moins 5 caractères.");
@@ -268,7 +274,9 @@ export default function TreasuryDashboard() {
       });
       await refresh();
       setNotice(
-        action === "approve"
+        action === "cancel"
+          ? "Votre demande a été annulée."
+          : action === "approve"
           ? "La demande est approuvée; elle pourra être marquée payée après le virement."
           : action === "reject"
             ? "La demande a été refusée avec son motif."
@@ -437,7 +445,7 @@ export default function TreasuryDashboard() {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-bold text-stone-900">{request.publicLabel}</h3>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${request.status === "paid" ? "bg-emerald-100 text-emerald-900" : request.status === "rejected" ? "bg-rose-100 text-rose-900" : request.status === "approved" ? "bg-sky-100 text-sky-900" : "bg-amber-100 text-amber-950"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${request.status === "paid" ? "bg-emerald-100 text-emerald-900" : request.status === "rejected" ? "bg-rose-100 text-rose-900" : request.status === "approved" ? "bg-sky-100 text-sky-900" : request.status === "cancelled" ? "bg-stone-100 text-stone-700" : "bg-amber-100 text-amber-950"}`}>
                         {statusText(request.status)}
                       </span>
                     </div>
@@ -452,6 +460,11 @@ export default function TreasuryDashboard() {
                   {request.receiptAvailable && (
                     <button type="button" onClick={() => void handleReceiptDownload(request)} className="btn-secondary min-h-10 px-3 py-2 text-sm">
                       <Download size={16} aria-hidden="true" /> Télécharger le justificatif
+                    </button>
+                  )}
+                  {request.canCancel && (
+                    <button type="button" disabled={saving} onClick={() => void handleDecision(request, "cancel")} className="btn-secondary min-h-10 border-rose-200 px-3 py-2 text-sm text-rose-800 hover:bg-rose-50">
+                      <X size={16} aria-hidden="true" /> Annuler ma demande
                     </button>
                   )}
                     {data.canManage && request.status === "pending" && request.submittedByEmail !== user?.email && (

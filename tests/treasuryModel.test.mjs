@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   canAdminProcessReimbursement,
   canApplyReimbursementAction,
+  canCancelReimbursement,
   canManageTreasury,
   contributionInputSchema,
   euroInputToCents,
@@ -104,6 +105,15 @@ test("un remboursement ne peut être payé qu’après approbation", () => {
   assert.equal(canAdminProcessReimbursement("pay", "member-1", "admin-2", "admin-1"), true);
   assert.equal(canAdminProcessReimbursement("pay", "member-1", "admin-1", "admin-1"), false);
   assert.equal(canAdminProcessReimbursement("pay", "admin-2", "admin-1", "admin-1"), false);
+});
+
+// [SPEC-TREASURY-08] Only the author may cancel a request while it is pending.
+test("une demande en attente ne peut être annulée que par son auteur", () => {
+  assert.equal(canCancelReimbursement("pending", "member-1", "member-1"), true);
+  assert.equal(canCancelReimbursement("pending", "member-1", "member-2"), false);
+  assert.equal(canCancelReimbursement("approved", "member-1", "member-1"), false);
+  assert.equal(canCancelReimbursement("cancelled", "member-1", "member-1"), false);
+  assert.equal(reimbursementDecisionSchema.safeParse({ action: "cancel" }).success, true);
 });
 
 test("seuls le rôle trésorier et les administrateurs gèrent la trésorerie", () => {

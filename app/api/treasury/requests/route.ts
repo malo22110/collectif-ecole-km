@@ -43,13 +43,18 @@ function matchesExistingRequest(
   );
 }
 
-function serializeRequest(document: FirebaseFirestore.QueryDocumentSnapshot, includeMember: boolean) {
+function serializeRequest(
+  document: FirebaseFirestore.QueryDocumentSnapshot,
+  includeMember: boolean,
+  memberUid: string,
+) {
   const data = document.data();
   const receipt = data.receipt && typeof data.receipt === "object" ? data.receipt : {};
   const createdAtMillis =
     data.createdAt && typeof data.createdAt.toMillis === "function" ? data.createdAt.toMillis() : null;
   return {
     id: document.id,
+    canCancel: data.submittedByUid === memberUid && data.status === "pending",
     amountCents: data.amountCents,
     publicLabel: data.publicLabel,
     description: data.description,
@@ -95,7 +100,7 @@ export async function GET(request: Request) {
           (Number(summary?.contributionsCents) || 0) -
           (Number(summary?.expensesCents) || 0),
         requests: requestsSnapshot.docs.map((document) =>
-          serializeRequest(document, authorization.member.canManageTreasury),
+          serializeRequest(document, authorization.member.canManageTreasury, authorization.member.uid),
         ),
         truncated: authorization.member.canManageTreasury && requestsSnapshot.size === 100,
       },
