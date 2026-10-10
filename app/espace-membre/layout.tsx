@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Menu,
   X,
-  FileText,
   Mail,
   Settings,
   Newspaper,
@@ -183,6 +182,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
           </button>
         </div>
 
+        {/* [SPEC-DASHBOARD-03] The petition routes remain available but are omitted from active navigation. */}
         <nav className="flex-1 p-4 space-y-2 flex flex-col overflow-y-auto">
           <Link
             href="/espace-membre"
@@ -195,13 +195,6 @@ export default function EspaceMembreLayout({ children }: { children: React.React
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/tournees" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
             <MapPinned size={20} /> <span>Carte & campagnes</span>
-          </Link>
-
-          <Link
-            href="/espace-membre/petition"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname.startsWith("/espace-membre/petition") || ["/espace-membre/signataires", "/espace-membre/non-signataires", "/espace-membre/correcteur", "/espace-membre/numeriser-petition"].includes(pathname) ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
-          >
-            <FileText size={20} /> <span>Pétition</span>
           </Link>
 
           <Link

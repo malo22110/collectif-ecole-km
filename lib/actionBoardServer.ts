@@ -12,6 +12,7 @@ const ADMIN_EMAILS = new Set([
 export type ActionBoardMember = {
   uid: string;
   displayName: string;
+  roles: string[];
   canCoordinate: boolean;
 };
 
@@ -40,6 +41,7 @@ export async function authorizeActionBoardMember(request: Request) {
         displayName: [data?.prenom, data?.nom]
           .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
           .join(" ") || "Membre du collectif",
+        roles,
         canCoordinate: isAdmin || roles.includes("gestionnaire"),
       } satisfies ActionBoardMember,
     };

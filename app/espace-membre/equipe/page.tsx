@@ -25,6 +25,7 @@ interface MembrePublic {
   roles?: string[];
 }
 
+// [SPEC-DASHBOARD-03] Petition correction is archived and is no longer offered as an active team.
 const ALL_ROLES = [
   {
     key: "admin",
@@ -67,12 +68,6 @@ const ALL_ROLES = [
     label: "Responsables Presse",
     icon: "📰",
     color: "bg-amber-50 border-amber-200 text-amber-800",
-  },
-  {
-    key: "correcteur",
-    label: "Correcteurs Pétition",
-    icon: "🖊️",
-    color: "bg-emerald-50 border-emerald-200 text-emerald-800",
   },
   {
     key: "tractation",
