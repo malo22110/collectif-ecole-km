@@ -28,6 +28,7 @@ import {
   Menu,
   X,
   BookOpen,
+  Wallet,
 } from "lucide-react";
 import UserAvatar from "./components/UserAvatar";
 
@@ -197,6 +198,12 @@ export default function LandingPage() {
               Notre Charte
             </a>
             <a
+              href="/cagnotte"
+              className="text-sm font-semibold text-emerald-800 hover:text-emerald-900 transition-colors"
+            >
+              La cagnotte
+            </a>
+            <a
               href="/petition"
               className="text-sm font-bold text-emerald-700 hover:text-emerald-800 transition-colors flex items-center gap-1.5"
             >
@@ -248,6 +255,13 @@ export default function LandingPage() {
               className="flex items-center gap-3 px-4 py-3 bg-amber-50 text-amber-800 font-bold rounded-xl border border-amber-200"
             >
               <Search size={18} /> Historique & Analyse Financière
+            </a>
+            <a
+              onClick={() => setIsMenuOpen(false)}
+              href="/cagnotte"
+              className="flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-900 font-bold rounded-xl border border-emerald-200"
+            >
+              <Wallet size={18} aria-hidden="true" /> Transparence de la cagnotte
             </a>
             <a
               onClick={() => setIsMenuOpen(false)}
@@ -342,6 +356,31 @@ export default function LandingPage() {
                 Rejoindre le collectif
               </a>
             </div>
+          </div>
+        </section>
+        {/* [SPEC-HOME-TREASURY-01] Le raccourci public rend le registre de la cagnotte accessible depuis l’accueil. */}
+        <section className="border-y border-stone-200 bg-emerald-50/60 px-4 py-6" aria-labelledby="treasury-note-heading">
+          <div className="mx-auto flex max-w-6xl flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-800">
+                <Wallet size={21} aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-xs font-bold uppercase text-emerald-800">Transparence du collectif</p>
+                <h2 id="treasury-note-heading" className="mt-1 font-bold text-stone-900">
+                  Une noisette pour la cagnotte
+                </h2>
+                <p className="mt-1 max-w-2xl text-sm text-stone-600">
+                  Consultez le solde publié et le détail des contributions et dépenses du collectif.
+                </p>
+              </div>
+            </div>
+            <a
+              href="/cagnotte"
+              className="btn-secondary min-h-11 w-full px-4 py-2 text-sm sm:w-auto"
+            >
+              Voir la cagnotte <ChevronRight size={17} aria-hidden="true" />
+            </a>
           </div>
         </section>
         {/* Actualités */}

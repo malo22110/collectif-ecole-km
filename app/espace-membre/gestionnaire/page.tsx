@@ -24,6 +24,7 @@ interface Membre {
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrateur",
   gestionnaire: "Gestionnaire des rôles",
+  tresorier: "Trésorier",
   redacteur: "Rédacteur",
   mail: "Responsable mailing",
   faq: "Éditeur FAQ",

@@ -3,6 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import logoImage from "../../public/images/logo.png";
+import reunionImage from "../../public/images/reunion.jpg";
+import schoolImage from "../../public/images/hero.jpg";
 import {
   ArrowDown,
   ArrowRight,
@@ -177,7 +180,7 @@ export default function PresentationDeck() {
             </div>
             <div className={styles.coverLogoPanel}>
               <Image
-                src="/images/logo.png"
+                src={logoImage}
                 alt="Logo du collectif Un nid tout neuf pour nos écureuils"
                 fill
                 priority
@@ -192,7 +195,7 @@ export default function PresentationDeck() {
           <div className={styles.collectiveCover}>
             <div className={styles.collectiveCoverPhoto}>
               <Image
-                src="/images/reunion.jpg"
+                src={reunionImage}
                 alt="Des habitants réunis dans la cour de l’école pour échanger"
                 fill
                 sizes="(max-width: 760px) 100vw, 56vw"
@@ -841,7 +844,7 @@ export default function PresentationDeck() {
           <div className={styles.thanksSlide}>
             <div className={styles.thanksPhoto}>
               <Image
-                src="/images/hero.jpg"
+                src={schoolImage}
                 alt="L’école de Kergrist-Moëlou et des habitants réunis dans la cour"
                 fill
                 sizes="(max-width: 760px) 100vw, 52vw"

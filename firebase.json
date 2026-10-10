@@ -18,6 +18,11 @@
         "type": 301
       },
       {
+        "source": "/cagnotte",
+        "destination": "https://collectif-ecole-km.fr/cagnotte",
+        "type": 301
+      },
+      {
         "source": "/admin",
         "destination": "https://collectif-ecole-km.fr/admin",
         "type": 301

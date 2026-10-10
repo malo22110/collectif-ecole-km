@@ -17,6 +17,7 @@ import {
   Shield,
   UserCircle2,
   MapPinned,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,6 +27,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
   const [user, setUser] = useState<any>(null);
   const [isMember, setIsMember] = useState<boolean | null>(null);
   const [userRoles, setUserRoles] = useState<string[]>(["membre"]);
+  const [canManageTreasury, setCanManageTreasury] = useState(false);
   const [unreadMailCount, setUnreadMailCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -46,6 +48,8 @@ export default function EspaceMembreLayout({ children }: { children: React.React
             setUserRoles(
               Array.isArray(data.roles) ? data.roles : data.role ? [data.role] : ["membre"],
             );
+            const roles = Array.isArray(data.roles) ? data.roles : data.role ? [data.role] : [];
+            setCanManageTreasury(roles.includes("admin") || roles.includes("tresorier"));
           }
         } catch (err) {
           console.error(err);
@@ -54,6 +58,7 @@ export default function EspaceMembreLayout({ children }: { children: React.React
       } else {
         setUser(null);
         setIsMember(false);
+        setCanManageTreasury(false);
       }
       setLoading(false);
     });
@@ -194,6 +199,14 @@ export default function EspaceMembreLayout({ children }: { children: React.React
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname.startsWith("/espace-membre/petition") || ["/espace-membre/signataires", "/espace-membre/non-signataires", "/espace-membre/correcteur", "/espace-membre/numeriser-petition"].includes(pathname) ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
             <FileText size={20} /> <span>Pétition</span>
+          </Link>
+
+          <Link
+            href="/espace-membre/remboursements"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname.startsWith("/espace-membre/remboursements") ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+          >
+            <Wallet size={20} />
+            <span>{canManageTreasury ? "Trésorerie" : "Demander un remboursement"}</span>
           </Link>
 
           {(userRoles.includes("admin") ||

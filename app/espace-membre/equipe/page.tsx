@@ -39,6 +39,12 @@ const ALL_ROLES = [
     color: "bg-orange-50 border-orange-200 text-orange-800",
   },
   {
+    key: "tresorier",
+    label: "Trésoriers",
+    icon: "💶",
+    color: "bg-emerald-50 border-emerald-200 text-emerald-800",
+  },
+  {
     key: "redacteur",
     label: "Rédacteurs",
     icon: "✍️",
