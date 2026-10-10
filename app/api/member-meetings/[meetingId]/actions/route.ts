@@ -20,7 +20,7 @@ export async function GET(
 
   try {
     const meeting = await adminDb.collection("memberMeetings").doc(meetingId).get();
-    if (!meeting.exists || meeting.get("status") !== "published") {
+    if (!meeting.exists || meeting.get("deletedAt") || meeting.get("status") !== "published") {
       return NextResponse.json({ error: "Réunion introuvable." }, { status: 404 });
     }
     const snapshot = await adminDb
@@ -28,9 +28,10 @@ export async function GET(
       .where("meetingId", "==", meetingId)
       .limit(50)
       .get();
+    const activeActions = snapshot.docs.filter((document) => !document.get("deletedAt"));
     return NextResponse.json(
       {
-        actions: snapshot.docs.map((document) => ({
+        actions: activeActions.map((document) => ({
           id: document.id,
           pole: document.get("pole"),
           title: document.get("title"),

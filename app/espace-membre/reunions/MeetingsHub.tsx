@@ -20,6 +20,7 @@ import {
   Save,
   Send,
   ShieldCheck,
+  Trash2,
   X,
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
@@ -30,6 +31,8 @@ type Meeting = MeetingUpdate & {
   status: "draft" | "published";
   createdByName: string;
   updatedAtMillis: number | null;
+  canEdit: boolean;
+  canDelete: boolean;
 };
 type MeetingSuggestion = {
   id: string;
@@ -37,6 +40,8 @@ type MeetingSuggestion = {
   createdByName: string;
   status: AgendaSuggestionStatus;
   createdAtMillis: number | null;
+  canEdit: boolean;
+  canDelete: boolean;
 };
 type LinkedAction = {
   id: string;
@@ -96,6 +101,8 @@ export default function MeetingsHub() {
   const [loadingActionsMeeting, setLoadingActionsMeeting] = useState<string | null>(null);
   const [suggestionPanel, setSuggestionPanel] = useState<string | null>(null);
   const [busySuggestion, setBusySuggestion] = useState<string | null>(null);
+  const [editingSuggestion, setEditingSuggestion] = useState<string | null>(null);
+  const [suggestionEdits, setSuggestionEdits] = useState<Record<string, string>>({});
   const [title, setTitle] = useState("");
   const [startsAt, setStartsAt] = useState(toLocalInput());
   const [location, setLocation] = useState("");
@@ -244,7 +251,7 @@ export default function MeetingsHub() {
       return;
     }
     setSuggestionPanel(meeting.id);
-    if (!canCoordinate || suggestions[meeting.id] || !user) return;
+    if (suggestions[meeting.id] || !user) return;
     try {
       const result = await authorizedRequest<SuggestionListResponse>(user, `/api/member-meetings/${meeting.id}/suggestions`);
       setSuggestions((current) => ({ ...current, [meeting.id]: result.suggestions || [] }));
@@ -286,10 +293,69 @@ export default function MeetingsHub() {
         body: JSON.stringify({ text }),
       });
       setSuggestionText((current) => ({ ...current, [meeting.id]: "" }));
+      const result = await authorizedRequest<SuggestionListResponse>(user, `/api/member-meetings/${meeting.id}/suggestions`);
+      setSuggestions((current) => ({ ...current, [meeting.id]: result.suggestions || [] }));
       setNotice("Votre proposition d’ordre du jour a été transmise aux coordinateurs.");
     } catch (suggestError) {
       setError(suggestError instanceof Error ? suggestError.message : "Impossible de transmettre ce point.");
     } finally { setBusySuggestion(null); }
+  };
+
+  const saveSuggestionEdit = async (meeting: Meeting, suggestion: MeetingSuggestion) => {
+    if (!user) return;
+    const text = (suggestionEdits[suggestion.id] || "").trim();
+    if (text.length < 5) {
+      setError("Décrivez le point en au moins cinq caractères.");
+      return;
+    }
+    setBusySuggestion(suggestion.id);
+    setError("");
+    try {
+      await authorizedRequest(user, `/api/member-meetings/${meeting.id}/suggestions/${suggestion.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "edit", data: { text } }),
+      });
+      const result = await authorizedRequest<SuggestionListResponse>(user, `/api/member-meetings/${meeting.id}/suggestions`);
+      setSuggestions((current) => ({ ...current, [meeting.id]: result.suggestions || [] }));
+      setEditingSuggestion(null);
+      setNotice("La proposition d’ordre du jour a été modifiée.");
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Impossible de modifier cette proposition.");
+    } finally {
+      setBusySuggestion(null);
+    }
+  };
+
+  const deleteSuggestion = async (meeting: Meeting, suggestion: MeetingSuggestion) => {
+    if (!user || !window.confirm("Retirer cette proposition d’ordre du jour ?")) return;
+    setBusySuggestion(suggestion.id);
+    setError("");
+    try {
+      await authorizedRequest(user, `/api/member-meetings/${meeting.id}/suggestions/${suggestion.id}`, { method: "DELETE" });
+      const result = await authorizedRequest<SuggestionListResponse>(user, `/api/member-meetings/${meeting.id}/suggestions`);
+      setSuggestions((current) => ({ ...current, [meeting.id]: result.suggestions || [] }));
+      setNotice("La proposition d’ordre du jour a été retirée.");
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Impossible de retirer cette proposition.");
+    } finally {
+      setBusySuggestion(null);
+    }
+  };
+
+  const deleteMeeting = async (meeting: Meeting) => {
+    if (!user || !window.confirm(`Retirer « ${meeting.title} » de l’agenda partagé ?`)) return;
+    setSaving(true);
+    setError("");
+    try {
+      await authorizedRequest(user, `/api/member-meetings/${meeting.id}`, { method: "DELETE" });
+      await refresh();
+      setNotice("La réunion a été retirée de l’agenda. Les propositions liées restent conservées au tableau.");
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Impossible de supprimer cette réunion.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const decideSuggestion = async (meeting: Meeting, suggestion: MeetingSuggestion, status: "accepted" | "rejected") => {
@@ -334,7 +400,7 @@ export default function MeetingsHub() {
               {meeting.location && <span className="inline-flex items-center gap-1.5"><MapPin size={15} />{meeting.location}</span>}
             </p>
           </div>
-          {canCoordinate && <button type="button" onClick={() => editMeeting(meeting)} className="btn-secondary min-h-9 self-start px-3 py-1.5 text-xs"><Save size={14} /> Modifier</button>}
+          {(meeting.canEdit || meeting.canDelete) && <div className="flex shrink-0 flex-wrap gap-2"><button type="button" disabled={saving} onClick={() => editMeeting(meeting)} className="btn-secondary min-h-9 self-start px-3 py-1.5 text-xs"><Save size={14} /> Modifier</button>{meeting.canDelete && <button type="button" disabled={saving} onClick={() => void deleteMeeting(meeting)} className="btn-secondary min-h-9 self-start border-rose-200 px-3 py-1.5 text-xs text-rose-800 hover:bg-rose-50"><Trash2 size={14} aria-hidden="true" /> Supprimer</button>}</div>}
         </div>
 
         {meeting.agendaItems.length > 0 && (
@@ -394,17 +460,20 @@ export default function MeetingsHub() {
           </div>
         )}
 
-        {canCoordinate && meeting.status === "published" && (
+        {meeting.status === "published" && (
           <div className="mt-3">
-            <button type="button" onClick={() => void toggleSuggestions(meeting)} className="inline-flex min-h-9 items-center gap-2 text-xs font-bold text-emerald-800"><MessageSquarePlus size={14} /> Suggestions d’ordre du jour ({pendingSuggestions.length || "voir"})</button>
+            <button type="button" onClick={() => void toggleSuggestions(meeting)} className="inline-flex min-h-9 items-center gap-2 text-xs font-bold text-emerald-800"><MessageSquarePlus size={14} /> {canCoordinate ? "Suggestions d’ordre du jour" : "Mes propositions d’ordre du jour"} ({pendingSuggestions.length || "voir"})</button>
             {suggestionPanel === meeting.id && (
               <div className="mt-2 space-y-2 border-l-2 border-amber-300 pl-3">
-                {!pendingSuggestions.length ? <p className="text-xs text-stone-500">Aucune proposition en attente.</p> : pendingSuggestions.map((suggestion) => (
+                {!pendingSuggestions.length ? <p className="text-xs text-stone-500">{canCoordinate ? "Aucune proposition en attente." : "Vous n’avez pas de proposition en attente."}</p> : pendingSuggestions.map((suggestion) => (
                   <div key={suggestion.id} className="flex flex-col gap-2 rounded-lg bg-amber-50 p-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-stone-800">{suggestion.text}<span className="mt-1 block text-xs text-stone-500">Proposé par {suggestion.createdByName}</span></p>
-                    <div className="flex shrink-0 gap-2">
-                      <button type="button" disabled={busySuggestion === suggestion.id} onClick={() => void decideSuggestion(meeting, suggestion, "accepted")} className="btn-primary min-h-9 px-2.5 py-1 text-xs"><Check size={13} /> Ajouter</button>
-                      <button type="button" disabled={busySuggestion === suggestion.id} onClick={() => void decideSuggestion(meeting, suggestion, "rejected")} className="btn-secondary min-h-9 px-2.5 py-1 text-xs"><X size={13} /> Écarter</button>
+                    <div className="min-w-0 flex-1">
+                      {editingSuggestion === suggestion.id ? <textarea value={suggestionEdits[suggestion.id] ?? suggestion.text} onChange={(event) => setSuggestionEdits((current) => ({ ...current, [suggestion.id]: event.target.value }))} maxLength={240} rows={2} className="input-base min-h-10 text-sm" aria-label="Modifier le point proposé" /> : <p className="text-sm text-stone-800">{suggestion.text}<span className="mt-1 block text-xs text-stone-500">Proposé par {suggestion.createdByName}</span></p>}
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      {suggestion.canEdit && (editingSuggestion === suggestion.id ? <><button type="button" disabled={busySuggestion === suggestion.id} onClick={() => void saveSuggestionEdit(meeting, suggestion)} className="btn-primary min-h-9 px-2.5 py-1 text-xs"><Save size={13} /> Enregistrer</button><button type="button" onClick={() => setEditingSuggestion(null)} className="btn-secondary min-h-9 px-2.5 py-1 text-xs">Annuler</button></> : <button type="button" disabled={busySuggestion === suggestion.id} onClick={() => { setSuggestionEdits((current) => ({ ...current, [suggestion.id]: suggestion.text })); setEditingSuggestion(suggestion.id); }} className="btn-secondary min-h-9 px-2.5 py-1 text-xs"><Save size={13} /> Modifier</button>)}
+                      {suggestion.canDelete && <button type="button" disabled={busySuggestion === suggestion.id} onClick={() => void deleteSuggestion(meeting, suggestion)} className="btn-secondary min-h-9 border-rose-200 px-2.5 py-1 text-xs text-rose-800 hover:bg-rose-50"><Trash2 size={13} aria-hidden="true" /> Retirer</button>}
+                      {canCoordinate && <><button type="button" disabled={busySuggestion === suggestion.id} onClick={() => void decideSuggestion(meeting, suggestion, "accepted")} className="btn-primary min-h-9 px-2.5 py-1 text-xs"><Check size={13} /> Ajouter</button><button type="button" disabled={busySuggestion === suggestion.id} onClick={() => void decideSuggestion(meeting, suggestion, "rejected")} className="btn-secondary min-h-9 px-2.5 py-1 text-xs"><X size={13} /> Écarter</button></>}
                     </div>
                   </div>
                 ))}
@@ -431,7 +500,7 @@ export default function MeetingsHub() {
       {error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</p>}
       {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">{notice}</p>}
 
-      {showForm && canCoordinate && (
+      {showForm && (canCoordinate || editingId !== null) && (
         <section className="border-y border-emerald-200 bg-emerald-50/40 py-5">
           <form onSubmit={(event) => void saveMeeting(event)} className="mx-auto grid max-w-4xl gap-4 px-4 sm:grid-cols-2 sm:px-6">
             <div className="sm:col-span-2"><h2 className="text-lg font-bold text-stone-900">{editingId ? "Modifier la réunion" : "Préparer une réunion"}</h2><p className="mt-1 text-xs text-stone-600">Les notes restent internes au collectif et ne remplacent pas un procès-verbal officiel.</p></div>

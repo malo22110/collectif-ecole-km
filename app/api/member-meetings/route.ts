@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { authorizeActionBoardMember, readActionBoardBody } from "@/lib/actionBoardServer";
 import { meetingInputSchema } from "@/lib/memberMeetings";
+import { canManageMemberEntity } from "@/lib/memberEntityAccess";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,7 +11,11 @@ export const dynamic = "force-dynamic";
 const MEETINGS = "memberMeetings";
 const PAGE_LIMIT = 50;
 
-function serializeMeeting(document: FirebaseFirestore.QueryDocumentSnapshot) {
+function serializeMeeting(
+  document: FirebaseFirestore.QueryDocumentSnapshot,
+  viewerUid: string,
+  canCoordinate: boolean,
+) {
   const data = document.data();
   return {
     id: document.id,
@@ -22,6 +27,8 @@ function serializeMeeting(document: FirebaseFirestore.QueryDocumentSnapshot) {
     status: data.status,
     createdByName: data.createdByName || "Collectif",
     updatedAtMillis: data.updatedAt?.toMillis?.() ?? null,
+    canEdit: canManageMemberEntity(String(data.createdByUid), viewerUid, canCoordinate),
+    canDelete: canManageMemberEntity(String(data.createdByUid), viewerUid, canCoordinate),
   };
 }
 
@@ -44,9 +51,12 @@ export async function GET(request: Request) {
     }
     const snapshot = await query.get();
     const visible = snapshot.docs.filter((document) =>
-      authorization.member!.canCoordinate || document.get("status") === "published",
+      !document.get("deletedAt") &&
+      (authorization.member!.canCoordinate || document.get("status") === "published"),
     );
-    const meetings = visible.map(serializeMeeting).sort((left, right) => {
+    const meetings = visible.map((document) =>
+      serializeMeeting(document, authorization.member!.uid, authorization.member!.canCoordinate),
+    ).sort((left, right) => {
       const leftTime = Date.parse(left.startsAt);
       const rightTime = Date.parse(right.startsAt);
       const now = Date.now();

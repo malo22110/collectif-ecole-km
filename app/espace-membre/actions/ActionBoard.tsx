@@ -16,6 +16,7 @@ import {
   Pencil,
   Search,
   ShieldCheck,
+  Trash2,
   Wrench,
   X,
 } from "lucide-react";
@@ -42,6 +43,7 @@ type BoardAction = {
   createdAtMillis: number | null;
   updatedAtMillis: number | null;
   canEdit: boolean;
+  canDelete: boolean;
   meeting: { id: string; title: string; startsAt: string } | null;
 };
 
@@ -168,7 +170,7 @@ export default function ActionBoard() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "edit", data: draft }),
         });
-        setNotice("Votre proposition a été mise à jour.");
+        setNotice("La proposition a été mise à jour.");
       } else {
         await authorizedRequest(user, "/api/action-board", {
           method: "POST",
@@ -192,6 +194,22 @@ export default function ActionBoard() {
     setEditingId(action.id);
     setDraft({ pole: action.pole, title: action.title, description: action.description, nextStep: action.nextStep, meetingId: action.meeting?.id || null });
     setShowForm(true);
+  };
+
+  const deleteAction = async (action: BoardAction) => {
+    if (!user || !window.confirm(`Supprimer la proposition « ${action.title} » ?`)) return;
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      await authorizedRequest(user, `/api/action-board/${action.id}`, { method: "DELETE" });
+      await refresh();
+      setNotice("La proposition a été retirée du tableau.");
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Impossible de supprimer la proposition.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const transitionAction = async (action: BoardAction) => {
@@ -255,7 +273,7 @@ export default function ActionBoard() {
       {showForm && (
         <section className="border-y border-emerald-200 bg-emerald-50/40 py-5" aria-labelledby="action-form-heading">
           <form onSubmit={(event) => void submitDraft(event)} className="mx-auto grid max-w-5xl gap-4 px-4 sm:grid-cols-2 sm:px-6">
-            <div className="sm:col-span-2"><h2 id="action-form-heading" className="text-lg font-bold text-stone-900">{editingId ? "Modifier votre proposition" : "Décrire une proposition"}</h2><p className="mt-1 text-xs text-stone-600">Votre proposition sera visible aux membres validés. Elle n’engage pas la commune.</p></div>
+            <div className="sm:col-span-2"><h2 id="action-form-heading" className="text-lg font-bold text-stone-900">{editingId ? "Modifier la proposition" : "Décrire une proposition"}</h2><p className="mt-1 text-xs text-stone-600">Votre proposition sera visible aux membres validés. Elle n’engage pas la commune.</p></div>
             <label className="text-sm font-semibold text-stone-800">Pôle
               <select required value={draft.pole} onChange={(event) => setDraft((current) => ({ ...current, pole: event.target.value as ActionPole }))} className="input-base mt-2 min-h-11">
                 {ACTION_POLES.map((pole) => <option key={pole} value={pole}>{ACTION_POLE_LABELS[pole]}</option>)}
@@ -315,7 +333,7 @@ export default function ActionBoard() {
                       <p className="mt-3 text-xs text-stone-500">Proposée par {action.createdByName} · mise à jour {formatDate(action.updatedAtMillis)}</p>
                       {action.statusNote && <p className="mt-2 text-sm text-stone-600">Suivi : {action.statusNote}</p>}
                     </div>
-                    {action.canEdit && <button type="button" onClick={() => startEdit(action)} className="btn-secondary min-h-10 shrink-0 px-3 py-2 text-sm"><Pencil size={15} /> Modifier</button>}
+                    {(action.canEdit || action.canDelete) && <div className="flex shrink-0 flex-wrap gap-2">{action.canEdit && <button type="button" disabled={saving} onClick={() => startEdit(action)} className="btn-secondary min-h-10 px-3 py-2 text-sm"><Pencil size={15} /> Modifier</button>}{action.canDelete && <button type="button" disabled={saving} onClick={() => void deleteAction(action)} className="btn-secondary min-h-10 border-rose-200 px-3 py-2 text-sm text-rose-800 hover:bg-rose-50"><Trash2 size={15} aria-hidden="true" /> Supprimer</button>}</div>}
                   </div>
                   {canCoordinate && availableStatuses.length > 0 && (
                     <div className="mt-4 grid gap-2 border-t border-stone-100 pt-4 sm:grid-cols-[220px_minmax(0,1fr)_auto] sm:items-end">

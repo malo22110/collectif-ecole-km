@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { canManageMemberEntity } from "./memberEntityAccess.ts";
 
 export const ACTION_BOARD_PAGE_SIZE = 50;
 
@@ -72,8 +73,8 @@ export const actionTransitionSchema = z
 export type ActionPole = (typeof ACTION_POLES)[number];
 export type ActionStatus = (typeof ACTION_STATUSES)[number];
 
-export function canEditAction(ownerUid: string, actorUid: string, currentStatus: ActionStatus) {
-  return ownerUid === actorUid && currentStatus === "proposition";
+export function canManageAction(ownerUid: string, actorUid: string, actorCanCoordinate: boolean) {
+  return canManageMemberEntity(ownerUid, actorUid, actorCanCoordinate);
 }
 
 const ALLOWED_TRANSITIONS: Record<ActionStatus, readonly ActionStatus[]> = {

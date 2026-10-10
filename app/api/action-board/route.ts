@@ -2,6 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { authorizeActionBoardMember, readActionBoardBody } from "@/lib/actionBoardServer";
+import { canManageMemberEntity } from "@/lib/memberEntityAccess";
 import {
   ACTION_BOARD_PAGE_SIZE,
   actionCreateSchema,
@@ -18,6 +19,7 @@ const MAX_CURSOR_LENGTH = 150;
 function serializeAction(
   document: FirebaseFirestore.QueryDocumentSnapshot,
   viewerUid: string,
+  canCoordinate: boolean,
   meeting?: { id: string; title: string; startsAt: string } | null,
 ) {
   const data = document.data();
@@ -33,7 +35,8 @@ function serializeAction(
     updatedByName: data.updatedByName || data.createdByName,
     createdAtMillis: data.createdAt?.toMillis?.() ?? null,
     updatedAtMillis: data.updatedAt?.toMillis?.() ?? null,
-    canEdit: data.createdByUid === viewerUid && data.status === "proposition",
+    canEdit: canManageMemberEntity(String(data.createdByUid), viewerUid, canCoordinate),
+    canDelete: canManageMemberEntity(String(data.createdByUid), viewerUid, canCoordinate),
     meeting: meeting || null,
   };
 }
@@ -59,7 +62,9 @@ export async function GET(request: Request) {
       query = query.startAfter(cursorDoc);
     }
     const snapshot = await query.get();
-    const visibleDocs = snapshot.docs.slice(0, ACTION_BOARD_PAGE_SIZE);
+    const visibleDocs = snapshot.docs
+      .slice(0, ACTION_BOARD_PAGE_SIZE)
+      .filter((document) => !document.get("deletedAt"));
     const linkedMeetingIds = Array.from(
       new Set(
         visibleDocs
@@ -75,11 +80,11 @@ export async function GET(request: Request) {
     ]);
     const meetingsById = new Map(
       linkedMeetingSnapshots
-        .filter((meeting) => meeting.exists && meeting.get("status") === "published")
+        .filter((meeting) => meeting.exists && !meeting.get("deletedAt") && meeting.get("status") === "published")
         .map((meeting) => [meeting.id, { id: meeting.id, title: meeting.get("title"), startsAt: meeting.get("startsAt") }]),
     );
     const linkableMeetings = linkableMeetingSnapshot.docs
-      .filter((meeting) => meeting.get("status") === "published")
+      .filter((meeting) => !meeting.get("deletedAt") && meeting.get("status") === "published")
       .map((meeting) => ({ id: meeting.id, title: meeting.get("title"), startsAt: meeting.get("startsAt") }));
     return NextResponse.json(
       {
@@ -87,13 +92,14 @@ export async function GET(request: Request) {
           serializeAction(
             document,
             authorization.member!.uid,
+            authorization.member!.canCoordinate,
             meetingsById.get(String(document.get("meetingId"))) || null,
           ),
         ),
         linkableMeetings,
         canCoordinate: authorization.member.canCoordinate,
         hasMore: snapshot.docs.length > ACTION_BOARD_PAGE_SIZE,
-        nextCursor: snapshot.docs.length > ACTION_BOARD_PAGE_SIZE ? visibleDocs.at(-1)?.id ?? null : null,
+        nextCursor: snapshot.docs.length > ACTION_BOARD_PAGE_SIZE ? snapshot.docs[ACTION_BOARD_PAGE_SIZE - 1]?.id ?? null : null,
       },
       { headers: { "Cache-Control": "private, no-store, max-age=0" } },
     );
@@ -123,7 +129,7 @@ export async function POST(request: Request) {
 
   if (parsed.data.meetingId) {
     const meeting = await adminDb.collection("memberMeetings").doc(parsed.data.meetingId).get();
-    if (!meeting.exists || meeting.get("status") !== "published") {
+    if (!meeting.exists || meeting.get("deletedAt") || meeting.get("status") !== "published") {
       return NextResponse.json({ error: "Choisissez une réunion publiée." }, { status: 400 });
     }
   }

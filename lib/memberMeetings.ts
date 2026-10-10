@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { canManageMemberEntity } from "./memberEntityAccess.ts";
 
 const MAX_AGENDA_ITEMS = 20;
 const sharedText = z.string().trim().refine((value) => !/@|https?:\/\//i.test(value), {
@@ -33,6 +34,10 @@ export const agendaSuggestionSchema = z
   })
   .strict();
 
+export const agendaSuggestionEditSchema = z
+  .object({ text: sharedText.min(5).max(240) })
+  .strict();
+
 export const agendaSuggestionDecisionSchema = z
   .object({ status: z.enum(["accepted", "rejected"]) })
   .strict();
@@ -50,4 +55,13 @@ export function canSuggestAgenda(status: unknown, startsAt: unknown, now = Date.
 
 export function canPublishMeeting(actorCanCoordinate: boolean, currentStatus: unknown) {
   return actorCanCoordinate && currentStatus === "draft";
+}
+
+export function canManageAgendaSuggestion(
+  ownerUid: string,
+  actorUid: string,
+  actorCanCoordinate: boolean,
+  status: unknown,
+) {
+  return status === "pending" && canManageMemberEntity(ownerUid, actorUid, actorCanCoordinate);
 }

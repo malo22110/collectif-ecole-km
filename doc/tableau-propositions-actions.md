@@ -5,7 +5,7 @@ Une proposition peut être rattachée à une réunion publiée. Le tableau montr
 
 Tous les membres validés peuvent consulter le tableau et soumettre une proposition dans l’un des quatre pôles : chantiers participatifs, expertise et mécénat, projets annexes, recherche de fonds. Une proposition contient un titre, une description du besoin et une prochaine étape possible.
 
-Son auteur peut la corriger tant qu’elle est au statut « Nouvelle proposition ». Les administrateurs et gestionnaires des rôles coordonnent ensuite les états de suivi : « À instruire », « À discuter avec la commune », « Transmise à la commune », « En attente d’un retour », « Réalisée » ou « Suspendue ». Les transitions ne permettent pas de sauter directement d’une idée à « Réalisée ».
+Son auteur peut la modifier et la retirer du tableau à tout moment. Les administrateurs et gestionnaires des rôles peuvent également gérer toutes les propositions. Un retrait est logique : la proposition n’est plus affichée, mais son historique reste conservé. Les coordinateurs pilotent séparément les états de suivi : « À instruire », « À discuter avec la commune », « Transmise à la commune », « En attente d’un retour », « Réalisée » ou « Suspendue ». Les transitions ne permettent pas de sauter directement d’une idée à « Réalisée ».
 
 ## Limite institutionnelle
 
@@ -18,8 +18,8 @@ Le tableau organise la préparation et le suivi du travail bénévole. Il ne con
 - La liste est paginée par lots de 50 et les corps de requête sont limités en taille.
 - Les coordonnées personnelles et liens sont refusés dans les champs partagés.
 - Les données sont écrites par Firebase Admin dans `memberActionBoard`; aucun accès Firestore direct client n’est accordé.
-- L’édition est limitée à l’auteur d’une proposition encore nouvelle. Le changement d’état est réservé aux administrateurs et gestionnaires des rôles.
+- L’auteur et les coordinateurs peuvent modifier ou retirer une proposition; seuls les coordinateurs peuvent faire évoluer son état de suivi.
 
-Identifiants de spécification : `[SPEC-ACTION-BOARD-01]` à `[SPEC-ACTION-BOARD-03]`.
+Identifiants de spécification : `[SPEC-ACTION-BOARD-01]` à `[SPEC-ACTION-BOARD-04]`.
 
 Tests ciblés : `npm run test:action-board`.

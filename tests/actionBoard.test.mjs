@@ -4,7 +4,7 @@ import {
   actionCreateSchema,
   actionEditSchema,
   actionTransitionSchema,
-  canEditAction,
+  canManageAction,
   canTransitionAction,
 } from "../lib/actionBoard.ts";
 
@@ -31,10 +31,12 @@ test("valide une nouvelle proposition avec un pôle connu", () => {
   );
 });
 
-test("limite l’édition aux auteurs tant que la proposition est nouvelle", () => {
-  assert.equal(canEditAction("uid-a", "uid-a", "proposition"), true);
-  assert.equal(canEditAction("uid-a", "uid-b", "proposition"), false);
-  assert.equal(canEditAction("uid-a", "uid-a", "a_etudier"), false);
+// [SPEC-ACTION-BOARD-04] Owners may manage their proposals; coordinators may manage every proposal.
+test("réserve la gestion des propositions à leur auteur et aux coordinateurs", () => {
+  assert.equal(canManageAction("uid-a", "uid-a", false), true);
+  assert.equal(canManageAction("uid-a", "uid-a", true), true);
+  assert.equal(canManageAction("uid-a", "uid-b", true), true);
+  assert.equal(canManageAction("uid-a", "uid-b", false), false);
   assert.equal(
     actionEditSchema.safeParse({
       pole: "chantiers",

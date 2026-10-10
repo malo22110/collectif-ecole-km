@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   agendaSuggestionSchema,
+  canManageAgendaSuggestion,
   canPublishMeeting,
   canSuggestAgenda,
   meetingInputSchema,
@@ -48,4 +49,13 @@ test("seul un coordinateur peut publier un brouillon", () => {
   assert.equal(canPublishMeeting(true, "draft"), true);
   assert.equal(canPublishMeeting(false, "draft"), false);
   assert.equal(canPublishMeeting(true, "published"), false);
+});
+
+// [SPEC-MEMBER-MEETINGS-07] The author or a coordinator may manage a pending agenda suggestion.
+test("réserve la gestion des suggestions à leur auteur et aux coordinateurs tant qu’elles attendent", () => {
+  assert.equal(canManageAgendaSuggestion("uid-a", "uid-a", false, "pending"), true);
+  assert.equal(canManageAgendaSuggestion("uid-a", "uid-b", true, "pending"), true);
+  assert.equal(canManageAgendaSuggestion("uid-a", "uid-b", false, "pending"), false);
+  assert.equal(canManageAgendaSuggestion("uid-a", "uid-a", false, "accepted"), false);
+  assert.equal(canManageAgendaSuggestion("uid-a", "uid-a", false, "rejected"), false);
 });
