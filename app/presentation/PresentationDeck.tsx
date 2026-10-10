@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import logoImage from "../../public/images/logo.png";
 import reunionImage from "../../public/images/reunion.jpg";
 import schoolImage from "../../public/images/hero.jpg";
@@ -29,6 +29,7 @@ import {
   Scale,
   Search,
   School,
+  SkipForward,
   Users,
   Wrench,
   MessageSquare,
@@ -44,6 +45,39 @@ import {
 const EURO_FORMAT = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 0,
 });
+
+const REVEAL_CONTAINER_CLASSES = [
+  styles.contentSlide,
+  styles.collectiveCover,
+  styles.charterGrid,
+  styles.timeline,
+  styles.budgetHistory,
+  styles.phases,
+  styles.phaseHeroCards,
+  styles.projectTotalEquation,
+  styles.referenceCompare,
+  styles.fundingGrid,
+  styles.expenseGrid,
+  styles.actionGrid,
+  styles.commissionCompare,
+  styles.coordinatedActors,
+  styles.memberFeatureGrid,
+  styles.phaseOneAidControls,
+  styles.phaseOneFundingHeading,
+];
+
+function collectRevealItems(root: HTMLElement) {
+  const items: HTMLElement[] = [];
+  const visit = (element: Element) => {
+    if (REVEAL_CONTAINER_CLASSES.some((className) => element.classList.contains(className))) {
+      Array.from(element.children).forEach(visit);
+    } else if (element instanceof HTMLElement && element.getAttribute("aria-hidden") !== "true") {
+      items.push(element);
+    }
+  };
+  Array.from(root.children).forEach(visit);
+  return items;
+}
 
 const slides = [
   { id: "accueil", label: "Accueil", countsAsContent: false },
@@ -65,12 +99,66 @@ const slides = [
 
 export default function PresentationDeck() {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [revealedBySlide, setRevealedBySlide] = useState<Record<number, number>>({ 0: 2 });
+  const [revealTotals, setRevealTotals] = useState<Record<number, number>>({});
+  const slideRef = useRef<HTMLElement | null>(null);
   const [phaseOneAidSelection, setPhaseOneAidSelection] = useState<PhaseOneAidSelection>({
     department: true,
     region: true,
     detr: true,
   });
   const phaseOneRemainder = calculatePhaseOneRemainder(phaseOneAidSelection);
+  const revealTotal = revealTotals[activeSlide] ?? 0;
+  const revealedCount = Math.min(revealedBySlide[activeSlide] ?? 0, revealTotal);
+  const slideIsComplete = revealedCount >= revealTotal;
+
+  const goTo = useCallback((index: number) => {
+    const boundedIndex = Math.max(0, Math.min(index, slides.length - 1));
+    setRevealedBySlide((current) => ({ ...current, [boundedIndex]: 1 }));
+    setActiveSlide(boundedIndex);
+  }, []);
+
+  const showAllBlocks = useCallback(() => {
+    setRevealedBySlide((current) => ({ ...current, [activeSlide]: revealTotal }));
+  }, [activeSlide, revealTotal]);
+
+  const revealNextBlock = useCallback(() => {
+    if (revealedCount < revealTotal) {
+      setRevealedBySlide((current) => ({ ...current, [activeSlide]: revealedCount + 1 }));
+    } else if (activeSlide < slides.length - 1) {
+      goTo(activeSlide + 1);
+    }
+  }, [activeSlide, goTo, revealTotal, revealedCount]);
+
+  const revealPreviousBlock = useCallback(() => {
+    if (revealedCount > 0) {
+      setRevealedBySlide((current) => ({ ...current, [activeSlide]: revealedCount - 1 }));
+      return;
+    }
+    if (activeSlide > 0) {
+      const previousSlide = activeSlide - 1;
+      setActiveSlide(previousSlide);
+      setRevealedBySlide((current) => ({
+        ...current,
+        [previousSlide]: revealTotals[previousSlide] ?? current[previousSlide] ?? 0,
+      }));
+    }
+  }, [activeSlide, revealTotals, revealedCount]);
+
+  useLayoutEffect(() => {
+    const slide = slideRef.current;
+    if (!slide) return;
+    const revealItems = collectRevealItems(slide);
+    const visibleCount = Math.min(revealedBySlide[activeSlide] ?? 0, revealItems.length);
+    revealItems.forEach((item, index) => {
+      item.dataset.deckRevealHidden = index < visibleCount ? "false" : "true";
+    });
+    setRevealTotals((current) =>
+      current[activeSlide] === revealItems.length
+        ? current
+        : { ...current, [activeSlide]: revealItems.length },
+    );
+  }, [activeSlide, revealedBySlide]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -79,6 +167,13 @@ export default function PresentationDeck() {
       );
       const scrollDown = ["ArrowDown", "PageDown", " "].includes(event.key);
       const scrollUp = ["ArrowUp", "PageUp"].includes(event.key);
+      const hasUnrevealedBlocks = revealedCount < revealTotal;
+
+      if (event.key === "ArrowRight" || (hasUnrevealedBlocks && event.key === " ")) {
+        event.preventDefault();
+        revealNextBlock();
+        return;
+      }
 
       if (
         scrollDown &&
@@ -105,14 +200,14 @@ export default function PresentationDeck() {
 
       if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(event.key)) {
         event.preventDefault();
-        setActiveSlide((current) => Math.min(current + 1, slides.length - 1));
+        revealNextBlock();
       } else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(event.key)) {
         event.preventDefault();
-        setActiveSlide((current) => Math.max(current - 1, 0));
+        revealPreviousBlock();
       } else if (event.key === "Home") {
-        setActiveSlide(0);
+        goTo(0);
       } else if (event.key === "End") {
-        setActiveSlide(slides.length - 1);
+        goTo(slides.length - 1);
       } else if (event.key.toLowerCase() === "f") {
         if (document.fullscreenElement) {
           void document.exitFullscreen();
@@ -124,9 +219,8 @@ export default function PresentationDeck() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [activeSlide, goTo, revealNextBlock, revealPreviousBlock, revealTotal, revealedCount]);
 
-  const goTo = (index: number) => setActiveSlide(Math.max(0, Math.min(index, slides.length - 1)));
   const isFirst = activeSlide === 0;
   const isLast = activeSlide === slides.length - 1;
   const currentContentNumber = slides
@@ -173,6 +267,7 @@ export default function PresentationDeck() {
 
       <section
         key={slides[activeSlide].id}
+        ref={slideRef}
         className={`${styles.slide} ${isFirst ? styles.coverSlide : ""} ${isCollectiveCover ? styles.collectiveCoverSlide : ""} ${activeSlide === 1 ? styles.charterSlide : ""} ${activeSlide === 3 ? styles.projectSlide : ""}`}
         aria-roledescription="diapositive"
         aria-label={
@@ -1077,9 +1172,10 @@ export default function PresentationDeck() {
           <button
             type="button"
             className={styles.navButton}
-            onClick={() => goTo(activeSlide - 1)}
+            onClick={revealPreviousBlock}
             disabled={isFirst}
-            aria-label="Diapositive précédente"
+            aria-label={revealedCount > 0 ? "Masquer le bloc précédent" : "Diapositive précédente"}
+            title={revealedCount > 0 ? "Masquer le bloc précédent" : "Diapositive précédente"}
           >
             <ChevronLeft size={20} aria-hidden="true" />
           </button>
@@ -1108,6 +1204,26 @@ export default function PresentationDeck() {
               );
             })}
           </div>
+          {!slideIsComplete && (
+            <button
+              type="button"
+              className={styles.skipRevealButton}
+              onClick={showAllBlocks}
+              aria-label="Afficher tous les blocs de cette diapositive"
+              title="Afficher tous les blocs de cette diapositive"
+            >
+              <SkipForward size={16} aria-hidden="true" />
+              <span>Tout afficher</span>
+            </button>
+          )}
+          <span
+            className={`${styles.revealBadge} ${slideIsComplete ? styles.revealBadgeComplete : ""}`}
+            role="status"
+            aria-live="polite"
+            title={`${revealedCount} bloc(s) affiché(s) sur ${revealTotal}`}
+          >
+            {slideIsComplete ? <><Check size={13} aria-hidden="true" /> Slide complète</> : `${revealedCount}/${revealTotal} blocs`}
+          </span>
           <span className={styles.slideCounter} aria-live="polite">
             {String(isFirst ? 0 : displayedContentNumber).padStart(2, "0")} <span>/</span>{" "}
             {String(contentSlideCount).padStart(2, "0")}
@@ -1115,11 +1231,12 @@ export default function PresentationDeck() {
           <button
             type="button"
             className={`${styles.navButton} ${styles.nextButton}`}
-            onClick={() => goTo(activeSlide + 1)}
-            disabled={isLast}
-            aria-label="Diapositive suivante"
+            onClick={revealNextBlock}
+            disabled={isLast && slideIsComplete}
+            aria-label={slideIsComplete ? (isLast ? "Présentation terminée" : "Diapositive suivante") : "Révéler le bloc suivant"}
+            title={slideIsComplete ? (isLast ? "Présentation terminée" : "Diapositive suivante") : "Révéler le bloc suivant"}
           >
-            {isLast ? (
+            {isLast && slideIsComplete ? (
               <Check size={18} aria-hidden="true" />
             ) : (
               <ChevronRight size={20} aria-hidden="true" />

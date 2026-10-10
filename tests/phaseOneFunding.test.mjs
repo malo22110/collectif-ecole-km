@@ -99,3 +99,27 @@ test("place la simulation sur la slide 07, distincte du chiffrage Phase 1", asyn
   assert.doesNotMatch(presentationStyles, /collectiveContentSlide/);
   assert.doesNotMatch(presentation, /\{activeSlide === 9 && \([\s\S]*?Quatre façons d’aider/);
 });
+
+// [SPEC-PRESENTATION-REVEAL-01] Slides reveal in sequence, can be completed at once, and expose completion state.
+test("la présentation révèle les blocs au clic et permet de terminer une slide", async () => {
+  const presentation = await readFile(
+    new URL("../app/presentation/PresentationDeck.tsx", import.meta.url),
+    "utf8",
+  );
+  const presentationStyles = await readFile(
+    new URL("../app/presentation/presentation.module.css", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(presentation, /useLayoutEffect\(\(\) => \{[\s\S]*?collectRevealItems\(slide\)/);
+  assert.match(presentation, /onClick=\{revealNextBlock\}/);
+  assert.match(presentation, /Tout afficher/);
+  assert.match(presentation, /Slide complète/);
+  assert.match(presentation, /revealedCount < revealTotal/);
+  assert.match(presentation, /REVEAL_CONTAINER_CLASSES\.some\(\(className\) => element\.classList\.contains\(className\)\)/);
+  assert.match(presentation, /styles\.charterGrid/);
+  assert.match(presentationStyles, /data-deck-reveal-hidden="true"/);
+  assert.match(presentationStyles, /prefers-reduced-motion: reduce[\s\S]*?data-deck-reveal-hidden/);
+  assert.match(presentationStyles, /\.skipRevealButton \{ position: absolute/);
+  assert.match(presentationStyles, /\.revealBadge \{ position: absolute/);
+});

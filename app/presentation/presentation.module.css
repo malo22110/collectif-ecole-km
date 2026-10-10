@@ -106,6 +106,14 @@
   animation: arrive 400ms ease both;
 }
 
+.deck [data-deck-reveal-hidden="true"] { display: none !important; }
+.deck [data-deck-reveal-hidden="false"] { animation: revealBlockIn 240ms ease both; }
+
+@keyframes revealBlockIn {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes arrive {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1001,6 +1009,7 @@
 .memberFeatureNote { margin: 14px 0 0; padding: 11px 14px; border-left: 4px solid var(--gold); background: #f0eadb; color: #514b3a; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; }
 
 .controls {
+  position: relative;
   z-index: 2;
   display: flex;
   min-height: 50px;
@@ -1011,6 +1020,12 @@
   background: #f7f7f1ed;
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.skipRevealButton { position: absolute; top: 50%; left: 12px; display: inline-flex; min-height: 34px; align-items: center; justify-content: center; gap: 6px; padding: 5px 9px; transform: translateY(-50%); border: 1px solid #c8d2c8; border-radius: 6px; background: #ffffff; color: #365747; cursor: pointer; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.skipRevealButton:hover { border-color: var(--green); background: #ecfdf5; }
+.skipRevealButton:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.revealBadge { position: absolute; top: 50%; right: 12px; display: inline-flex; min-height: 25px; align-items: center; justify-content: center; gap: 4px; padding: 3px 7px; transform: translateY(-50%); border: 1px solid #d6d3d1; border-radius: 999px; color: #57534e; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.revealBadgeComplete { border-color: #a7d4b9; background: #ecfdf5; color: #166534; }
 
 .navButton { width: 34px; border-color: #18352d25; }
 .navButton:disabled { opacity: 0.33; cursor: default; }
@@ -1293,7 +1308,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .slide { animation: none; }
+  .slide, .deck [data-deck-reveal-hidden="false"] { animation: none; }
   .fullscreenButton, .navButton, .slideDot, .progressTrack > span { transition: none; }
 }
 
@@ -1401,6 +1416,9 @@
   .deck .memberFeatureCard h3 { margin: 6px 0 3px; font-size: 16px; }
   .deck .memberFeatureCard p { font-size: 14px; }
   .deck .memberFeatureNote { margin-top: 9px; font-size: 13px; }
+  .skipRevealButton { min-width: 34px; padding: 5px; }
+  .skipRevealButton span { display: none; }
+  .revealBadge { max-width: 72px; overflow: hidden; padding: 3px 5px; font-size: 9px; text-overflow: ellipsis; }
 }
 
 @media (max-width: 390px) {
