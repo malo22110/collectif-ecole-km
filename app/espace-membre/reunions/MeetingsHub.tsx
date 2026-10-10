@@ -38,8 +38,17 @@ type MeetingSuggestion = {
   status: AgendaSuggestionStatus;
   createdAtMillis: number | null;
 };
+type LinkedAction = {
+  id: string;
+  pole: string;
+  title: string;
+  status: string;
+  nextStep: string;
+  updatedAtMillis: number | null;
+};
 type MeetingListResponse = { meetings: Meeting[]; canCoordinate: boolean; hasMore: boolean; nextCursor: string | null };
 type SuggestionListResponse = { suggestions: MeetingSuggestion[] };
+type MeetingActionsResponse = { actions: LinkedAction[] };
 
 const DATE_TIME = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "full",
@@ -82,6 +91,9 @@ export default function MeetingsHub() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [suggestionText, setSuggestionText] = useState<Record<string, string>>({});
   const [suggestions, setSuggestions] = useState<Record<string, MeetingSuggestion[]>>({});
+  const [linkedActions, setLinkedActions] = useState<Record<string, LinkedAction[]>>({});
+  const [expandedActionsMeeting, setExpandedActionsMeeting] = useState<string | null>(null);
+  const [loadingActionsMeeting, setLoadingActionsMeeting] = useState<string | null>(null);
   const [suggestionPanel, setSuggestionPanel] = useState<string | null>(null);
   const [busySuggestion, setBusySuggestion] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -115,6 +127,19 @@ export default function MeetingsHub() {
     });
     return () => { active = false; unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    if (!user || meetings.length === 0) return;
+    const targetId = new URLSearchParams(window.location.search).get("meeting");
+    if (!targetId || expandedActionsMeeting === targetId || !meetings.some((meeting) => meeting.id === targetId)) return;
+    setExpandedActionsMeeting(targetId);
+    if (linkedActions[targetId]) return;
+    setLoadingActionsMeeting(targetId);
+    void authorizedRequest<MeetingActionsResponse>(user, `/api/member-meetings/${targetId}/actions`)
+      .then((result) => setLinkedActions((current) => ({ ...current, [targetId]: result.actions || [] })))
+      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : "Impossible de charger les actions liées."))
+      .finally(() => setLoadingActionsMeeting(null));
+  }, [user, meetings, expandedActionsMeeting, linkedActions]);
 
   const refresh = async () => {
     if (!user) return;
@@ -228,6 +253,23 @@ export default function MeetingsHub() {
     }
   };
 
+  const toggleLinkedActions = async (meeting: Meeting) => {
+    if (expandedActionsMeeting === meeting.id) {
+      setExpandedActionsMeeting(null);
+      return;
+    }
+    setExpandedActionsMeeting(meeting.id);
+    if (linkedActions[meeting.id] || !user) return;
+    setLoadingActionsMeeting(meeting.id);
+    setError("");
+    try {
+      const result = await authorizedRequest<MeetingActionsResponse>(user, `/api/member-meetings/${meeting.id}/actions`);
+      setLinkedActions((current) => ({ ...current, [meeting.id]: result.actions || [] }));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Impossible de charger les actions liées.");
+    } finally { setLoadingActionsMeeting(null); }
+  };
+
   const submitSuggestion = async (meeting: Meeting) => {
     if (!user) return;
     const text = suggestionText[meeting.id]?.trim() || "";
@@ -301,6 +343,31 @@ export default function MeetingsHub() {
             <ol className="mt-2 space-y-1.5 pl-5 text-sm text-stone-700 marker:font-semibold marker:text-emerald-800">
               {meeting.agendaItems.map((item) => <li key={item.id}>{item.text}</li>)}
             </ol>
+          </div>
+        )}
+
+        {meeting.status === "published" && (
+          <div className="mt-3">
+            <button type="button" onClick={() => void toggleLinkedActions(meeting)} className="inline-flex min-h-9 items-center gap-2 text-xs font-bold text-emerald-800">
+              <ClipboardList size={14} /> Actions liées {expandedActionsMeeting === meeting.id ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+            {expandedActionsMeeting === meeting.id && (
+              <div className="mt-2 space-y-2 border-l-2 border-emerald-300 pl-3">
+                {loadingActionsMeeting === meeting.id ? (
+                  <p className="text-xs text-stone-500">Chargement des actions…</p>
+                ) : (linkedActions[meeting.id] || []).length ? (
+                  (linkedActions[meeting.id] || []).map((action) => (
+                    <div key={action.id} className="rounded-lg bg-stone-50 p-3">
+                      <p className="text-sm font-semibold text-stone-900">{action.title}</p>
+                      <p className="mt-1 text-xs text-stone-600">{action.pole} · {action.status.replaceAll("_", " ")}</p>
+                      {action.nextStep && <p className="mt-1 text-xs text-stone-600">Prochaine étape : {action.nextStep}</p>}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-stone-500">Aucune proposition n’est encore reliée à cette réunion.</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 

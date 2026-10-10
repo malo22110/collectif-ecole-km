@@ -1,5 +1,6 @@
 # Agenda et comptes rendus du collectif
 
+Les propositions du tableau d’actions peuvent être rattachées à une réunion publiée. Depuis une réunion, les membres peuvent consulter les propositions associées et leur état de suivi.
 ## Fonctionnement
 
 Les administrateurs et gestionnaires des rôles peuvent créer des réunions, préparer un ordre du jour et rédiger les notes de travail du collectif. Ils choisissent de conserver le rendez-vous en brouillon (visible aux coordinateurs seulement) ou de le publier aux membres validés.

@@ -42,12 +42,14 @@ type BoardAction = {
   createdAtMillis: number | null;
   updatedAtMillis: number | null;
   canEdit: boolean;
+  meeting: { id: string; title: string; startsAt: string } | null;
 };
 
-type ActionDraft = { pole: ActionPole; title: string; description: string; nextStep: string };
-type BoardResponse = { actions: BoardAction[]; canCoordinate: boolean; hasMore: boolean; nextCursor: string | null };
+type LinkableMeeting = { id: string; title: string; startsAt: string };
+type ActionDraft = { pole: ActionPole; title: string; description: string; nextStep: string; meetingId: string | null };
+type BoardResponse = { actions: BoardAction[]; linkableMeetings: LinkableMeeting[]; canCoordinate: boolean; hasMore: boolean; nextCursor: string | null };
 
-const EMPTY_DRAFT: ActionDraft = { pole: "chantiers", title: "", description: "", nextStep: "" };
+const EMPTY_DRAFT: ActionDraft = { pole: "chantiers", title: "", description: "", nextStep: "", meetingId: null };
 const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" });
 
 const NEXT_STATUSES: Record<ActionStatus, ActionStatus[]> = {
@@ -85,6 +87,7 @@ function formatDate(value: number | null) {
 export default function ActionBoard() {
   const [user, setUser] = useState<User | null>(null);
   const [actions, setActions] = useState<BoardAction[]>([]);
+  const [linkableMeetings, setLinkableMeetings] = useState<LinkableMeeting[]>([]);
   const [canCoordinate, setCanCoordinate] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -115,6 +118,7 @@ export default function ActionBoard() {
         .then((result) => {
           if (!active) return;
           setActions(Array.isArray(result.actions) ? result.actions : []);
+          setLinkableMeetings(Array.isArray(result.linkableMeetings) ? result.linkableMeetings : []);
           setCanCoordinate(result.canCoordinate === true);
           setHasMore(result.hasMore === true);
           setNextCursor(result.nextCursor || null);
@@ -136,6 +140,7 @@ export default function ActionBoard() {
     if (!user) return;
     const result = await authorizedRequest<BoardResponse>(user, "/api/action-board");
     setActions(Array.isArray(result.actions) ? result.actions : []);
+    setLinkableMeetings(Array.isArray(result.linkableMeetings) ? result.linkableMeetings : []);
     setCanCoordinate(result.canCoordinate === true);
     setHasMore(result.hasMore === true);
     setNextCursor(result.nextCursor || null);
@@ -185,7 +190,7 @@ export default function ActionBoard() {
 
   const startEdit = (action: BoardAction) => {
     setEditingId(action.id);
-    setDraft({ pole: action.pole, title: action.title, description: action.description, nextStep: action.nextStep });
+    setDraft({ pole: action.pole, title: action.title, description: action.description, nextStep: action.nextStep, meetingId: action.meeting?.id || null });
     setShowForm(true);
   };
 
@@ -219,6 +224,7 @@ export default function ActionBoard() {
     try {
       const result = await authorizedRequest<BoardResponse>(user, `/api/action-board?cursor=${encodeURIComponent(nextCursor)}`);
       setActions((current) => [...current, ...(Array.isArray(result.actions) ? result.actions : [])]);
+      setLinkableMeetings(Array.isArray(result.linkableMeetings) ? result.linkableMeetings : []);
       setHasMore(result.hasMore === true);
       setNextCursor(result.nextCursor || null);
     } catch (loadError) {
@@ -264,6 +270,13 @@ export default function ActionBoard() {
             <label className="text-sm font-semibold text-stone-800 sm:col-span-2">Prochaine étape possible <span className="font-normal text-stone-500">(facultatif)</span>
               <input maxLength={240} value={draft.nextStep} onChange={(event) => setDraft((current) => ({ ...current, nextStep: event.target.value }))} className="input-base mt-2 min-h-11" placeholder="Ex. Recueillir les contraintes auprès de la commune" />
             </label>
+            <label className="text-sm font-semibold text-stone-800 sm:col-span-2">Réunion associée <span className="font-normal text-stone-500">(facultatif)</span>
+              <select value={draft.meetingId || ""} onChange={(event) => setDraft((current) => ({ ...current, meetingId: event.target.value || null }))} className="input-base mt-2 min-h-11">
+                <option value="">Aucune réunion associée</option>
+                {linkableMeetings.map((meeting) => <option key={meeting.id} value={meeting.id}>{meeting.title} · {formatDate(Date.parse(meeting.startsAt))}</option>)}
+              </select>
+              <span className="mt-1 block text-xs font-normal text-stone-500">Seules les réunions publiées sont proposées.</span>
+            </label>
             <p className="flex items-start gap-2 text-xs leading-5 text-stone-600 sm:col-span-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-emerald-800" /> Ne saisissez pas de coordonnées personnelles ni de données sensibles. Une proposition publiée est un élément de travail, pas une décision de la commission ou du conseil municipal.</p>
             <div className="flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
               <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setDraft(EMPTY_DRAFT); }} className="btn-secondary min-h-11 px-4 py-2">Annuler</button>
@@ -298,6 +311,7 @@ export default function ActionBoard() {
                       <h2 className="text-lg font-bold text-stone-900">{action.title}</h2>
                       <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-stone-700">{action.description}</p>
                       {action.nextStep && <p className="mt-3 border-l-2 border-amber-400 pl-3 text-sm text-stone-700"><strong>Étape possible :</strong> {action.nextStep}</p>}
+                      {action.meeting && <Link href={`/espace-membre/reunions?meeting=${encodeURIComponent(action.meeting.id)}`} className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:underline"><CalendarDays size={14} /> Réunion : {action.meeting.title} <ArrowRight size={13} /></Link>}
                       <p className="mt-3 text-xs text-stone-500">Proposée par {action.createdByName} · mise à jour {formatDate(action.updatedAtMillis)}</p>
                       {action.statusNote && <p className="mt-2 text-sm text-stone-600">Suivi : {action.statusNote}</p>}
                     </div>

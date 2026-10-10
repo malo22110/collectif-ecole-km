@@ -1,5 +1,6 @@
 # Tableau « Propositions & actions »
 
+Une proposition peut être rattachée à une réunion publiée. Le tableau montre alors un lien vers cette réunion; depuis l’agenda, les membres peuvent ouvrir la liste des actions qui y sont associées. Le lien facilite le suivi entre discussion et action sans recopier le compte rendu.
 ## Fonctionnement
 
 Tous les membres validés peuvent consulter le tableau et soumettre une proposition dans l’un des quatre pôles : chantiers participatifs, expertise et mécénat, projets annexes, recherche de fonds. Une proposition contient un titre, une description du besoin et une prochaine étape possible.

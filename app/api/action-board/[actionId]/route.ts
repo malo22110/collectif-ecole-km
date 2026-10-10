@@ -52,6 +52,13 @@ export async function PATCH(
         if (!canEditAction(String(snapshot.get("createdByUid")), authorization.member!.uid, currentStatus)) {
           throw Object.assign(new Error("Seul l’auteur peut modifier une proposition encore nouvelle."), { status: 403 });
         }
+        if (parsed.data.meetingId) {
+          const meetingRef = adminDb.collection("memberMeetings").doc(parsed.data.meetingId);
+          const meeting = await transaction.get(meetingRef);
+          if (!meeting.exists || meeting.get("status") !== "published") {
+            throw Object.assign(new Error("Choisissez une réunion publiée."), { status: 400 });
+          }
+        }
         transaction.update(actionRef, {
           ...parsed.data,
           updatedAt: FieldValue.serverTimestamp(),

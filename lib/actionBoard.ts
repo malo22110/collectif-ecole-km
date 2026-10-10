@@ -48,6 +48,7 @@ export const actionCreateSchema = z
     title: nonBlankText(5, 100),
     description: nonBlankText(15, 1200),
     nextStep: publicText.max(240).default(""),
+    meetingId: z.string().regex(/^[A-Za-z0-9_-]{20,150}$/).nullable().default(null),
   })
   .strict();
 
@@ -57,6 +58,7 @@ export const actionEditSchema = z
     title: nonBlankText(5, 100),
     description: nonBlankText(15, 1200),
     nextStep: publicText.max(240),
+    meetingId: z.string().regex(/^[A-Za-z0-9_-]{20,150}$/).nullable(),
   })
   .strict();
 

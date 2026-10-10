@@ -130,6 +130,7 @@ export async function POST(request: Request) {
     }
 
     const parsed = reimbursementInputSchema.safeParse({
+      submissionId: formData.get("submissionId"),
       amountCents: Number(formData.get("amountCents")),
       publicLabel: formData.get("publicLabel"),
       description: formData.get("description"),

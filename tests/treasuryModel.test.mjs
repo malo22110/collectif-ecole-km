@@ -30,6 +30,12 @@ test("une demande impose un libellé public sans coordonnées et une vraie date"
     occurredOn: "2026-10-09",
   };
   assert.equal(reimbursementInputSchema.safeParse(validRequest).success, true);
+  const { submissionId, ...missingSubmissionId } = validRequest;
+  assert.equal(reimbursementInputSchema.safeParse(missingSubmissionId).success, false);
+  assert.equal(
+    reimbursementInputSchema.safeParse({ ...validRequest, submissionId: "invalid-id" }).success,
+    false,
+  );
   assert.equal(
     reimbursementInputSchema.safeParse({ ...validRequest, publicLabel: "jean@example.fr" }).success,
     false,

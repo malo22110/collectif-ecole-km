@@ -11,10 +11,15 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ACTIONS = "memberActionBoard";
+const MEETINGS = "memberMeetings";
 const MAX_BODY_BYTES = 16 * 1024;
 const MAX_CURSOR_LENGTH = 150;
 
-function serializeAction(document: FirebaseFirestore.QueryDocumentSnapshot, viewerUid: string) {
+function serializeAction(
+  document: FirebaseFirestore.QueryDocumentSnapshot,
+  viewerUid: string,
+  meeting?: { id: string; title: string; startsAt: string } | null,
+) {
   const data = document.data();
   return {
     id: document.id,
@@ -29,6 +34,7 @@ function serializeAction(document: FirebaseFirestore.QueryDocumentSnapshot, view
     createdAtMillis: data.createdAt?.toMillis?.() ?? null,
     updatedAtMillis: data.updatedAt?.toMillis?.() ?? null,
     canEdit: data.createdByUid === viewerUid && data.status === "proposition",
+    meeting: meeting || null,
   };
 }
 
@@ -54,9 +60,37 @@ export async function GET(request: Request) {
     }
     const snapshot = await query.get();
     const visibleDocs = snapshot.docs.slice(0, ACTION_BOARD_PAGE_SIZE);
+    const linkedMeetingIds = Array.from(
+      new Set(
+        visibleDocs
+          .map((document) => document.get("meetingId"))
+          .filter((id): id is string => typeof id === "string"),
+      ),
+    );
+    const [linkedMeetingSnapshots, linkableMeetingSnapshot] = await Promise.all([
+      linkedMeetingIds.length
+        ? adminDb.getAll(...linkedMeetingIds.map((id) => adminDb.collection("memberMeetings").doc(id)))
+        : Promise.resolve([]),
+      adminDb.collection(MEETINGS).orderBy("startsAt", "desc").limit(100).get(),
+    ]);
+    const meetingsById = new Map(
+      linkedMeetingSnapshots
+        .filter((meeting) => meeting.exists && meeting.get("status") === "published")
+        .map((meeting) => [meeting.id, { id: meeting.id, title: meeting.get("title"), startsAt: meeting.get("startsAt") }]),
+    );
+    const linkableMeetings = linkableMeetingSnapshot.docs
+      .filter((meeting) => meeting.get("status") === "published")
+      .map((meeting) => ({ id: meeting.id, title: meeting.get("title"), startsAt: meeting.get("startsAt") }));
     return NextResponse.json(
       {
-        actions: visibleDocs.map((document) => serializeAction(document, authorization.member!.uid)),
+        actions: visibleDocs.map((document) =>
+          serializeAction(
+            document,
+            authorization.member!.uid,
+            meetingsById.get(String(document.get("meetingId"))) || null,
+          ),
+        ),
+        linkableMeetings,
         canCoordinate: authorization.member.canCoordinate,
         hasMore: snapshot.docs.length > ACTION_BOARD_PAGE_SIZE,
         nextCursor: snapshot.docs.length > ACTION_BOARD_PAGE_SIZE ? visibleDocs.at(-1)?.id ?? null : null,
@@ -85,6 +119,13 @@ export async function POST(request: Request) {
   const parsed = actionCreateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Vérifiez le pôle, le titre et le contenu de la proposition." }, { status: 400 });
+  }
+
+  if (parsed.data.meetingId) {
+    const meeting = await adminDb.collection("memberMeetings").doc(parsed.data.meetingId).get();
+    if (!meeting.exists || meeting.get("status") !== "published") {
+      return NextResponse.json({ error: "Choisissez une réunion publiée." }, { status: 400 });
+    }
   }
 
   try {

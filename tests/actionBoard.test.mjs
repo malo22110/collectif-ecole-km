@@ -15,6 +15,7 @@ test("valide une nouvelle proposition avec un pôle connu", () => {
       pole: "expertise",
       title: "Comparer les solutions de ventilation",
       description: "Rassembler les éléments techniques disponibles pour préparer une comparaison.",
+      meetingId: "b8b76c94-f222-43c9-967a-97b6dca9f674",
     }).success,
     true,
   );
@@ -23,6 +24,7 @@ test("valide une nouvelle proposition avec un pôle connu", () => {
       pole: "admin",
       title: "Décider le marché",
       description: "Cette proposition ne doit pas décider à la place de la commune.",
+      meetingId: null,
       status: "realisee",
     }).success,
     false,
@@ -39,8 +41,26 @@ test("limite l’édition aux auteurs tant que la proposition est nouvelle", () 
       title: "Préparer un chantier participatif",
       description: "Lister les besoins qui pourront être discutés avec la commune.",
       nextStep: "Recueillir les questions des membres.",
+      meetingId: null,
     }).success,
     true,
+  );
+  assert.equal(
+    actionCreateSchema.safeParse({
+      pole: "expertise",
+      title: "Comparer les solutions de ventilation",
+      description: "Rassembler les éléments techniques disponibles pour préparer une comparaison.",
+    }).data.meetingId,
+    null,
+  );
+  assert.equal(
+    actionCreateSchema.safeParse({
+      pole: "expertise",
+      title: "Comparer les solutions de ventilation",
+      description: "Rassembler les éléments techniques disponibles pour préparer une comparaison.",
+      meetingId: "not-a-meeting-id",
+    }).success,
+    false,
   );
 });
 
