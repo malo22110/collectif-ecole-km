@@ -19,6 +19,7 @@ import {
   MapPinned,
   Wallet,
   Users,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -255,6 +256,13 @@ export default function EspaceMembreLayout({ children }: { children: React.React
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/competences" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
           >
             <Users size={20} /> <span>Compétences</span>
+          </Link>
+
+          <Link
+            href="/espace-membre/actions"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors whitespace-nowrap ${pathname === "/espace-membre/actions" ? "bg-emerald-600 text-white" : "hover:bg-stone-800"}`}
+          >
+            <Wrench size={20} /> <span>Propositions & actions</span>
           </Link>
 
           {(userRoles.includes("admin") || userRoles.includes("gestionnaire")) && (

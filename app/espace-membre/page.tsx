@@ -2,7 +2,7 @@
 
 // [SPEC-DASHBOARD-01] Keep the member dashboard focused on the main hubs.
 import Link from "next/link";
-import { ArrowRight, BookOpen, ClipboardList, UserRoundCog, Newspaper, MapPinned, Users } from "lucide-react";
+import { ArrowRight, BookOpen, ClipboardList, UserRoundCog, Newspaper, MapPinned, Users, Wrench } from "lucide-react";
 
 export default function EspaceMembreDashboard() {
   return (
@@ -120,6 +120,24 @@ export default function EspaceMembreDashboard() {
           className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto"
         >
           Ouvrir l’annuaire <ArrowRight size={17} aria-hidden="true" />
+        </Link>
+      </section>
+
+      <section
+        className="flex flex-col gap-4 border-b border-stone-200 py-5 sm:flex-row sm:items-center sm:justify-between"
+        aria-labelledby="actions-board-title"
+      >
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-amber-100 text-amber-900">
+            <Wrench size={20} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 id="actions-board-title" className="font-bold text-stone-900">Propositions & actions</h2>
+            <p className="mt-1 text-sm text-stone-600">Rassemblez les idées, besoins et prochaines étapes par pôle.</p>
+          </div>
+        </div>
+        <Link href="/espace-membre/actions" className="btn-secondary min-h-11 w-full px-4 py-2 sm:w-auto">
+          Ouvrir le tableau <ArrowRight size={17} aria-hidden="true" />
         </Link>
       </section>
 

@@ -15,7 +15,8 @@
     "test:mail-outbox": "node --experimental-strip-types --test tests/mailOutbox.test.mjs",
     "test:tractation": "node --experimental-strip-types --test tests/tractation.test.mjs",
     "test:treasury": "node --experimental-strip-types --test tests/treasuryModel.test.mjs",
-    "test:member-skills": "node --experimental-strip-types --test tests/memberSkills.test.mjs"
+    "test:member-skills": "node --experimental-strip-types --test tests/memberSkills.test.mjs",
+    "test:action-board": "node --experimental-strip-types --test tests/actionBoard.test.mjs"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.3",
