@@ -18,6 +18,15 @@ export const dynamic = "force-dynamic";
 
 const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
 
+class CampaignDocumentError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
 // [SPEC-TRACTATION-03] All valid members may download campaign materials through an authenticated route.
 export async function GET(request: Request, context: { params: Promise<{ campaignId: string }> }) {
   const authorization = await authorizeTractationMember(request);
@@ -115,8 +124,6 @@ export async function POST(request: Request, context: { params: Promise<{ campai
     const fileName = sanitizeCampaignFileName(suppliedName);
     const storagePath = `tractationCampaigns/${campaignId}/${newStorageObjectId()}.${detectedType.extension}`;
     const file = tractationBucket.file(storagePath);
-    const previousAttachment = campaign.get("attachment");
-
     await file.save(contents, {
       resumable: false,
       metadata: {
@@ -126,25 +133,44 @@ export async function POST(request: Request, context: { params: Promise<{ campai
       },
     });
 
+    let previousStoragePath: string | null = null;
     try {
-      await campaignRef.update({
-        attachment: {
-          fileName,
-          contentType: detectedType.contentType,
-          size: contents.byteLength,
-          storagePath,
-          uploadedAt: FieldValue.serverTimestamp(),
-        },
-        updatedAt: FieldValue.serverTimestamp(),
+      await tractationDb.runTransaction(async (transaction) => {
+        const currentCampaign = await transaction.get(campaignRef);
+        if (!currentCampaign.exists) {
+          throw new CampaignDocumentError(404, "Campagne introuvable.");
+        }
+        if (currentCampaign.get("status") !== "active") {
+          throw new CampaignDocumentError(409, "Cette campagne n’est plus ouverte.");
+        }
+        const previousAttachment = currentCampaign.get("attachment");
+        previousStoragePath =
+          previousAttachment && typeof previousAttachment.storagePath === "string"
+            ? previousAttachment.storagePath
+            : null;
+        transaction.update(campaignRef, {
+          attachment: {
+            fileName,
+            contentType: detectedType.contentType,
+            size: contents.byteLength,
+            storagePath,
+            uploadedAt: FieldValue.serverTimestamp(),
+          },
+          updatedAt: FieldValue.serverTimestamp(),
+          updatedByUid: authorization.member!.uid,
+        });
       });
     } catch (error) {
       await file.delete({ ignoreNotFound: true }).catch(() => undefined);
+      if (error instanceof CampaignDocumentError) {
+        return Response.json({ error: error.message }, { status: error.status });
+      }
       throw error;
     }
 
-    if (previousAttachment && typeof previousAttachment.storagePath === "string") {
+    if (previousStoragePath) {
       await tractationBucket
-        .file(previousAttachment.storagePath)
+        .file(previousStoragePath)
         .delete({ ignoreNotFound: true })
         .catch((error) => {
           console.warn("Ancienne pièce jointe non supprimée après remplacement:", error);

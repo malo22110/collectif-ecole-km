@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 20;
 const MAX_PLACES = 300;
+const ARCHIVE_PAGE_SIZE = 20;
 
 function toIsoString(value: unknown) {
   if (
@@ -39,6 +40,45 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const cursor = url.searchParams.get("cursor");
     const campaigns = tractationDb.collection("tractationCampaigns");
+
+    if (url.searchParams.get("status") === "closed") {
+      if (cursor && !campaignIdSchema.safeParse(cursor).success) {
+        return Response.json({ error: "Curseur invalide." }, { status: 400 });
+      }
+      let archivedQuery = campaigns
+        .where("status", "==", "closed")
+        .orderBy("closedAt", "desc")
+        .limit(ARCHIVE_PAGE_SIZE + 1);
+      if (cursor) {
+        const cursorDocument = await campaigns.doc(cursor).get();
+        if (!cursorDocument.exists || cursorDocument.get("status") !== "closed") {
+          return Response.json({ error: "Curseur inconnu." }, { status: 400 });
+        }
+        archivedQuery = archivedQuery.startAfter(cursorDocument);
+      }
+
+      const archivedSnapshot = await archivedQuery.get();
+      const archivedDocuments = archivedSnapshot.docs.slice(0, ARCHIVE_PAGE_SIZE);
+      return Response.json(
+        {
+          campaigns: archivedDocuments.map((document) => ({
+            id: document.id,
+            title: String(document.get("title") || "Campagne sans titre"),
+            message: String(document.get("message") || ""),
+            createdAt: toIsoString(document.get("createdAt")),
+            closedAt: toIsoString(document.get("closedAt")),
+            closedByName: String(document.get("closedByName") || "Responsable tractation"),
+            placeCount: Array.isArray(document.get("lieuDits")) ? document.get("lieuDits").length : 0,
+          })),
+          nextCursor:
+            archivedSnapshot.docs.length > ARCHIVE_PAGE_SIZE
+              ? archivedDocuments.at(-1)?.id || null
+              : null,
+        },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
+
     let campaignQuery = campaigns.where("status", "==", "active");
 
     if (cursor) {

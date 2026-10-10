@@ -8,6 +8,7 @@ import {
   ArrowDownToLine,
   ArrowUp,
   ArrowUpRight,
+  Archive,
   Check,
   Compass,
   Heart,
@@ -50,6 +51,15 @@ type Campaign = {
   joined: boolean;
   assignedPlaces: Record<string, PlaceAssignment>;
   myRoutePlaceIds: string[];
+};
+type ArchivedCampaign = {
+  id: string;
+  title: string;
+  message: string;
+  createdAt: string | null;
+  closedAt: string | null;
+  closedByName: string;
+  placeCount: number;
 };
 type PageData = {
   campaigns: Campaign[];
@@ -155,6 +165,10 @@ export default function TractationPanel({
 }: TractationPanelProps) {
   const [user, setUser] = useState<User | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [archivedCampaigns, setArchivedCampaigns] = useState<ArchivedCampaign[]>([]);
+  const [archivedCursor, setArchivedCursor] = useState<string | null>(null);
+  const [archivedLoading, setArchivedLoading] = useState(false);
+  const [archivedError, setArchivedError] = useState("");
   const [availablePlaces, setAvailablePlaces] = useState<Place[]>([]);
   const [canCreate, setCanCreate] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -216,6 +230,29 @@ export default function TractationPanel({
     [onCanCreateChange, onStatisticsVisibleChange],
   );
 
+  const loadArchived = useCallback(async (currentUser: User, cursor?: string | null) => {
+    setArchivedLoading(true);
+    setArchivedError("");
+    try {
+      const query = new URLSearchParams({ status: "closed" });
+      if (cursor) query.set("cursor", cursor);
+      const data = (await request(currentUser, `/api/tractation?${query}`)) as {
+        campaigns: ArchivedCampaign[];
+        nextCursor: string | null;
+      };
+      setArchivedCampaigns((previous) =>
+        cursor ? [...previous, ...data.campaigns] : data.campaigns,
+      );
+      setArchivedCursor(data.nextCursor);
+    } catch (loadError) {
+      setArchivedError(
+        loadError instanceof Error ? loadError.message : "Impossible de charger les archives.",
+      );
+    } finally {
+      setArchivedLoading(false);
+    }
+  }, []);
+
   const getRouteDraft = useCallback(
     (campaign: Campaign) => routeDrafts[campaign.id] ?? [],
     [routeDrafts],
@@ -241,7 +278,7 @@ export default function TractationPanel({
         setLoading(false);
         return;
       }
-      void load(currentUser)
+      void Promise.all([load(currentUser), loadArchived(currentUser)])
         .catch((err) => {
           if (active)
             setError(err instanceof Error ? err.message : "Impossible de charger les campagnes.");
@@ -254,7 +291,7 @@ export default function TractationPanel({
       active = false;
       unsubscribe();
     };
-  }, [load]);
+  }, [load, loadArchived]);
 
   useEffect(() => {
     if (!mapCampaignId) {
@@ -1463,6 +1500,59 @@ export default function TractationPanel({
         >
           Charger d’autres campagnes
         </button>
+      )}
+
+      {!selectedCampaignId && (
+        <section className="mt-8 border-t border-stone-200 pt-6" aria-labelledby="archived-campaigns-title">
+          <div className="flex items-center gap-3">
+            <span className="grid size-9 place-items-center rounded-lg bg-stone-100 text-stone-700">
+              <Archive size={18} aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 id="archived-campaigns-title" className="font-bold text-stone-900">Campagnes archivées</h2>
+              <p className="text-xs text-stone-500">Consultation seulement · les campagnes clôturées ne peuvent plus être rejointes.</p>
+            </div>
+            <span className="text-xs text-stone-500">{archivedCampaigns.length}</span>
+          </div>
+
+          {archivedError && <p role="alert" className="mt-3 border-l-4 border-rose-600 bg-rose-50 px-3 py-2 text-sm text-rose-800">{archivedError}</p>}
+          {archivedLoading && !archivedCampaigns.length ? (
+            <p role="status" className="py-5 text-sm text-stone-500"><Loader2 size={16} className="mr-2 inline animate-spin" aria-hidden="true" />Chargement des archives…</p>
+          ) : archivedCampaigns.length ? (
+            <ul className="mt-4 divide-y divide-stone-200 border-y border-stone-200">
+              {archivedCampaigns.map((campaign) => (
+                <li key={campaign.id} className="py-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h3 className="font-semibold text-stone-800">{campaign.title}</h3>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">
+                      <Archive size={13} aria-hidden="true" /> Archivée
+                    </span>
+                  </div>
+                  <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-stone-600">{campaign.message}</p>
+                  <p className="mt-2 text-xs text-stone-500">
+                    {campaign.closedAt ? `Clôturée le ${new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(new Date(campaign.closedAt))}` : "Clôturée"}
+                    {` · ${campaign.placeCount} secteur${campaign.placeCount === 1 ? "" : "s"}`}
+                    {` · par ${campaign.closedByName}`}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : !archivedLoading && !archivedError ? (
+            <p className="mt-4 border-y border-stone-200 py-5 text-sm text-stone-600">Aucune campagne archivée pour le moment.</p>
+          ) : null}
+
+          {archivedCursor && (
+            <button
+              type="button"
+              disabled={archivedLoading}
+              onClick={() => user && void loadArchived(user, archivedCursor)}
+              className="btn-secondary mt-3 min-h-10 w-full py-2 text-sm"
+            >
+              {archivedLoading && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
+              Charger d’autres archives
+            </button>
+          )}
+        </section>
       )}
 
       {selectedCampaignId && selectedCampaignId !== editingCampaignId && selectedCampaign && (

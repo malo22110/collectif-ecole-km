@@ -28,6 +28,11 @@ export function canUpdateCampaignPlaces(assignedPlaceIds: string[], requestedPla
   return assignedPlaceIds.every((placeId) => requested.has(placeId));
 }
 
+// [SPEC-TRACTATION-14] Only campaigns that are still active may be closed.
+export function canCloseCampaign(status: unknown) {
+  return status === "active";
+}
+
 // [SPEC-TRACTATION-08] A place is mobilizable only when it has at least one known household.
 export function hasEligibleHouseholds(value: unknown) {
   return Number.isInteger(value) && Number(value) > 0;

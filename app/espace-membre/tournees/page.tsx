@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownToLine,
   ArrowLeft,
+  Archive,
   Check,
   Heart,
   Info,
@@ -75,6 +76,8 @@ export default function TourneesPage() {
   const [roadRouteError, setRoadRouteError] = useState("");
   const [roadRouteRetry, setRoadRouteRetry] = useState(0);
   const [pageError, setPageError] = useState("");
+  const [pageNotice, setPageNotice] = useState("");
+  const [closingCampaign, setClosingCampaign] = useState(false);
   const firstTourGuideCheckedUid = useRef<string | null>(null);
 
   useEffect(() => {
@@ -364,6 +367,36 @@ export default function TourneesPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  const closeCampaign = async () => {
+    if (!currentUser || !campaignMap || closingCampaign) return;
+    const confirmed = window.confirm(
+      "Clôturer cette campagne ? Les membres ne pourront plus rejoindre ni poursuivre leurs tournées. Les réservations et passages enregistrés seront conservés.",
+    );
+    if (!confirmed) return;
+
+    setClosingCampaign(true);
+    setPageError("");
+    setPageNotice("");
+    try {
+      const response = await fetch(
+        `/api/tractation/${encodeURIComponent(campaignMap.campaignId)}/close`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${await currentUser.getIdToken()}` },
+          cache: "no-store",
+        },
+      );
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error || "Impossible de clôturer la campagne.");
+      setPageNotice("La campagne a été clôturée. Son historique est conservé.");
+      backToCampaigns();
+    } catch (closeError) {
+      setPageError(closeError instanceof Error ? closeError.message : "Impossible de clôturer la campagne.");
+    } finally {
+      setClosingCampaign(false);
+    }
+  };
+
   const title =
     view === "campaign"
       ? campaignMap?.title || "Campagne"
@@ -521,6 +554,11 @@ export default function TourneesPage() {
                 {pageError}
               </p>
             )}
+            {pageNotice && (
+              <p role="status" className="border-l-4 border-emerald-600 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                {pageNotice}
+              </p>
+            )}
 
             {firstTourGuideStep && (
               <aside
@@ -662,16 +700,27 @@ export default function TourneesPage() {
                     Informations de la campagne
                   </p>
                   {canCreateCampaign && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingCampaign(true);
-                        setView("campaign");
-                      }}
-                      className="btn-secondary mt-3 min-h-11 px-4 text-sm"
-                    >
-                      <Pencil size={17} aria-hidden="true" /> Modifier la campagne
-                    </button>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingCampaign(true);
+                          setView("campaign");
+                        }}
+                        className="btn-secondary min-h-11 px-4 text-sm"
+                      >
+                        <Pencil size={17} aria-hidden="true" /> Modifier la campagne
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void closeCampaign()}
+                        disabled={closingCampaign}
+                        className="btn-secondary min-h-11 border-rose-200 px-4 text-sm text-rose-800 hover:bg-rose-50"
+                      >
+                        {closingCampaign ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Archive size={16} aria-hidden="true" />}
+                        {closingCampaign ? "Clôture…" : "Clôturer la campagne"}
+                      </button>
+                    </div>
                   )}
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-stone-700">
                     {campaignMap.message}

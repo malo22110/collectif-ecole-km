@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   campaignInputSchema,
   campaignIdSchema,
+  canCloseCampaign,
   canUpdateCampaignPlaces,
   canCreateCampaign,
   canReopenPlaceAssignment,
@@ -40,7 +41,6 @@ test("place les actions de campagne dans un footer fixe avec dégagement mobile"
     new URL("../app/espace-membre/tournees/page.tsx", import.meta.url),
     "utf8",
   );
-
   assert.match(panel, /footer className="fixed inset-x-0 bottom-0[^\"]*md:left-64/);
   assert.match(panel, /Rejoindre cette campagne/);
   assert.match(panel, /Préparer ma tournée/);
@@ -400,6 +400,60 @@ test("protège les secteurs déjà pris lors de la modification d’une campagne
   );
   assert.equal(canUpdateCampaignPlaces(["place-1", "place-2"], ["place-2", "place-3"]), false);
   assert.equal(canUpdateCampaignPlaces([], ["place-3"]), true);
+});
+
+// [SPEC-TRACTATION-14] Closure is a one-way transition from active to closed.
+test("permet de clôturer uniquement une campagne active", () => {
+  assert.equal(canCloseCampaign("active"), true);
+  assert.equal(canCloseCampaign("closed"), false);
+  assert.equal(canCloseCampaign("draft"), false);
+  assert.equal(canCloseCampaign(undefined), false);
+});
+
+// [SPEC-TRACTATION-14] Campaign closure is manager-only, transactional, audited, and confirmed in the UI.
+test("clôture une campagne par une route responsable et conserve son historique", async () => {
+  const route = await readFile(
+    new URL("../app/api/tractation/[campaignId]/close/route.ts", import.meta.url),
+    "utf8",
+  );
+  const documentRoute = await readFile(
+    new URL("../app/api/tractation/[campaignId]/document/route.ts", import.meta.url),
+    "utf8",
+  );
+  const page = await readFile(
+    new URL("../app/espace-membre/tournees/page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(route, /authorizeTractationMember\(request, true\)/);
+  assert.match(route, /tractationDb\.runTransaction/);
+  assert.match(route, /canCloseCampaign\(campaign\.get\("status"\)\)/);
+  assert.match(route, /status: "closed"/);
+  assert.match(route, /closedAt: FieldValue\.serverTimestamp\(\)/);
+  assert.match(route, /closedByUid: authorization\.member!\.uid/);
+  assert.match(page, /\/api\/tractation\/\$\{encodeURIComponent\(campaignMap\.campaignId\)\}\/close/);
+  assert.match(page, /Clôturer la campagne/);
+  assert.match(page, /Les réservations et passages enregistrés seront conservés/);
+  assert.match(documentRoute, /tractationDb\.runTransaction/);
+  assert.match(documentRoute, /currentCampaign\.get\("status"\) !== "active"/);
+});
+
+// [SPEC-TRACTATION-15] Closed campaigns are shown in a separate read-only paginated archive.
+test("affiche les campagnes clôturées dans le hub sans action pour les rejoindre", async () => {
+  const route = await readFile(new URL("../app/api/tractation/route.ts", import.meta.url), "utf8");
+  const panel = await readFile(
+    new URL("../app/espace-membre/components/TractationPanel.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(route, /searchParams\.get\("status"\) === "closed"/);
+  assert.match(route, /orderBy\("closedAt", "desc"\)/);
+  assert.match(route, /ARCHIVE_PAGE_SIZE \+ 1/);
+  assert.match(route, /closedByName:/);
+  assert.match(panel, /Campagnes archivées/);
+  assert.match(panel, /Consultation seulement/);
+  assert.match(panel, /Charger d’autres archives/);
+  assert.match(panel, /Clôturée le/);
 });
 
 // [SPEC-TRACTATION-08] Zero-household and unknown-count places are not campaign or route options.
