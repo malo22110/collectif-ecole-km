@@ -24,6 +24,7 @@ test("les redirections vers le domaine canonique ne capturent pas les endpoints 
     "/petition",
     "/actualites",
     "/espace-membre",
+    "/presentation-membres",
   ]) {
     assert.ok(
       redirects.some(({ source }) => source === path),

@@ -78,6 +78,11 @@
         "type": 301
       },
       {
+        "source": "/presentation-membres",
+        "destination": "https://collectif-ecole-km.fr/presentation-membres",
+        "type": 301
+      },
+      {
         "source": "/robots.txt",
         "destination": "https://collectif-ecole-km.fr/robots.txt",
         "type": 301

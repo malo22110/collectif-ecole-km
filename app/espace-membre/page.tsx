@@ -2,7 +2,7 @@
 
 // [SPEC-DASHBOARD-01] Keep the member dashboard focused on the main hubs.
 import Link from "next/link";
-import { ArrowRight, ClipboardList, UserRoundCog, Newspaper, MapPinned } from "lucide-react";
+import { ArrowRight, BookOpen, ClipboardList, UserRoundCog, Newspaper, MapPinned } from "lucide-react";
 
 export default function EspaceMembreDashboard() {
   return (
@@ -14,6 +14,13 @@ export default function EspaceMembreDashboard() {
         <p className="text-base text-stone-600 md:text-lg">
           Votre quartier général pour la mobilisation sur le terrain.
         </p>
+        <Link
+          href="/presentation-membres"
+          className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-bold text-emerald-800 hover:text-emerald-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
+        >
+          <BookOpen size={17} aria-hidden="true" /> Découvrir les outils de l’espace membre
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
       </header>
 
       <section
