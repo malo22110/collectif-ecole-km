@@ -172,6 +172,8 @@ export async function GET(request: Request) {
         status: String(data.status || "pending"),
         createdAt: data.createdAt?.toDate?.().toISOString?.() || null,
         sentAt: data.sentAt?.toDate?.().toISOString?.() || null,
+        scheduledAt: data.scheduledAt?.toDate?.().toISOString?.() || null,
+        error: typeof data.error === "string" ? data.error : null,
         sentCount: Number(data.sentCount || 0),
         failedCount: Number(data.failedCount || 0),
         recipientCount: Number(data.recipientCount || 0),

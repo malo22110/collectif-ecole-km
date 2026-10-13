@@ -38,6 +38,8 @@ export async function GET(request: Request, context: { params: Promise<{ mailId:
           status: String(data.status || "pending"),
           createdAt: toIsoString(data.createdAt),
           sentAt: toIsoString(data.sentAt),
+          scheduledAt: toIsoString(data.scheduledAt),
+          error: typeof data.error === "string" ? data.error : null,
           sentCount: Number(data.sentCount || 0),
           failedCount: Number(data.failedCount || 0),
           recipientCount: Number(data.recipientCount || recipients.length),

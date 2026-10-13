@@ -21,6 +21,14 @@ La commande demande le secret interactivement. Le même secret sert au SMTP et �
 
 Les réglages SMTP par défaut sont `mail.infomaniak.com`, port `587` avec STARTTLS. Le port `465` active TLS implicite si la configuration Infomaniak le demande.
 
+## Campagnes et quota d'envoi
+
+[SPEC-MAIL-03] Infomaniak applique un quota par adresse sur une fenêtre glissante de 24 heures (selon l'offre : 200 ou 500 e-mails). Les envois effectués depuis d'autres applications utilisant la même adresse comptent également. Voir [les limites Infomaniak](https://faq.infomaniak.com/2065). Pour des campagnes récurrentes plus volumineuses, prévoir un service de newsletter adapté.
+
+Si le serveur renvoie `451 4.3.0` pour le quota quotidien, la campagne s'arrête : les destinataires restants restent en attente et une reprise automatique est programmée 24 heures plus tard. Le statut « envoyé » signifie seulement que le serveur SMTP a accepté le message, pas qu'il a été livré en boîte de réception.
+
+Pour une campagne antérieure à cette gestion du quota, les destinataires concernés ont été marqués en échec. Après déploiement des fonctions **et** de l'application, attendre qu'une capacité d'envoi se libère, puis ouvrir la campagne dans l'onglet « Envoyés » et cliquer sur « Relancer les N échecs ». Seuls ces destinataires sont remis en file : ceux déjà acceptés par SMTP ne reçoivent pas de doublon. Ne pas recréer une campagne « Tous » pour tenter cette reprise. Le déploiement du correctif seul ne relance pas les échecs passés.
+
 ## Authentification du domaine
 
 Dans le Manager Infomaniak, ouvrir la configuration du service Mail du domaine et publier les enregistrements SPF et DKIM indiqués pour le domaine. Ne pas créer un deuxième enregistrement SPF : si un TXT SPF existe déjà, fusionner les mécanismes autorisés dans un seul enregistrement.

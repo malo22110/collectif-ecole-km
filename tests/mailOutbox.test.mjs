@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { getPersonalTestRecipient, resolveMailRecipients } from "../lib/mailOutboxUtils.ts";
-import { isMailDueForDelivery } from "../functions/src/mailQueue.ts";
+import { canRetryFailedRecipients, isDailySmtpQuotaError, isMailDueForDelivery } from "../functions/src/mailQueue.ts";
 
 // [SPEC-MAIL-03] The all audience contains members and signers, never press contacts.
 test("Tous fusionne membres et signataires, exclut les journalistes et déduplique les adresses", () => {
@@ -70,4 +70,24 @@ test("la reprise accepte les envois immédiats et échus, mais pas les envois fu
     true,
   );
   assert.equal(isMailDueForDelivery(new Date("2026-10-05T12:01:00.000Z"), now), false);
+});
+
+// [SPEC-MAIL-03] Only Infomaniak's 24-hour quota error pauses a campaign.
+test("le quota quotidien SMTP est distingué des autres refus", () => {
+  assert.equal(isDailySmtpQuotaError({
+    responseCode: 451,
+    response: "451 4.3.0 You have reached the maximum number of sent emails within a 24-hours period.",
+  }), true);
+  assert.equal(isDailySmtpQuotaError({ responseCode: 451, response: "Temporary mailbox failure" }), false);
+  assert.equal(isDailySmtpQuotaError({ responseCode: 550, response: "maximum number of sent emails within a 24-hours period" }), false);
+  assert.equal(isDailySmtpQuotaError(new Error("timeout")), false);
+});
+
+// [SPEC-MAIL-03] Manual retry cannot resend accepted recipients or overlap a running campaign.
+test("la relance ne reprend que les échecs d'une campagne terminée", () => {
+  assert.equal(canRetryFailedRecipients("partial", 483, 0, 483), true);
+  assert.equal(canRetryFailedRecipients("error", 494, 0, 494), true);
+  assert.equal(canRetryFailedRecipients("sending", 483, 0, 483), false);
+  assert.equal(canRetryFailedRecipients("partial", 483, 1, 483), false);
+  assert.equal(canRetryFailedRecipients("partial", 483, 0, 482), false);
 });

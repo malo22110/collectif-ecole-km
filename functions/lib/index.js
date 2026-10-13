@@ -214,6 +214,14 @@ async function processSpreadMail(docSnap) {
             }
             catch (err) {
                 logger.error(`Erreur d'envoi à ${email}:`, err);
+                if ((0, mailQueue_1.isDailySmtpQuotaError)(err)) {
+                    await docSnap.ref.update({
+                        status: "pending",
+                        scheduledAt: admin.firestore.Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000),
+                        error: "Quota quotidien SMTP atteint. Reprise automatique après 24 h.",
+                    });
+                    return;
+                }
                 failedCount++;
                 await deliveryRef.ref.update({
                     status: "error",
@@ -232,12 +240,14 @@ async function processSpreadMail(docSnap) {
             failedCount,
             testMode: isTest,
         });
+        const totalSentCount = Number(data.sentCount || 0) + sentCount;
+        const totalFailedCount = Number(data.failedCount || 0) + failedCount;
         await docSnap.ref.update({
-            status: failedCount === 0 ? "sent" : sentCount > 0 ? "partial" : "error",
+            status: totalFailedCount === 0 ? "sent" : totalSentCount > 0 ? "partial" : "error",
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            sentCount,
-            failedCount,
-            error: failedCount
+            sentCount: totalSentCount,
+            failedCount: totalFailedCount,
+            error: totalFailedCount
                 ? "Une ou plusieurs livraisons ont échoué."
                 : admin.firestore.FieldValue.delete(),
         });

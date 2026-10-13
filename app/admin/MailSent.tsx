@@ -12,6 +12,8 @@ interface SentSummary {
   status: string;
   createdAt: string | null;
   sentAt: string | null;
+  scheduledAt: string | null;
+  error: string | null;
   sentCount: number;
   failedCount: number;
   recipientCount: number;
@@ -73,6 +75,7 @@ export default function MailSent() {
   const [items, setItems] = useState<SentSummary[]>([]);
   const [selected, setSelected] = useState<SentDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async (silent = false) => {
@@ -124,6 +127,28 @@ export default function MailSent() {
 
   const selectMessage = async (item: SentSummary) => {
     await refreshSelected(item.id);
+  };
+
+  const retryFailed = async (mailId: string, failedCount: number) => {
+    if (!window.confirm(`Relancer uniquement les ${failedCount} destinataires en échec ? Vérifiez que le quota SMTP est à nouveau disponible.`)) return;
+    setRetrying(true);
+    setError("");
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error("Votre session a expiré. Reconnectez-vous.");
+      const response = await fetch(`/api/mail-outbox/${encodeURIComponent(mailId)}/retry`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error || "La relance a échoué.");
+      await load(true);
+      await refreshSelected(mailId);
+    } catch (retryError) {
+      setError(retryError instanceof Error ? retryError.message : "La relance a échoué.");
+    } finally {
+      setRetrying(false);
+    }
   };
 
   return (
@@ -235,6 +260,22 @@ export default function MailSent() {
                   {selected.sentCount} accepté(s) par SMTP, {selected.failedCount} échec(s),{" "}
                   {selected.recipientCount} destinataire(s)
                 </p>
+                {selected.error?.includes("Quota quotidien SMTP") && selected.scheduledAt && (
+                  <p role="status" className="text-sm text-amber-800">
+                    Quota SMTP atteint. Reprise prévue le {formatDate(selected.scheduledAt)}.
+                  </p>
+                )}
+                {["partial", "error"].includes(selected.status) && selected.failedCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => void retryFailed(selected.id, selected.failedCount)}
+                    disabled={retrying}
+                    className="btn-secondary min-h-10 px-3 py-2 text-sm"
+                  >
+                    <RefreshCw size={15} className="mr-2 inline" aria-hidden="true" />
+                    Relancer les {selected.failedCount} échecs
+                  </button>
+                )}
               </header>
               <ul className="max-h-[52vh] divide-y divide-stone-200 overflow-y-auto">
                 {selected.recipients.map((recipient, index) => (
