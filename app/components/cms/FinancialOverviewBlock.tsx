@@ -1,5 +1,5 @@
 import React from "react";
-import { TrendingDown, AlertCircle, CheckCircle, BookOpen } from "lucide-react";
+import { TrendingDown, AlertCircle, CheckCircle, BookOpen, ChevronDown } from "lucide-react";
 import CommentBadge from "./CommentBadge";
 import {
   completedFinancialServices,
@@ -91,57 +91,78 @@ export default function FinancialOverviewBlock({ data, context }: any) {
             </div>
 
             <section
-              aria-labelledby="completed-expenses-title"
+              aria-label="Dépenses réalisées (service fait)"
               className="border-t border-stone-100 pt-6"
             >
-              <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
-                <div>
-                  <h3 id="completed-expenses-title" className="text-lg font-bold text-stone-900">
-                    Dépenses réalisées (service fait)
-                  </h3>
-                  <p className="text-sm text-stone-500">Situation arrêtée au {completedFinancialServicesCutoff} · Montants HT</p>
-                </div>
-                <p className="text-lg font-bold tabular-nums text-stone-900">
-                  {formatEuro(completedFinancialServicesTotal)}
-                </p>
-              </div>
+              <details className="group">
+                {/* [SPEC-CMS-FIN-01] Garder le détail des prestations replié tout en exposant le total. */}
+                <summary
+                  aria-label={`Afficher le détail des dépenses réalisées au ${completedFinancialServicesCutoff}`}
+                  className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-left hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 [&::-webkit-details-marker]:hidden"
+                >
+                  <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="text-sm font-semibold text-stone-600">
+                      Sommes déjà engagées
+                    </span>
+                    <span className="text-lg font-bold tabular-nums text-stone-900">
+                      {formatEuro(completedFinancialServicesTotal)} HT
+                    </span>
+                  </span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    size={18}
+                    className="shrink-0 text-stone-500 transition-transform group-open:rotate-180"
+                  />
+                </summary>
 
-              <div className="space-y-6">
-                {completedFinancialServices.map((category) => (
-                  <section key={category.title} aria-label={category.title}>
-                    <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 border-b border-stone-200 pb-2">
-                      <div>
-                        <h4 className="font-semibold text-stone-800">{category.title}</h4>
-                        <p className="text-xs text-stone-500">{category.description}</p>
-                      </div>
-                      <p className="shrink-0 text-sm font-semibold tabular-nums text-stone-700">
-                        Sous-total : {formatEuro(getCompletedFinancialServicesCategoryTotal(category))}
-                      </p>
-                    </div>
-                    <ul className="divide-y divide-stone-100">
-                      {category.items.map((item, itemIndex) => (
-                        <li
-                          key={`${item.date}-${item.provider}-${itemIndex}`}
-                          className="grid grid-cols-[1fr_auto] gap-x-3 py-2 text-sm"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-xs text-stone-500">{item.date}</p>
-                            <p className="font-medium text-stone-800">{item.provider}</p>
-                            <p className="text-stone-600">{item.service}</p>
+                <div className="pt-5">
+                  <div className="mb-5">
+                    <h3 className="text-lg font-bold text-stone-900">
+                      Dépenses réalisées (service fait)
+                    </h3>
+                    <p className="text-sm text-stone-500">
+                      Situation arrêtée au {completedFinancialServicesCutoff} · Montants HT
+                    </p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {completedFinancialServices.map((category) => (
+                      <section key={category.title} aria-label={category.title}>
+                        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 border-b border-stone-200 pb-2">
+                          <div>
+                            <h4 className="font-semibold text-stone-800">{category.title}</h4>
+                            <p className="text-xs text-stone-500">{category.description}</p>
                           </div>
-                          <p className="whitespace-nowrap pt-4 text-right tabular-nums text-stone-800">
-                            {formatEuro(item.amount)}
+                          <p className="shrink-0 text-sm font-semibold tabular-nums text-stone-700">
+                            Sous-total : {formatEuro(getCompletedFinancialServicesCategoryTotal(category))}
                           </p>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ))}
-              </div>
+                        </div>
+                        <ul className="divide-y divide-stone-100">
+                          {category.items.map((item, itemIndex) => (
+                            <li
+                              key={`${item.date}-${item.provider}-${itemIndex}`}
+                              className="grid grid-cols-[1fr_auto] gap-x-3 py-2 text-sm"
+                            >
+                              <div className="min-w-0">
+                                <p className="text-xs text-stone-500">{item.date}</p>
+                                <p className="font-medium text-stone-800">{item.provider}</p>
+                                <p className="text-stone-600">{item.service}</p>
+                              </div>
+                              <p className="whitespace-nowrap pt-4 text-right tabular-nums text-stone-800">
+                                {formatEuro(item.amount)}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    ))}
+                  </div>
 
-              <p className="mt-5 border-t border-stone-200 pt-3 text-sm text-stone-600">
-                Ce total correspond aux prestations listées et réalisées. D’éventuelles indemnités légales de résiliation des contrats publics s’y ajouteraient.
-              </p>
+                  <p className="mt-5 border-t border-stone-200 pt-3 text-sm text-stone-600">
+                    Ce total correspond aux prestations listées et réalisées. D’éventuelles indemnités légales de résiliation des contrats publics s’y ajouteraient.
+                  </p>
+                </div>
+              </details>
             </section>
 
             <div className="flex items-start gap-3 border-t border-stone-100 pt-6">

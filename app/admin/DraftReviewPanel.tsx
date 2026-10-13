@@ -17,10 +17,12 @@ import {
   where,
   onSnapshot,
   Timestamp,
+  runTransaction,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { publishCmsPageRevision } from "@/lib/cmsRevisionClient";
 import { normalizeHomeActionPlan } from "@/lib/homeActionPlan";
+import { getCmsDraftEditConflict } from "@/lib/cmsDraftEditGuard";
 import {
   CheckCircle2,
   XCircle,
@@ -30,14 +32,18 @@ import {
   ChevronUp,
   Eye,
   FileText,
+  Pencil,
+  ArrowLeft,
 } from "lucide-react";
 import BlockRenderer from "../components/cms/BlockRenderer";
+import VisualCmsEditor from "./VisualCmsEditor";
 
 interface Draft {
   id: string;
   pageId: string;
   scope?: "homeActionPlan";
   baseVersion?: number;
+  editVersion?: number;
   reviewNote?: string;
   status: "pending" | "approved" | "rejected";
   submittedBy: string;
@@ -52,6 +58,8 @@ export default function DraftReviewPanel() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [liveData, setLiveData] = useState<any>(null);
   const [expandedDraft, setExpandedDraft] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState<string | null>(null);
+  const [editingDirty, setEditingDirty] = useState(false);
   const [rejectComment, setRejectComment] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
@@ -95,6 +103,68 @@ export default function DraftReviewPanel() {
     }
     setProcessingId(null);
     setTimeout(() => setFeedback(null), 4000);
+  };
+
+  // [SPEC-CMS-DRAFT-EDIT-01] Update only the pending draft and reject stale editor sessions.
+  const saveDraftEdits = async (
+    draft: Draft,
+    data: any,
+    expectedEditVersion: number,
+  ): Promise<number> => {
+    const nextEditVersion = await runTransaction(db, async (transaction) => {
+      const draftRef = doc(db, "cms_drafts", draft.id);
+      const snapshot = await transaction.get(draftRef);
+      if (!snapshot.exists()) {
+        throw new Error(
+          "Cette révision n’est plus en attente. Rechargez la liste avant de continuer.",
+        );
+      }
+
+      const currentEditVersion = Number.isInteger(snapshot.get("editVersion"))
+        ? snapshot.get("editVersion")
+        : 0;
+      const conflict = getCmsDraftEditConflict(
+        snapshot.get("status"),
+        currentEditVersion,
+        expectedEditVersion,
+      );
+      if (conflict === "not-pending") {
+        throw new Error(
+          "Cette révision n’est plus en attente. Rechargez la liste avant de continuer.",
+        );
+      }
+      if (conflict === "stale-edit") {
+        throw new Error(
+          "Cette révision a été modifiée ailleurs. Fermez l’éditeur et rechargez-la.",
+        );
+      }
+
+      const nextVersion = currentEditVersion + 1;
+      transaction.update(draftRef, {
+        data,
+        editVersion: nextVersion,
+        editedAt: Timestamp.now(),
+      });
+      return nextVersion;
+    });
+
+    setFeedback({
+      id: draft.id,
+      msg: "Révision enregistrée, toujours en attente de validation.",
+      ok: true,
+    });
+    return nextEditVersion;
+  };
+
+  const closeDraftEditor = () => {
+    if (
+      editingDirty &&
+      !window.confirm("Les modifications non enregistrées seront perdues. Fermer l’éditeur ?")
+    ) {
+      return;
+    }
+    setEditingDraft(null);
+    setEditingDirty(false);
   };
 
   const reject = async (draft: Draft) => {
@@ -212,124 +282,163 @@ export default function DraftReviewPanel() {
                     {draft.reviewNote}
                   </p>
                 )}
-                {/* Toggle résumé/détails pour le diff */}
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-stone-500">Mode aperçu :</span>
-                  <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
+                {editingDraft === draft.id ? (
+                  <div className="space-y-4">
                     <button
-                      onClick={() => setIsSimplified(false)}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${!isSimplified ? "bg-white shadow-sm text-stone-900" : "text-stone-500"}`}
+                      type="button"
+                      onClick={closeDraftEditor}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
                     >
-                      Détails
+                      <ArrowLeft size={16} aria-hidden="true" /> Retour à la comparaison
                     </button>
-                    <button
-                      onClick={() => setIsSimplified(true)}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${isSimplified ? "bg-white shadow-sm text-stone-900" : "text-stone-500"}`}
-                    >
-                      Résumé
-                    </button>
-                  </div>
-                </div>
-
-                {/* [SPEC-HOME-ACTION-PLAN-01] A scoped plan draft previews only its own field. */}
-                {draft.scope === "homeActionPlan" ? (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <PlanPreview title="Plan publié" value={liveData?.homeActionPlan} />
-                    <PlanPreview title="Plan proposé" value={draft.data?.homeActionPlan} proposed />
+                    <VisualCmsEditor
+                      key={`draft-editor-${draft.id}`}
+                      pageId={draft.pageId}
+                      initialData={draft.data}
+                      initialDraftEditVersion={draft.editVersion ?? 0}
+                      onSaveDraft={(data, expectedVersion) =>
+                        saveDraftEdits(draft, data, expectedVersion)
+                      }
+                      onDirtyChange={setEditingDirty}
+                      showPreview
+                      isSimplified={isSimplified}
+                    />
                   </div>
                 ) : (
-                  /* Diff côte à côte */
-                  <div className="border border-stone-200 rounded-xl overflow-hidden">
-                    <div className="grid grid-cols-2 divide-x divide-stone-200">
-                      {/* Colonne gauche : version publiée */}
-                      <div>
-                        <div className="bg-stone-100 px-4 py-2 border-b border-stone-200 flex items-center gap-2">
-                          <Eye size={13} className="text-stone-500" />
-                          <span className="text-xs font-bold text-stone-600 uppercase tracking-wide">
-                            Version actuelle (publiée)
-                          </span>
-                        </div>
-                        <div className="overflow-x-hidden bg-stone-50">
-                          {liveData?.blocks?.map((block: any, idx: number) => (
-                            <div key={idx} className="border-b border-stone-100 last:border-0">
-                              <BlockRenderer
-                                block={block}
-                                context={{
-                                  isSimplified,
-                                  setActiveTopic: () => {},
-                                  commentCounts: {},
-                                }}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Colonne droite : version proposée */}
-                      <div>
-                        <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 flex items-center gap-2">
-                          <Clock size={13} className="text-amber-600" />
-                          <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
-                            Version proposée
-                          </span>
-                        </div>
-                        <div className="overflow-x-hidden bg-amber-50/30">
-                          {draft.data?.blocks?.map((block: any, idx: number) => (
-                            <div key={idx} className="border-b border-amber-100 last:border-0">
-                              <BlockRenderer
-                                block={block}
-                                context={{
-                                  isSimplified,
-                                  setActiveTopic: () => {},
-                                  commentCounts: {},
-                                }}
-                              />
-                            </div>
-                          ))}
-                        </div>
+                  <>
+                    {/* Toggle résumé/détails pour le diff */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-medium text-stone-500">Mode aperçu :</span>
+                      <div className="flex bg-stone-100 p-0.5 rounded-lg border border-stone-200">
+                        <button
+                          onClick={() => setIsSimplified(false)}
+                          className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${!isSimplified ? "bg-white shadow-sm text-stone-900" : "text-stone-500"}`}
+                        >
+                          Détails
+                        </button>
+                        <button
+                          onClick={() => setIsSimplified(true)}
+                          className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${isSimplified ? "bg-white shadow-sm text-stone-900" : "text-stone-500"}`}
+                        >
+                          Résumé
+                        </button>
                       </div>
                     </div>
-                  </div>
+
+                    {/* [SPEC-HOME-ACTION-PLAN-01] A scoped plan draft previews only its own field. */}
+                    {draft.scope === "homeActionPlan" ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <PlanPreview title="Plan publié" value={liveData?.homeActionPlan} />
+                        <PlanPreview
+                          title="Plan proposé"
+                          value={draft.data?.homeActionPlan}
+                          proposed
+                        />
+                      </div>
+                    ) : (
+                      /* Diff côte à côte */
+                      <div className="border border-stone-200 rounded-xl overflow-hidden">
+                        <div className="grid grid-cols-2 divide-x divide-stone-200">
+                          {/* Colonne gauche : version publiée */}
+                          <div>
+                            <div className="bg-stone-100 px-4 py-2 border-b border-stone-200 flex items-center gap-2">
+                              <Eye size={13} className="text-stone-500" />
+                              <span className="text-xs font-bold text-stone-600 uppercase tracking-wide">
+                                Version actuelle (publiée)
+                              </span>
+                            </div>
+                            <div className="overflow-x-hidden bg-stone-50">
+                              {liveData?.blocks?.map((block: any, idx: number) => (
+                                <div key={idx} className="border-b border-stone-100 last:border-0">
+                                  <BlockRenderer
+                                    block={block}
+                                    context={{
+                                      isSimplified,
+                                      setActiveTopic: () => {},
+                                      commentCounts: {},
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Colonne droite : version proposée */}
+                          <div>
+                            <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 flex items-center gap-2">
+                              <Clock size={13} className="text-amber-600" />
+                              <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
+                                Version proposée
+                              </span>
+                            </div>
+                            <div className="overflow-x-hidden bg-amber-50/30">
+                              {draft.data?.blocks?.map((block: any, idx: number) => (
+                                <div key={idx} className="border-b border-amber-100 last:border-0">
+                                  <BlockRenderer
+                                    block={block}
+                                    context={{
+                                      isSimplified,
+                                      setActiveTopic: () => {},
+                                      commentCounts: {},
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Zone de rejet */}
+                    <div className="space-y-2">
+                      <label
+                        className="text-xs font-medium text-stone-600"
+                        htmlFor={`reject-comment-${draft.id}`}
+                      >
+                        Motif de rejet (obligatoire pour rejeter) :
+                      </label>
+                      <textarea
+                        id={`reject-comment-${draft.id}`}
+                        value={rejectComment}
+                        onChange={(e) => setRejectComment(e.target.value)}
+                        placeholder="Ex: Le montant affiché est incorrect, merci de corriger..."
+                        className="input-base h-20 text-sm"
+                      />
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 pt-2 border-t border-stone-200">
+                      <button
+                        type="button"
+                        onClick={() => setEditingDraft(draft.id)}
+                        disabled={!!processingId}
+                        className="flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-5 py-2.5 text-sm font-bold text-stone-700 transition-colors hover:bg-stone-50 disabled:opacity-50"
+                        aria-label="Modifier la révision en attente"
+                      >
+                        <Pencil size={16} aria-hidden="true" /> Modifier la révision
+                      </button>
+                      <button
+                        onClick={() => approve(draft)}
+                        disabled={!!processingId}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 text-white font-bold text-sm rounded-xl transition-colors shadow-sm"
+                        aria-label="Approuver et publier les modifications"
+                      >
+                        <CheckCircle2 size={16} />
+                        {processingId === draft.id ? "Publication..." : "Approuver et publier"}
+                      </button>
+                      <button
+                        onClick={() => reject(draft)}
+                        disabled={!!processingId}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-rose-50 border border-rose-300 text-rose-700 font-bold text-sm rounded-xl transition-colors"
+                        aria-label="Rejeter les modifications"
+                      >
+                        <XCircle size={16} />
+                        Rejeter
+                      </button>
+                    </div>
+                  </>
                 )}
-
-                {/* Zone de rejet */}
-                <div className="space-y-2">
-                  <label
-                    className="text-xs font-medium text-stone-600"
-                    htmlFor={`reject-comment-${draft.id}`}
-                  >
-                    Motif de rejet (obligatoire pour rejeter) :
-                  </label>
-                  <textarea
-                    id={`reject-comment-${draft.id}`}
-                    value={rejectComment}
-                    onChange={(e) => setRejectComment(e.target.value)}
-                    placeholder="Ex: Le montant affiché est incorrect, merci de corriger..."
-                    className="input-base h-20 text-sm"
-                  />
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-3 pt-2 border-t border-stone-200">
-                  <button
-                    onClick={() => approve(draft)}
-                    disabled={!!processingId}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 text-white font-bold text-sm rounded-xl transition-colors shadow-sm"
-                    aria-label="Approuver et publier les modifications"
-                  >
-                    <CheckCircle2 size={16} />
-                    {processingId === draft.id ? "Publication..." : "Approuver et publier"}
-                  </button>
-                  <button
-                    onClick={() => reject(draft)}
-                    disabled={!!processingId}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-rose-50 border border-rose-300 text-rose-700 font-bold text-sm rounded-xl transition-colors"
-                    aria-label="Rejeter les modifications"
-                  >
-                    <XCircle size={16} />
-                    Rejeter
-                  </button>
-                </div>
               </div>
             )}
           </div>

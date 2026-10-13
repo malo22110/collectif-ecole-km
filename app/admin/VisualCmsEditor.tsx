@@ -97,6 +97,9 @@ function mergeBlocksWithDefaults(blocks: any[]): any[] {
 
 export default function VisualCmsEditor({
   pageId = "historique",
+  initialData,
+  initialDraftEditVersion = 0,
+  onSaveDraft,
   onDirtyChange,
   onPageDataChange,
   showPreview = false,
@@ -106,6 +109,9 @@ export default function VisualCmsEditor({
   homeActionPlanOnly = false,
 }: {
   pageId?: string;
+  initialData?: any;
+  initialDraftEditVersion?: number;
+  onSaveDraft?: (data: any, expectedEditVersion: number) => Promise<number>;
   onDirtyChange?: (dirty: boolean) => void;
   onPageDataChange?: (data: any) => void;
   showPreview?: boolean;
@@ -114,8 +120,18 @@ export default function VisualCmsEditor({
   userEmail?: string;
   homeActionPlanOnly?: boolean;
 }) {
-  const [pageData, setPageData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const initialDataRef = useRef(initialData);
+  const draftEditVersionRef = useRef(initialDraftEditVersion);
+  const [pageData, setPageData] = useState<any>(() =>
+    initialData
+      ? {
+          ...initialData,
+          homeActionPlan: normalizeHomeActionPlan(initialData.homeActionPlan),
+          blocks: mergeBlocksWithDefaults(initialData.blocks || []),
+        }
+      : null,
+  );
+  const [loading, setLoading] = useState(!initialData);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -124,6 +140,18 @@ export default function VisualCmsEditor({
   const originalRef = useRef<string>("");
 
   useEffect(() => {
+    if (initialDataRef.current) {
+      const merged = {
+        ...initialDataRef.current,
+        homeActionPlan: normalizeHomeActionPlan(initialDataRef.current.homeActionPlan),
+        blocks: mergeBlocksWithDefaults(initialDataRef.current.blocks || []),
+      };
+      setPageData(merged);
+      originalRef.current = JSON.stringify(merged);
+      setLoading(false);
+      onPageDataChange?.(merged);
+      return;
+    }
     fetchPage();
   }, [pageId]);
 
@@ -168,6 +196,7 @@ export default function VisualCmsEditor({
   };
 
   const handleSave = async () => {
+    if (initialDataRef.current) return;
     setSaving(true);
     setError(null);
     try {
@@ -179,6 +208,25 @@ export default function VisualCmsEditor({
       setIsDirty(false);
       originalRef.current = JSON.stringify(savedData);
       onPageDataChange?.(savedData);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setSaving(false);
+  };
+
+  // [SPEC-CMS-DRAFT-EDIT-01] Save only to the existing pending draft, never to the published page.
+  const handleSaveDraft = async () => {
+    if (!onSaveDraft) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const nextEditVersion = await onSaveDraft(pageData, draftEditVersionRef.current);
+      draftEditVersionRef.current = nextEditVersion;
+      setSaved(true);
+      setIsDirty(false);
+      originalRef.current = JSON.stringify(pageData);
+      onPageDataChange?.(pageData);
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
       setError(err.message);
@@ -260,7 +308,11 @@ export default function VisualCmsEditor({
       <div className="sticky top-0 z-30 bg-white border-b border-stone-200 px-6 py-3 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-3">
           <h3 className="font-bold text-stone-900">
-            {homeActionPlanOnly ? "Plan d’action de l’accueil" : "Éditeur Visuel : Page Historique"}
+            {onSaveDraft
+              ? "Modifier la révision en attente"
+              : homeActionPlanOnly
+                ? "Plan d’action de l’accueil"
+                : "Éditeur Visuel : Page Historique"}
           </h3>
           {isDirty && (
             <span className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full animate-pulse">
@@ -285,7 +337,20 @@ export default function VisualCmsEditor({
         </div>
 
         {/* Bouton selon le rôle : admin = publication directe, éditeur = soumission pour révision */}
-        {isAdmin ? (
+        {onSaveDraft ? (
+          <button
+            onClick={handleSaveDraft}
+            disabled={saving || !isDirty}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isDirty ? "bg-amber-600 text-white hover:bg-amber-700 shadow-sm" : "bg-stone-100 text-stone-400 cursor-not-allowed"}`}
+            aria-label="Enregistrer les modifications dans la révision en attente"
+          >
+            <Save size={16} /> {saving ? "Enregistrement..." : "Enregistrer la révision"}
+          </button>
+        ) : initialDataRef.current ? (
+          <p className="text-sm font-medium text-rose-700" role="alert">
+            Enregistrement du brouillon indisponible.
+          </p>
+        ) : isAdmin ? (
           <button
             onClick={handleSave}
             disabled={saving || !isDirty}
@@ -1136,6 +1201,41 @@ export default function VisualCmsEditor({
                               }}
                               className="input-base h-16 text-sm"
                             />
+                          </div>
+                        </div>
+                        <div className="mt-4 border-t border-stone-200 pt-4">
+                          <p className="mb-3 text-xs font-bold uppercase text-stone-500">
+                            Montants affichés dans la frise
+                          </p>
+                          <div className="grid gap-3 md:grid-cols-3">
+                            {[
+                              ["etudes", "Études"],
+                              ["travaux", "Travaux"],
+                              ["total", "Total estimé"],
+                            ].map(([field, label]) => (
+                              <label key={field} className="input-label text-xs">
+                                {label}
+                                <textarea
+                                  rows={2}
+                                  value={item.budget?.[field] || ""}
+                                  onChange={(event) => {
+                                    const newItems = [...block.data.items];
+                                    newItems[i] = {
+                                      ...newItems[i],
+                                      budget: {
+                                        ...(newItems[i].budget || {}),
+                                        [field]: event.currentTarget.value,
+                                      },
+                                    };
+                                    updateBlock(index, {
+                                      ...block,
+                                      data: { ...block.data, items: newItems },
+                                    });
+                                  }}
+                                  className="input-base mt-1 resize-y text-sm"
+                                />
+                              </label>
+                            ))}
                           </div>
                         </div>
                       </div>

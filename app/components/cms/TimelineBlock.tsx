@@ -8,6 +8,7 @@ import {
   ExternalLink,
   X,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import CommentBadge from "./CommentBadge";
 
@@ -28,9 +29,18 @@ const HighlightTerms = ({ text }: { text: string }) => {
 
 export default function TimelineBlock({ data, context }: TimelineBlockProps) {
   const [activeStep, setActiveStep] = useState<any>(null);
+  const [showAllEvents, setShowAllEvents] = useState(false);
   const isSimplified = context?.isSimplified || false;
   const setActiveTopic = context?.setActiveTopic || (() => {});
   const commentCounts = context?.commentCounts || {};
+  const recentEventCount = 4;
+  const firstVisibleEventIndex = showAllEvents
+    ? 0
+    : Math.max(0, data.items.length - recentEventCount);
+  const visibleEventIndices = Array.from(
+    { length: data.items.length - firstVisibleEventIndex },
+    (_, index) => firstVisibleEventIndex + index,
+  );
 
   return (
     <>
@@ -38,11 +48,31 @@ export default function TimelineBlock({ data, context }: TimelineBlockProps) {
         <h2 className="text-2xl font-bold text-stone-900 mb-10 text-center">
           La Frise Chronologique
         </h2>
+        {data.items.length > recentEventCount && (
+          <div className="mb-4 flex justify-center">
+            {/* [SPEC-CMS-TIMELINE-01] Prioriser les quatre événements récents, sans masquer l’historique complet. */}
+            <button
+              type="button"
+              onClick={() => setShowAllEvents((current) => !current)}
+              aria-expanded={showAllEvents}
+              aria-controls="timeline-events"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 shadow-sm transition-colors hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+            >
+              {showAllEvents ? "Réduire la frise" : "Voir tout"}
+              <ChevronDown
+                aria-hidden="true"
+                size={16}
+                className={`transition-transform ${showAllEvents ? "rotate-180" : ""}`}
+              />
+            </button>
+          </div>
+        )}
         <div className="relative py-8">
           <div className="absolute left-[19px] md:left-1/2 md:-ml-[1px] top-0 bottom-0 w-[2px] bg-stone-200"></div>
-          <div className="space-y-12">
-            {data.items.map((event, index) => {
-              const isEven = index % 2 === 0;
+          <div id="timeline-events" className="space-y-12">
+            {visibleEventIndices.map((eventIndex) => {
+              const event = data.items[eventIndex];
+              const isEven = eventIndex % 2 === 0;
               const textToShow =
                 isSimplified && event.simplifiedDescription
                   ? event.simplifiedDescription
@@ -50,7 +80,7 @@ export default function TimelineBlock({ data, context }: TimelineBlockProps) {
 
               return (
                 <div
-                  key={index}
+                  key={event.date || eventIndex}
                   className="relative flex flex-col md:flex-row md:items-start md:justify-center group"
                 >
                   <div
