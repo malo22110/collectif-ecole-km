@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import logoImage from "../public/images/logo.png";
 import heroImage from "../public/images/hero.jpg";
-import reunionImage from "../public/images/reunion.jpg";
+import PressHomeSection from "./components/PressHomeSection";
 import { collection, setDoc, query, where, getDocs, doc, onSnapshot } from "firebase/firestore";
 import { useEffect } from "react";
 import { db } from "../lib/firebase";
@@ -729,130 +729,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Communique de presse */}
-        <section className="py-20 px-4 bg-white border-b border-stone-200">
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-stone-50 border border-stone-200 rounded-3xl p-8 md:p-12 shadow-sm">
-              <div className="flex items-center gap-3 mb-8 border-b border-stone-200 pb-6">
-                <Newspaper className="text-stone-500" size={32} />
-                <h2 className="text-2xl md:text-3xl font-bold text-stone-900">
-                  Communiqué de presse · archives
-                </h2>
-              </div>
-              <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-stone-200">
-                <img
-                  src={reunionImage.src}
-                  alt="Réunion publique du collectif citoyen"
-                  className="w-full h-auto object-cover max-h-[400px] object-center"
-                />
-              </div>
-              <div className="prose prose-stone text-stone-700 max-w-none">
-                <p className="text-lg font-semibold text-stone-900 mb-6">
-                  Rénovation de l’école : un collectif citoyen se mobilise et tend la main aux élus
-                </p>
-                <div className="space-y-4">
-                  <p>
-                    Ce communiqué retrace le lancement de la mobilisation avant le dernier vote du
-                    conseil municipal. Depuis, le dossier retourne chez l’architecte pour être
-                    adapté à l’enveloppe prévue.
-                  </p>
-                  <p>
-                    Samedi matin, une réunion publique a scellé le lancement officiel du collectif
-                    citoyen « Un nid tout neuf pour nos écureuils ». L’initiative rencontre un écho
-                    immédiat : 51 personnes ont déjà rejoint la démarche, et de nouvelles adhésions
-                    sont attendues dès la semaine prochaine auprès des familles et des citoyens. Le
-                    maire et trois adjoints étaient d'ailleurs présents pour saluer cette dynamique.
-                  </p>
-                  <p>
-                    Loin de toute opposition, le collectif se positionne comme un relais constructif
-                    et un appui aux décisions. Sa vocation : faciliter la communication et créer du
-                    lien entre les usagers des lieux, l'équipe éducative, la municipalité et
-                    l'ensemble des citoyens, tout en veillant au respect du calendrier pour traiter
-                    sans délai les urgences du bâtiment (radon, amiante, électricité, sanitaires,
-                    accessibilité).
-                  </p>
-                  <p>
-                    La pétition citoyenne est maintenant close. Le collectif poursuit le dialogue
-                    avec la municipalité et suivra la suite des travaux de l’architecte.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Ils parlent de nous */}
-        {presseArticles.length > 0 && (
-          <section className="py-20 bg-stone-50 px-4 border-b border-stone-200" id="presse">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-stone-900 mb-4">Ils parlent de nous</h2>
-                <p className="text-stone-600 max-w-2xl mx-auto text-lg">
-                  Revue de presse et articles relayant notre mobilisation pour l'école de
-                  Kergrist-Moëlou.
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {presseArticles.map((article) => (
-                  <a
-                    key={article.id}
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group bg-white rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.1)] transition-all duration-300 border border-stone-100 flex flex-col h-full text-left"
-                  >
-                    {article.imageUrl && (
-                      <div className="relative w-full h-[200px] overflow-hidden shrink-0">
-                        <span className="absolute top-3 left-3 bg-stone-900 text-white text-xs font-semibold px-2 py-1 rounded uppercase tracking-wider z-10 shadow-sm">
-                          Actualité
-                        </span>
-                        <img
-                          src={article.imageUrl}
-                          alt={article.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      </div>
-                    )}
-
-                    <div className="p-5 flex flex-col flex-1">
-                      <div className="flex items-center text-xs text-stone-500 mb-2.5">
-                        <time dateTime={article.date}>
-                          {article.date
-                            ? new Date(article.date).toLocaleDateString("fr-FR", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })
-                            : "Récemment"}
-                        </time>
-                      </div>
-
-                      <h3 className="text-[1.15rem] font-bold text-stone-900 leading-[1.4] mb-3 group-hover:text-emerald-700 transition-colors line-clamp-3">
-                        {article.title}
-                      </h3>
-
-                      {article.description && (
-                        <p className="text-sm text-stone-600 leading-relaxed mb-5 line-clamp-3">
-                          {article.description}
-                        </p>
-                      )}
-
-                      <div className="mt-auto pt-3 border-t border-stone-100 flex justify-between items-center text-sm">
-                        <span className="text-stone-500 font-medium">
-                          Par {article.source || "Presse Locale"}
-                        </span>
-                        <span className="text-emerald-600 font-bold transition-transform duration-200 group-hover:translate-x-1 flex items-center gap-1">
-                          Lire <span aria-hidden="true">&rarr;</span>
-                        </span>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+        <PressHomeSection articles={presseArticles} />
 
         {/* Lead Capture / Join Form */}
         <section className="py-20 px-4 bg-stone-50" id="rejoindre">

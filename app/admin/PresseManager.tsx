@@ -13,10 +13,13 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Plus, Edit2, Trash2, Save, RefreshCw } from "lucide-react";
+import PressReleaseManager from "./PressReleaseManager";
+import type { PressRelease } from "@/lib/pressReleases";
 
 export default function PresseManager() {
   const [articles, setArticles] = useState<any[]>([]);
   const [journalistes, setJournalistes] = useState<{ id: string; email: string }[]>([]);
+  const [releases, setReleases] = useState<PressRelease[]>([]);
   const [newJournaliste, setNewJournaliste] = useState("");
 
   const [loading, setLoading] = useState(true);
@@ -30,13 +33,29 @@ export default function PresseManager() {
     source: "Le Télégramme",
     date: "",
     imageUrl: "",
+    releaseId: "",
   });
 
   useEffect(() => {
     fetchPresse();
     fetchJournalistes();
+    void fetchReleases();
   }, []);
 
+  const fetchReleases = async () => {
+    try {
+      const all: PressRelease[] = [];
+      let cursor: string | null = null;
+      do {
+        const response: Response = await fetch(`/api/press-releases?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
+        if (!response.ok) throw new Error("Communiqués indisponibles.");
+        const result: { items: PressRelease[]; nextCursor: string | null } = await response.json();
+        all.push(...result.items);
+        cursor = result.nextCursor;
+      } while (cursor && all.length < 500);
+      setReleases(all);
+    } catch (error) { console.error("Chargement des communiqués impossible", error); }
+  };
   const fetchPresse = async () => {
     try {
       const q = query(collection(db, "presse"));
@@ -97,6 +116,10 @@ export default function PresseManager() {
 
   const handleSave = async () => {
     try {
+      if (!formData.releaseId || !releases.some((release) => release.id === formData.releaseId)) {
+        alert("Choisissez le communiqué lié à cet article.");
+        return;
+      }
       if (editingId === "new") {
         await addDoc(collection(db, "presse"), formData);
       } else if (editingId) {
@@ -147,6 +170,7 @@ export default function PresseManager() {
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+      <PressReleaseManager onChange={() => void fetchReleases()} />
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-stone-900">Gestion de la Revue de Presse</h2>
         <button
@@ -158,6 +182,7 @@ export default function PresseManager() {
               source: "Le Télégramme",
               date: new Date().toISOString().split("T")[0],
               imageUrl: "",
+              releaseId: "",
             });
             setEditingId("new");
           }}
@@ -213,6 +238,12 @@ export default function PresseManager() {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
+            <label className="mb-3 block text-sm font-medium">Communiqué associé
+              <select required className="input-base mt-1 w-full" value={formData.releaseId} onChange={(e) => setFormData({ ...formData, releaseId: e.target.value })}>
+                <option value="">Choisir un communiqué</option>
+                {releases.map((release) => <option key={release.id} value={release.id}>{release.date} · {release.title}</option>)}
+              </select>
+            </label>
             <div className="flex gap-4 mb-3">
               <label className="flex items-center gap-2 flex-1">
                 <span>Source:</span>
@@ -285,6 +316,12 @@ export default function PresseManager() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
+                <label className="mb-3 block text-sm font-medium">Communiqué associé
+                  <select required className="input-base mt-1 w-full" value={formData.releaseId || ""} onChange={(e) => setFormData({ ...formData, releaseId: e.target.value })}>
+                    <option value="">Choisir un communiqué</option>
+                    {releases.map((release) => <option key={release.id} value={release.id}>{release.date} · {release.title}</option>)}
+                  </select>
+                </label>
                 <div className="flex gap-4 mb-3">
                   <label className="flex items-center gap-2 flex-1">
                     <span>Source:</span>
