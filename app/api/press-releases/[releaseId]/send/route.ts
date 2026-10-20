@@ -1,4 +1,5 @@
 import { FieldValue } from "firebase-admin/firestore";
+import { excludeSuppressedRecipients } from "@/lib/mailSuppressionServer";
 import { pressBodyToHtml, pressReleaseSchema } from "@/lib/pressReleases";
 import { authorizePressStaff, pressDb, pressReleaseIdPattern } from "@/lib/pressServer";
 
@@ -35,6 +36,14 @@ export async function POST(request: Request, context: { params: Promise<{ releas
         { status: 400 },
       );
 
+    const eligible = await excludeSuppressedRecipients(
+      Array.from(recipients, ([email, name]) => ({ email, name, status: "pending" })),
+    );
+    if (!eligible.length)
+      return Response.json(
+        { error: "Aucun destinataire après exclusion des désabonnements." },
+        { status: 400 },
+      );
     const claimed = await pressDb.runTransaction(async (transaction) => {
       const [release, mail] = await transaction.getAll(releaseRef, mailRef);
       if (!release.exists) return "missing";
@@ -50,8 +59,8 @@ export async function POST(request: Request, context: { params: Promise<{ releas
         html: pressBodyToHtml(content.data.body),
         target: "journalistes",
         pressReleaseId: releaseId,
-        recipientCount: recipients.size,
-        pendingCount: recipients.size,
+        recipientCount: eligible.length,
+        pendingCount: eligible.length,
         sentCount: 0,
         failedCount: 0,
         status: "preparing",
@@ -75,7 +84,7 @@ export async function POST(request: Request, context: { params: Promise<{ releas
         { status: claimed === "missing" ? 404 : 409 },
       );
 
-    const entries = Array.from(recipients, ([email, name]) => ({ email, name, status: "pending" }));
+    const entries = eligible;
     for (let offset = 0; offset < entries.length; offset += 400) {
       const batch = pressDb.batch();
       for (const recipient of entries.slice(offset, offset + 400))
@@ -83,7 +92,7 @@ export async function POST(request: Request, context: { params: Promise<{ releas
       await batch.commit();
     }
     await mailRef.update({ status: "pending", queuedAt: FieldValue.serverTimestamp() });
-    return Response.json({ mailId: mailRef.id, recipientCount: recipients.size }, { status: 202 });
+    return Response.json({ mailId: mailRef.id, recipientCount: eligible.length }, { status: 202 });
   } catch (error) {
     console.error("Envoi presse impossible", error);
     return Response.json(

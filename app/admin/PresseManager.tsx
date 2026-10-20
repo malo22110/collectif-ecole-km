@@ -47,14 +47,18 @@ export default function PresseManager() {
       const all: PressRelease[] = [];
       let cursor: string | null = null;
       do {
-        const response: Response = await fetch(`/api/press-releases?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
+        const response: Response = await fetch(
+          `/api/press-releases?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`,
+        );
         if (!response.ok) throw new Error("Communiqués indisponibles.");
         const result: { items: PressRelease[]; nextCursor: string | null } = await response.json();
         all.push(...result.items);
         cursor = result.nextCursor;
       } while (cursor && all.length < 500);
       setReleases(all);
-    } catch (error) { console.error("Chargement des communiqués impossible", error); }
+    } catch (error) {
+      console.error("Chargement des communiqués impossible", error);
+    }
   };
   const fetchPresse = async () => {
     try {
@@ -238,10 +242,20 @@ export default function PresseManager() {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
-            <label className="mb-3 block text-sm font-medium">Communiqué associé
-              <select required className="input-base mt-1 w-full" value={formData.releaseId} onChange={(e) => setFormData({ ...formData, releaseId: e.target.value })}>
+            <label className="mb-3 block text-sm font-medium">
+              Communiqué associé
+              <select
+                required
+                className="input-base mt-1 w-full"
+                value={formData.releaseId}
+                onChange={(e) => setFormData({ ...formData, releaseId: e.target.value })}
+              >
                 <option value="">Choisir un communiqué</option>
-                {releases.map((release) => <option key={release.id} value={release.id}>{release.date} · {release.title}</option>)}
+                {releases.map((release) => (
+                  <option key={release.id} value={release.id}>
+                    {release.date} · {release.title}
+                  </option>
+                ))}
               </select>
             </label>
             <div className="flex gap-4 mb-3">
@@ -316,10 +330,20 @@ export default function PresseManager() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
-                <label className="mb-3 block text-sm font-medium">Communiqué associé
-                  <select required className="input-base mt-1 w-full" value={formData.releaseId || ""} onChange={(e) => setFormData({ ...formData, releaseId: e.target.value })}>
+                <label className="mb-3 block text-sm font-medium">
+                  Communiqué associé
+                  <select
+                    required
+                    className="input-base mt-1 w-full"
+                    value={formData.releaseId || ""}
+                    onChange={(e) => setFormData({ ...formData, releaseId: e.target.value })}
+                  >
                     <option value="">Choisir un communiqué</option>
-                    {releases.map((release) => <option key={release.id} value={release.id}>{release.date} · {release.title}</option>)}
+                    {releases.map((release) => (
+                      <option key={release.id} value={release.id}>
+                        {release.date} · {release.title}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <div className="flex gap-4 mb-3">

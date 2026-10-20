@@ -60,7 +60,13 @@ function Links({ articles }: { articles: HomePressArticle[] }) {
                 )}
                 <div className="flex flex-1 flex-col p-5">
                   <time dateTime={article.date} className="mb-2.5 text-xs text-stone-500">
-                    {article.date ? new Date(article.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "Récemment"}
+                    {article.date
+                      ? new Date(article.date).toLocaleDateString("fr-FR", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "Récemment"}
                   </time>
                   <strong className="mb-3 line-clamp-3 text-[1.15rem] font-bold leading-[1.4] text-stone-900 transition-colors group-hover:text-emerald-700">
                     {article.title || "Lire l'article"}
@@ -71,7 +77,9 @@ function Links({ articles }: { articles: HomePressArticle[] }) {
                     </p>
                   )}
                   <div className="mt-auto flex items-center justify-between gap-2 border-t border-stone-100 pt-3 text-sm">
-                    <span className="min-w-0 truncate font-medium text-stone-500">Par {article.source || "Presse Locale"}</span>
+                    <span className="min-w-0 truncate font-medium text-stone-500">
+                      Par {article.source || "Presse Locale"}
+                    </span>
                     <span className="flex shrink-0 items-center gap-1 font-bold text-emerald-600 transition-transform duration-200 group-hover:translate-x-1">
                       Lire <span aria-hidden="true">&rarr;</span>
                     </span>

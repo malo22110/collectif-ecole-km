@@ -35,6 +35,7 @@ export function resolveMailRecipients(
     signers?: MailRecipientSource[];
     journalists?: MailRecipientSource[];
   },
+  suppressedEmails: readonly string[] = [],
 ): MailRecipientRecord[] {
   const members = normalizeRecords(sources.members || []);
   const signers = normalizeRecords(sources.signers || []);
@@ -64,11 +65,16 @@ export function resolveMailRecipients(
       break;
   }
 
-  return Array.from(selected, ([email, name]) => ({
-    email,
-    name,
-    status: "pending",
-  }));
+  const suppressed = new Set(suppressedEmails.map(normalizeEmail));
+  return Array.from(
+    selected,
+    ([email, name]) =>
+      ({
+        email,
+        name,
+        status: "pending",
+      }) as MailRecipientRecord,
+  ).filter((recipient) => !suppressed.has(recipient.email));
 }
 
 // [SPEC-MAIL-03] Test delivery is always scoped to the authenticated staff address.

@@ -3,6 +3,7 @@ import {
   mailInboxDb,
   mailInboxErrorResponse,
 } from "@/lib/mailInboxServer";
+import { excludeSuppressedRecipients } from "@/lib/mailSuppressionServer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,30 +34,31 @@ export async function GET(request: Request) {
         { status: 413 },
       );
     }
-    const items = snapshot.docs
-      .flatMap((document) => {
-        const data = document.data();
-        const email = String(data.email || document.id)
-          .trim()
-          .toLowerCase();
-        if (!email || data.emailBounced === true) return [];
-        const name = [data.prenom, data.nom]
-          .filter((value) => typeof value === "string" && value.trim())
-          .join(" ");
-        const searchText = `${name} ${email}`.toLocaleLowerCase("fr");
-        if (!searchText.includes(query)) return [];
-        return [
-          {
-            id: document.id,
-            label: name || email,
-            description: email,
-            value: email,
-          },
-        ];
-      })
-      .slice(0, 12);
+    const items = snapshot.docs.flatMap((document) => {
+      const data = document.data();
+      const email = String(data.email || document.id)
+        .trim()
+        .toLowerCase();
+      if (!email || data.emailBounced === true) return [];
+      const name = [data.prenom, data.nom]
+        .filter((value) => typeof value === "string" && value.trim())
+        .join(" ");
+      const searchText = `${name} ${email}`.toLocaleLowerCase("fr");
+      if (!searchText.includes(query)) return [];
+      return [
+        {
+          id: document.id,
+          label: name || email,
+          description: email,
+          value: email,
+        },
+      ];
+    });
+    const eligible = await excludeSuppressedRecipients(
+      items.map((item) => ({ ...item, email: item.value })),
+    );
     return Response.json(
-      { items },
+      { items: eligible.slice(0, 12).map(({ email: _email, ...item }) => item) },
       { headers: { "Cache-Control": "private, no-store, max-age=0" } },
     );
   } catch (error) {

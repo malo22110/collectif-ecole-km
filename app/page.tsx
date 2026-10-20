@@ -359,14 +359,19 @@ export default function LandingPage() {
           </div>
         </section>
         {/* [SPEC-HOME-TREASURY-01] Le raccourci public rend le registre de la cagnotte accessible depuis l’accueil. */}
-        <section className="border-y border-stone-200 bg-emerald-50/60 px-4 py-6" aria-labelledby="treasury-note-heading">
+        <section
+          className="border-y border-stone-200 bg-emerald-50/60 px-4 py-6"
+          aria-labelledby="treasury-note-heading"
+        >
           <div className="mx-auto flex max-w-6xl flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-800">
                 <Wallet size={21} aria-hidden="true" />
               </span>
               <div>
-                <p className="text-xs font-bold uppercase text-emerald-800">Transparence du collectif</p>
+                <p className="text-xs font-bold uppercase text-emerald-800">
+                  Transparence du collectif
+                </p>
                 <h2 id="treasury-note-heading" className="mt-1 font-bold text-stone-900">
                   Une noisette pour la cagnotte
                 </h2>

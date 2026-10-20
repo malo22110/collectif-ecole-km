@@ -15,6 +15,7 @@ import { createMailTransport, mailFrom, smtpPassword } from "./mailTransport";
 import { syncInfomaniakInbox } from "./mailInboxSync";
 import { getMailMessageIndexId } from "./mailInboxUtils";
 import { isDailySmtpQuotaError, isMailDueForDelivery } from "./mailQueue";
+import { getMailSuppressionId } from "./mailSuppression";
 import { buildDirectMagicLink, MAGIC_LINK_ACTION_CODE_SETTINGS } from "./magicLinkConfig";
 
 setGlobalOptions({ region: "europe-west9" });
@@ -211,6 +212,25 @@ async function processSpreadMail(docSnap: FirebaseFirestore.DocumentSnapshot) {
     for (const deliveryRef of deliveries) {
       const recipient = deliveryRef.data();
       const email = String(recipient.email).trim().toLowerCase();
+      // [SPEC-MAIL-OPT-OUT-01] Recheck at delivery time, including historical retries.
+      const suppression = await firestore
+        .collection("mailSuppressions")
+        .doc(getMailSuppressionId(email))
+        .get();
+      if (suppression.exists) {
+        const batch = firestore.batch();
+        batch.update(deliveryRef.ref, {
+          status: "suppressed",
+          error: "Envoi exclu : désabonnement enregistré.",
+          suppressedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        batch.update(docSnap.ref, {
+          suppressedCount: admin.firestore.FieldValue.increment(1),
+          pendingCount: admin.firestore.FieldValue.increment(-1),
+        });
+        await batch.commit();
+        continue;
+      }
       const mailOptions = {
         from: mailFrom,
         replyTo: mailFrom.address,

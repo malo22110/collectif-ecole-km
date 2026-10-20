@@ -1,7 +1,77 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { getPersonalTestRecipient, resolveMailRecipients } from "../lib/mailOutboxUtils.ts";
-import { canRetryFailedRecipients, isDailySmtpQuotaError, isMailDueForDelivery } from "../functions/src/mailQueue.ts";
+import {
+  filterSuppressedRecipients,
+  getMailSuppressionId,
+} from "../functions/src/mailSuppression.ts";
+
+// [SPEC-MAIL-OPT-OUT-01] Real server filtering is bounded and fails closed.
+test("le filtre serveur exclut par empreinte, limite les lots et conserve les données sources", async () => {
+  const recipients = Array.from({ length: 401 }, (_, index) => ({
+    email: `contact${index}@example.fr`,
+  }));
+  const excludedId = getMailSuppressionId(recipients[0].email);
+  const batches = [];
+  const allowed = await filterSuppressedRecipients(recipients, async (ids) => {
+    batches.push(ids.length);
+    return ids.map((id) => id === excludedId);
+  });
+  assert.deepEqual(batches, [400, 1]);
+  assert.equal(allowed.length, 400);
+  assert.equal(
+    allowed.some((recipient) => recipient.email === recipients[0].email),
+    false,
+  );
+  assert.equal(recipients.length, 401);
+  assert.deepEqual(
+    await filterSuppressedRecipients([], async () => {
+      throw Error("Unexpected query");
+    }),
+    [],
+  );
+});
+
+test("une panne ou une vérification incomplète bloque l'envoi", async () => {
+  const recipients = [{ email: "contact@example.fr" }];
+  await assert.rejects(
+    filterSuppressedRecipients(recipients, async () => {
+      throw Error("DB unavailable");
+    }),
+  );
+  await assert.rejects(filterSuppressedRecipients(recipients, async () => []));
+});
+
+// [SPEC-MAIL-OPT-OUT-01] Opt-out survives duplicated membership/signature records.
+test("une opposition exclut l'adresse de toutes les audiences sans supprimer les sources", () => {
+  const sources = {
+    members: [{ email: "personne@example.fr" }],
+    signers: [{ email: "PERSONNE@example.fr" }],
+    journalists: [{ email: "personne@example.fr" }],
+  };
+  for (const audience of [
+    "all",
+    "membres",
+    "signataires",
+    "membres_non_signataires",
+    "journalistes",
+    "individuel",
+  ]) {
+    assert.deepEqual(resolveMailRecipients(audience, sources, [" PERSONNE@example.fr "]), []);
+  }
+  assert.equal(sources.members.length, 1);
+  assert.equal(sources.signers.length, 1);
+  assert.equal(
+    getMailSuppressionId(" PERSONNE@example.fr "),
+    getMailSuppressionId("personne@example.fr"),
+  );
+  assert.match(getMailSuppressionId("personne@example.fr"), /^[a-f0-9]{64}$/);
+});
+import {
+  canRetryFailedRecipients,
+  isDailySmtpQuotaError,
+  isMailDueForDelivery,
+} from "../functions/src/mailQueue.ts";
 
 // [SPEC-MAIL-03] The all audience contains members and signers, never press contacts.
 test("Tous fusionne membres et signataires, exclut les journalistes et déduplique les adresses", () => {
@@ -74,12 +144,25 @@ test("la reprise accepte les envois immédiats et échus, mais pas les envois fu
 
 // [SPEC-MAIL-03] Only Infomaniak's 24-hour quota error pauses a campaign.
 test("le quota quotidien SMTP est distingué des autres refus", () => {
-  assert.equal(isDailySmtpQuotaError({
-    responseCode: 451,
-    response: "451 4.3.0 You have reached the maximum number of sent emails within a 24-hours period.",
-  }), true);
-  assert.equal(isDailySmtpQuotaError({ responseCode: 451, response: "Temporary mailbox failure" }), false);
-  assert.equal(isDailySmtpQuotaError({ responseCode: 550, response: "maximum number of sent emails within a 24-hours period" }), false);
+  assert.equal(
+    isDailySmtpQuotaError({
+      responseCode: 451,
+      response:
+        "451 4.3.0 You have reached the maximum number of sent emails within a 24-hours period.",
+    }),
+    true,
+  );
+  assert.equal(
+    isDailySmtpQuotaError({ responseCode: 451, response: "Temporary mailbox failure" }),
+    false,
+  );
+  assert.equal(
+    isDailySmtpQuotaError({
+      responseCode: 550,
+      response: "maximum number of sent emails within a 24-hours period",
+    }),
+    false,
+  );
   assert.equal(isDailySmtpQuotaError(new Error("timeout")), false);
 });
 

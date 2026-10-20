@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, getDocs, query, where, deleteDoc, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import {
   Send,
@@ -15,11 +15,14 @@ import {
   FileSignature,
   Inbox,
   SendHorizontal,
+  UserMinus,
 } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import MailInbox from "./MailInbox";
 import MailSent from "./MailSent";
+import MailSuppressions from "./MailSuppressions";
+import NewsletterManager from "./NewsletterManager";
 import RecipientAutocomplete, {
   type RecipientOption,
 } from "@/app/components/RecipientAutocomplete";
@@ -79,7 +82,9 @@ const MenuBar = ({ editor }: { editor: any }) => {
 };
 
 export default function MailManager() {
-  const [activeView, setActiveView] = useState<"send" | "inbox" | "sent">("send");
+  const [activeView, setActiveView] = useState<
+    "send" | "inbox" | "sent" | "suppressions" | "newsletter"
+  >("newsletter");
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
   const [testMode, setTestMode] = useState(true);
@@ -95,8 +100,6 @@ export default function MailManager() {
   const [signatures, setSignatures] = useState<any[]>([]);
   const [journalistes, setJournalistes] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
-  const [bounceEmail, setBounceEmail] = useState("");
-  const [bounceLoading, setBounceLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -183,60 +186,6 @@ export default function MailManager() {
     }
   }, [editor]);
 
-  const handleCleanBounce = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const emailToClean = bounceEmail.trim().toLowerCase();
-    if (!emailToClean) return;
-
-    if (!confirm(`Voulez-vous vraiment nettoyer l'adresse ${emailToClean} de toutes les listes ?`))
-      return;
-
-    setBounceLoading(true);
-    try {
-      let found = false;
-
-      // 1. Check signatures
-      const sigQ = query(collection(db, "signatures"), where("email", "==", emailToClean));
-      const sigSnap = await getDocs(sigQ);
-      sigSnap.docs.forEach(async (d) => {
-        await deleteDoc(doc(db, "signatures", d.id));
-        found = true;
-      });
-
-      // 2. Check membres
-      const memQ = query(collection(db, "membres"));
-      const memSnap = await getDocs(memQ);
-      memSnap.docs.forEach(async (d) => {
-        if (d.data().email?.toLowerCase().trim() === emailToClean) {
-          await updateDoc(doc(db, "membres", d.id), { emailBounced: true });
-          found = true;
-        }
-      });
-
-      // 3. Check journalistes
-      const jourQ = query(collection(db, "journalistes"), where("email", "==", emailToClean));
-      const jourSnap = await getDocs(jourQ);
-      jourSnap.docs.forEach(async (d) => {
-        await deleteDoc(doc(db, "journalistes", d.id));
-        found = true;
-      });
-
-      if (found) {
-        alert(`L'adresse ${emailToClean} a été nettoyée avec succès.`);
-        setBounceEmail("");
-        // Reload data
-        const newSigSnap = await getDocs(collection(db, "signatures"));
-        setSignatures(newSigSnap.docs.map((d) => d.data()));
-      } else {
-        alert(`L'adresse ${emailToClean} n'a été trouvée dans aucune liste.`);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Erreur lors du nettoyage.");
-    }
-    setBounceLoading(false);
-  };
-
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim() || !htmlContent.trim() || htmlContent === "<p></p>") return;
@@ -290,8 +239,19 @@ export default function MailManager() {
       <div
         role="tablist"
         aria-label="Outils email"
-        className="flex gap-1 border-b border-stone-200"
+        className="flex flex-wrap gap-1 border-b border-stone-200"
       >
+        <button
+          type="button"
+          role="tab"
+          id="newsletter-tab"
+          aria-controls="newsletter-panel"
+          aria-selected={activeView === "newsletter"}
+          onClick={() => setActiveView("newsletter")}
+          className={`inline-flex min-h-11 items-center gap-2 border-b-2 px-4 text-sm font-semibold ${activeView === "newsletter" ? "border-emerald-700 text-emerald-900" : "border-transparent text-stone-600"}`}
+        >
+          <Send size={16} aria-hidden="true" /> Newsletter
+        </button>
         <button
           type="button"
           role="tab"
@@ -302,7 +262,7 @@ export default function MailManager() {
           className={`inline-flex min-h-11 items-center gap-2 border-b-2 px-4 text-sm font-semibold ${activeView === "send" ? "border-emerald-700 text-emerald-900" : "border-transparent text-stone-600 hover:text-stone-900"}`}
         >
           <Send size={16} aria-hidden="true" />
-          Envoyer
+          Envoi SMTP
         </button>
         <button
           type="button"
@@ -328,8 +288,27 @@ export default function MailManager() {
           <SendHorizontal size={16} aria-hidden="true" />
           Envoyés
         </button>
+        <button
+          type="button"
+          role="tab"
+          id="mail-suppressions-tab"
+          aria-controls="mail-suppressions-panel"
+          aria-selected={activeView === "suppressions"}
+          onClick={() => setActiveView("suppressions")}
+          className={`inline-flex min-h-11 items-center gap-2 border-b-2 px-4 text-sm font-semibold ${activeView === "suppressions" ? "border-emerald-700 text-emerald-900" : "border-transparent text-stone-600"}`}
+        >
+          <UserMinus size={16} aria-hidden="true" /> Désabonnements
+        </button>
       </div>
-      {activeView === "inbox" ? (
+      {activeView === "newsletter" ? (
+        <div role="tabpanel" id="newsletter-panel" aria-labelledby="newsletter-tab">
+          <NewsletterManager />
+        </div>
+      ) : activeView === "suppressions" ? (
+        <div role="tabpanel" id="mail-suppressions-panel" aria-labelledby="mail-suppressions-tab">
+          <MailSuppressions />
+        </div>
+      ) : activeView === "inbox" ? (
         <div role="tabpanel" id="mail-inbox-panel" aria-labelledby="mail-inbox-tab">
           <MailInbox />
         </div>

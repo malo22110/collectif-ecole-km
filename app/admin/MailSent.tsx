@@ -16,6 +16,7 @@ interface SentSummary {
   error: string | null;
   sentCount: number;
   failedCount: number;
+  suppressedCount?: number;
   recipientCount: number;
   recipientStatus: Record<string, number>;
 }
@@ -130,7 +131,12 @@ export default function MailSent() {
   };
 
   const retryFailed = async (mailId: string, failedCount: number) => {
-    if (!window.confirm(`Relancer uniquement les ${failedCount} destinataires en échec ? Vérifiez que le quota SMTP est à nouveau disponible.`)) return;
+    if (
+      !window.confirm(
+        `Relancer uniquement les ${failedCount} destinataires en échec ? Vérifiez que le quota SMTP est à nouveau disponible.`,
+      )
+    )
+      return;
     setRetrying(true);
     setError("");
     try {
@@ -231,6 +237,7 @@ export default function MailSent() {
                         : audienceLabels[item.target] || item.target}{" "}
                       · {item.sentCount}/{item.recipientCount} envoyé(s)
                       {item.failedCount ? ` · ${item.failedCount} échec(s)` : ""}
+                      {item.suppressedCount ? ` · ${item.suppressedCount} désabonné(s)` : ""}
                     </span>
                   </button>
                 </li>
@@ -259,6 +266,9 @@ export default function MailSent() {
                   État : {deliveryStatusLabels[selected.status] || selected.status} ·{" "}
                   {selected.sentCount} accepté(s) par SMTP, {selected.failedCount} échec(s),{" "}
                   {selected.recipientCount} destinataire(s)
+                  {selected.suppressedCount
+                    ? ` · ${selected.suppressedCount} exclu(s) pour désabonnement`
+                    : ""}
                 </p>
                 {selected.error?.includes("Quota quotidien SMTP") && selected.scheduledAt && (
                   <p role="status" className="text-sm text-amber-800">
@@ -301,9 +311,11 @@ export default function MailSent() {
                     <span className="shrink-0 text-xs text-stone-500">
                       {recipient.status === "sent"
                         ? formatDate(recipient.sentAt)
-                        : recipient.status === "error"
-                          ? "Échec"
-                          : "En attente"}
+                        : recipient.status === "suppressed"
+                          ? "Désabonné"
+                          : recipient.status === "error"
+                            ? "Échec"
+                            : "En attente"}
                     </span>
                   </li>
                 ))}

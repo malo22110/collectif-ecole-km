@@ -42,6 +42,7 @@ export async function GET(request: Request, context: { params: Promise<{ mailId:
           error: typeof data.error === "string" ? data.error : null,
           sentCount: Number(data.sentCount || 0),
           failedCount: Number(data.failedCount || 0),
+          suppressedCount: Number(data.suppressedCount || 0),
           recipientCount: Number(data.recipientCount || recipients.length),
           recipients: recipients.map((recipient: Record<string, unknown>) => ({
             email: String(recipient.email || ""),

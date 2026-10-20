@@ -14,6 +14,7 @@ const mailTransport_1 = require("./mailTransport");
 const mailInboxSync_1 = require("./mailInboxSync");
 const mailInboxUtils_1 = require("./mailInboxUtils");
 const mailQueue_1 = require("./mailQueue");
+const mailSuppression_1 = require("./mailSuppression");
 const magicLinkConfig_1 = require("./magicLinkConfig");
 (0, v2_1.setGlobalOptions)({ region: "europe-west9" });
 exports.envoyerMailBienvenue = (0, firestore_2.onDocumentUpdated)({
@@ -182,6 +183,25 @@ async function processSpreadMail(docSnap) {
         for (const deliveryRef of deliveries) {
             const recipient = deliveryRef.data();
             const email = String(recipient.email).trim().toLowerCase();
+            // [SPEC-MAIL-OPT-OUT-01] Recheck at delivery time, including historical retries.
+            const suppression = await firestore
+                .collection("mailSuppressions")
+                .doc((0, mailSuppression_1.getMailSuppressionId)(email))
+                .get();
+            if (suppression.exists) {
+                const batch = firestore.batch();
+                batch.update(deliveryRef.ref, {
+                    status: "suppressed",
+                    error: "Envoi exclu : désabonnement enregistré.",
+                    suppressedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+                batch.update(docSnap.ref, {
+                    suppressedCount: admin.firestore.FieldValue.increment(1),
+                    pendingCount: admin.firestore.FieldValue.increment(-1),
+                });
+                await batch.commit();
+                continue;
+            }
             const mailOptions = {
                 from: mailTransport_1.mailFrom,
                 replyTo: mailTransport_1.mailFrom.address,

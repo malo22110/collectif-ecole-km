@@ -1,5 +1,6 @@
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { z } from "zod";
+import { excludeSuppressedRecipients } from "@/lib/mailSuppressionServer";
 import {
   authorizeMailInboxStaff,
   mailInboxDb,
@@ -176,11 +177,13 @@ export async function GET(request: Request) {
         error: typeof data.error === "string" ? data.error : null,
         sentCount: Number(data.sentCount || 0),
         failedCount: Number(data.failedCount || 0),
+        suppressedCount: Number(data.suppressedCount || 0),
         recipientCount: Number(data.recipientCount || 0),
         recipientStatus: {
           pending: Number(data.pendingCount || 0),
           sent: Number(data.sentCount || 0),
           error: Number(data.failedCount || 0),
+          suppressed: Number(data.suppressedCount || 0),
         },
       };
     });
@@ -209,9 +212,10 @@ export async function POST(request: Request) {
         { error: "Vérifie l’objet, le contenu et le destinataire." },
         { status: 400 },
       );
-    const recipients = payload.data.testMode
+    const candidates = payload.data.testMode
       ? getPersonalTestRecipient(authorization.staff.email)
       : await getRecipients(payload.data.target, payload.data.recipientId);
+    const recipients = await excludeSuppressedRecipients(candidates);
     if (!recipients.length)
       return Response.json(
         { error: "Aucun destinataire éligible pour cette audience." },

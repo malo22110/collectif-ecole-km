@@ -1,5 +1,9 @@
 import { FieldValue } from "firebase-admin/firestore";
-import { authorizeMailInboxStaff, mailInboxDb, mailInboxErrorResponse } from "@/lib/mailInboxServer";
+import {
+  authorizeMailInboxStaff,
+  mailInboxDb,
+  mailInboxErrorResponse,
+} from "@/lib/mailInboxServer";
 import { canRetryFailedRecipients } from "@/functions/src/mailQueue";
 
 export const runtime = "nodejs";
@@ -17,20 +21,37 @@ export async function POST(request: Request, context: { params: Promise<{ mailId
 
   try {
     const mailRef = mailInboxDb.collection("mailOutbox").doc(mailId);
-    const failed = await mailRef.collection("recipients").where("status", "==", "error").limit(1001).get();
+    const failed = await mailRef
+      .collection("recipients")
+      .where("status", "==", "error")
+      .limit(1001)
+      .get();
     if (failed.empty || failed.size > 1000)
-      return Response.json({ error: "Aucun échec relançable ou limite dépassée." }, { status: 409 });
+      return Response.json(
+        { error: "Aucun échec relançable ou limite dépassée." },
+        { status: 409 },
+      );
 
     const claimed = await mailInboxDb.runTransaction(async (transaction) => {
       const current = await transaction.get(mailRef);
-      if (!current.exists || !canRetryFailedRecipients(
-        current.get("status"), current.get("failedCount"), current.get("pendingCount"), failed.size,
-      )) return false;
+      if (
+        !current.exists ||
+        !canRetryFailedRecipients(
+          current.get("status"),
+          current.get("failedCount"),
+          current.get("pendingCount"),
+          failed.size,
+        )
+      )
+        return false;
       transaction.update(mailRef, { status: "preparing" });
       return true;
     });
     if (!claimed)
-      return Response.json({ error: "Cette campagne n'est plus relançable. Actualisez la liste." }, { status: 409 });
+      return Response.json(
+        { error: "Cette campagne n'est plus relançable. Actualisez la liste." },
+        { status: 409 },
+      );
 
     for (let offset = 0; offset < failed.size; offset += 400) {
       const batch = mailInboxDb.batch();
@@ -53,7 +74,10 @@ export async function POST(request: Request, context: { params: Promise<{ mailId
       }
       await batch.commit();
     }
-    return Response.json({ retriedCount: failed.size }, { headers: { "Cache-Control": "private, no-store" } });
+    return Response.json(
+      { retriedCount: failed.size },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
   } catch (error) {
     return mailInboxErrorResponse(error, "Impossible de relancer les destinataires en échec.");
   }
